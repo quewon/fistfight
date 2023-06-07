@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>fistfight</title>
+    <style media="screen">
+      :root {
+        --bg: rgb(179, 79, 79);
+        --pain: red;
+        --text: white;
+      }
+
+      body {
+        font-family: monospace;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      #console {
+        position: fixed;
+        bottom: .5rem;
+        left: .5rem;
+      }
+      #console-output {
+        display: flex;
+        flex-direction: column;
+      }
+      #console-output > div {
+        display: block;
+        min-height: 1rem;
+        margin-top: auto;
+        word-break: break-all;
+        animation: delay .03s linear;
+        white-space: pre;
+      }
+      #console-output > div::before {
+        content: attr(data-dir);
+      }
+      #console-input {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        opacity: 0;
+      }
+
+      @keyframes delay {
+        0% { opacity: 0 }
+        100% { opacity: 0 }
+      }
+
+      #console.hit {
+        animation: hit .25s linear;
+      }
+      @keyframes hit {
+        0% { opacity: 0 }
+        24.9% { opacity: 0 }
+        25% { opacity: 1; color: var(--text); }
+        49.9% { opacity: 1; color: var(--text); }
+        50% { opacity: 0 }
+        74.9% { opacity: 0 }
+        75% { opacity: 1; color: var(--pain); }
+        100% { opacity: 1; color: var(--pain); }
+      }
+
+      #console.contact {
+        animation: contact .2s linear;
+      }
+      @keyframes contact {
+        0% { opacity: .3 }
+        100% { opacity: .3 }
+      }
+
+      .caret {
+        background: white;
+        color: var(--bg);
+      }
+
+      u {
+        text-decoration: none;
+        background: var(--text);
+        color: var(--bg);
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="console">
+      <input type="text" autofocus id="console-input" />
+
+      <div id="console-output">
+      </div>
+    </div>
+
+  </body>
+
+  <script type="text/javascript" src="console.js"></script>
+  <script type="text/javascript" src="commands.js"></script>
+  <script type="text/javascript">
+    line("you are stuck in a fistfight.");
+    line("there's only one way out.");
+    line();
+    line("", "type <u>h</u>elp to see a list of commands.");
+    line();
+    line(PLAYER_DIR);
+  </script>
+</html>
