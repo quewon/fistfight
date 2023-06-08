@@ -46,7 +46,7 @@ function updateLine() {
   const end = consoleInput.selectionEnd;
   const length = text.length;
 
-  var caret = "_";
+  var caret = " ";
   if (start != end) {
     caret = text.substring(start, end);
   } else if (end != length) {
@@ -104,7 +104,7 @@ consoleInput.addEventListener("keydown", async function(e) {
       consoleDisabled = true;
       if (_input != "") {
         commitTempToHistory();
-        
+
         const _command = _input.split(" ")[0];
 
         if (_command in COMMANDS) {

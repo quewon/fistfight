@@ -7,7 +7,15 @@ var UNKNOWN_COMMAND = function(input) {
 
 var SHORTCUTS = {
   "h": "help",
-  "c": "clear",
+  "s": "status",
+
+  "p": "punch",
+  "k": "kick"
+};
+
+var commandCategories = {
+  "system": ["help", "clear", "status"],
+  "action": ["punch", "kick", "block", "dodge", "grab", "release", "cry", "wait"]
 };
 
 var COMMANDS = {
@@ -19,16 +27,28 @@ var COMMANDS = {
   },
 
   "help": function() {
-    var string = listArray(Object.keys(COMMANDS));
-    for (let cmd in SHORTCUTS) {
-      string = string.replace(SHORTCUTS[cmd], SHORTCUTS[cmd].replace(cmd, "<u>"+cmd+"</u>"));
+    for (let category in commandCategories) {
+      line(category);
+      var string = listArray(commandCategories[category], { columns: 3, inset: 4, maxLength: 7 });
+      for (let cmd in SHORTCUTS) {
+        string = string.replace(SHORTCUTS[cmd], SHORTCUTS[cmd].replace(cmd, "<u>"+cmd+"</u>"));
+      }
+      line("", string);
+      line();
     }
-
-    line("", string);
-    line();
   },
   "clear": function() {
     clearConsole();
+  },
+
+  "status": function() {
+    line(": ", "<u>status check</u>");
+    line(listArray([
+      "YOU", "THEM",
+      "in pain.", "grinning.",
+    ], { columns: 2 }));
+
+    line();
   },
 
   "punch": async function() {
@@ -88,7 +108,7 @@ var COMMANDS = {
     } else {
       VARS["cried"] = true;
       line("you sob.");
-      await pause(500);
+      await pause(600);
       line("they hesitate.");
       await pause(600);
     }
@@ -118,29 +138,38 @@ function randomFromArray(array) {
   return array[Math.random() * array.length | 0];
 }
 
-function listArray(array) {
+function listArray(array, p) {
   const spacing = 4;
-  var maxLength = 0;
-  for (let item of array) {
-    if (item.length > maxLength) {
-      maxLength = item.length;
+  var maxLength = p.maxLength || 0;
+  if (maxLength == 0) {
+    for (let item of array) {
+      if (item.length > maxLength) {
+        maxLength = item.length;
+      }
     }
   }
 
   let string = "";
-  if (array.length >= 6) {
+  if (p.inset) {
+    for (let x=0; x<p.inset; x++) { string += " " }
+  }
+  if (p.columns && p.columns > 1) {
     let i=0;
     for (let item of array) {
       string += item;
 
       i++;
-      if (i==1) {
+      if (i == array.length) continue;
+      if (i < p.columns) {
         for (let x=0; x<maxLength + spacing - item.length; x++) {
           string += " ";
         }
       } else {
         i=0;
         string += "\n";
+        if (p.inset) {
+          for (let x=0; x<p.inset; x++) { string += " " }
+        }
       }
     }
   } else {
@@ -151,6 +180,8 @@ function listArray(array) {
       }
     }
   }
+
+  console.log(string);
 
   return string;
 }
