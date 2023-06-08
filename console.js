@@ -9,7 +9,12 @@ var commandHistory = [];
 var tempHistory = [""];
 var historyIndex = 1;
 
-function consoleEffect(className) {
+function consoleEffect(className, duration) {
+  if (duration) {
+    consoleElement.style["animation-duration"] = duration+"ms";
+  } else {
+    consoleElement.style["animation-duration"] = "";
+  }
   consoleElement.className = "";
   consoleElement.offsetHeight;
   consoleElement.classList.add(className);
@@ -40,6 +45,8 @@ function line(dir, html) {
 
 function updateLine() {
   if (consoleDisabled) return;
+
+  consoleInput.scrollLeft = 0;
 
   var text = consoleInput.value;
   const start = consoleInput.selectionStart;

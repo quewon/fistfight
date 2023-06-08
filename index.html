@@ -5,8 +5,11 @@
     <title>fistfight</title>
     <style media="screen">
       :root {
-        --bg: rgb(179, 79, 79);
+        --bg: #778285;
         --pain: red;
+        --text: white;
+
+        --bg: rgb(179, 79, 79);
         --text: white;
       }
 
@@ -21,20 +24,26 @@
         bottom: 0;
         left: 0;
         padding: .5rem;
+        /* width: min(max(50%, 500px), 100%); */
         width: 100%;
+        overflow: hidden;
         box-sizing: border-box;
       }
       #console-output {
         display: flex;
         flex-direction: column;
       }
-      #console-output > div {
+      #console-output > div, #console-input {
         display: block;
         min-height: 1rem;
-        margin-top: auto;
+        word-wrap: break-word;
         word-break: break-all;
-        animation: delay .03s linear;
         white-space: pre;
+        max-width: 100%;
+      }
+      #console-output > div {
+        margin-top: auto;
+        animation: delay .03s linear;
       }
       #console-output > div::before {
         content: attr(data-dir);
@@ -44,14 +53,14 @@
         opacity: 0;
         left: 0;
         bottom: 0;
-        padding: .5;
+        padding: .5rem;
         width: 100%;
         box-sizing: border-box;
-        height: 2rem;
-        padding-left: calc(1.25rem + 2px);
+        border: none;
+        outline: none;
+        padding-left: calc(.5rem + 2ch);
         font-family: inherit;
         font-size: inherit;
-        /* pointer-events: none; */
       }
 
       @keyframes delay {
@@ -82,7 +91,7 @@
       }
 
       .caret {
-        background: white;
+        background: var(--text);
         color: var(--bg);
       }
 
@@ -110,8 +119,8 @@
   <script type="text/javascript" src="console.js"></script>
   <script type="text/javascript" src="commands.js"></script>
   <script type="text/javascript">
-    line("you are stuck in a fistfight.");
-    line("there's only one way out.");
+    line("", "you are stuck in a fistfight.");
+    line("", "there's only one way out.");
     line();
     line("", "type <u>h</u>elp to see a list of commands.");
     line();
