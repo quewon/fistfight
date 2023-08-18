@@ -8,7 +8,6 @@ var SHORTCUTS = {
   "s": "status",
 
   "p": "punch",
-  "k": "kick",
 
   "w": "windup",
   "wind": "windup"
@@ -16,7 +15,7 @@ var SHORTCUTS = {
 
 var commandCategories = {
   "system": ["help", "clear", "status"],
-  "action": ["windup", "punch", "kick", "block", "dodge", "cry", "wait"]
+  "action": ["windup", "punch", "block", "dodge", "cry", "wait"]
 };
 
 var COMMANDS = {
@@ -34,7 +33,6 @@ var COMMANDS = {
         string = string.replace(SHORTCUTS[cmd], SHORTCUTS[cmd].replace(cmd, "<u>"+cmd+"</u>"));
       }
       line("", string);
-      line();
     }
   },
   "clear": function() {
@@ -42,7 +40,7 @@ var COMMANDS = {
   },
 
   "status": function() {
-    printGuysStatus([PLAYER, OPPONENT]);
+    PLAYER.readStatus([PLAYER, OPPONENT]);
 
     line();
   },
@@ -55,16 +53,12 @@ var COMMANDS = {
     }
 
     await PLAYER.wind(property);
+
     line();
   },
 
   "punch": async function() {
     await PLAYER.punch();
-
-    line();
-  },
-  "kick": async function() {
-    await PLAYER.kick();
 
     line();
   },
