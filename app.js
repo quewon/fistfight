@@ -266,6 +266,11 @@ class Game {
         return p.strength * (Math.min(p.windup, p.max_windup) + 1);
     }
 
+    blocked_punch_power(player_what) {
+        var pp = this.punch_power(player_what);
+        return Math.floor(pp/2);
+    }
+
     damage_player(player_what, amount) {
         this[player_what].health -= amount;
         if (this[player_what].health <= 0) {
@@ -346,8 +351,10 @@ class Game {
                 if (this.player2.windup > 0) {
                     this.player2.windup = 0;
                     this.player2.messages.push("me: got hit -- windups lost");
+                    this.player1.messages.push("opponent: got hit -- windups lost");
                 } else {
                     this.player2.messages.push("me: got hit -- windup failed");
+                    this.player1.messages.push("opponent: got hit -- windup failed");
                 }
                 if (this.player1.overpowered && this.player2.overpowered) {
                     this.phase_complete();
@@ -362,8 +369,10 @@ class Game {
                 if (this.player1.windup > 0) {
                     this.player1.windup = 0;
                     this.player1.messages.push("me: got hit -- windups lost");
+                    this.player2.messages.push("opponent: got hit -- windups lost");
                 } else {
                     this.player1.messages.push("me: got hit -- windup failed");
+                    this.player2.messages.push("opponent: got hit -- windup failed");
                 }
                 this.next_turn();
                 return;
@@ -372,22 +381,22 @@ class Game {
             // punch v block
 
             if (c1 == 'punch' && c2 == 'block') {
-                // let reduced = this.blocked_punch_power('player1');
-                this.damage_player('player2', 1);
+                let reduced = this.blocked_punch_power('player1');
+                this.damage_player('player2', reduced);
                 this.player1.windup = 0;
                 this.player2.windup = 1;
-                this.player2.messages.push("block successful -- hit for 1 damage");
+                this.player2.messages.push("block successful -- damage halved");
                 this.player1.messages.push("opponent: blocked punch");
                 this.next_turn();
                 return;
             }
 
             if (c1 == 'block' && c2 == 'punch') {
-                // let reduced = this.blocked_punch_power('player2');
-                this.damage_player('player1', 1);
+                let reduced = this.blocked_punch_power('player2');
+                this.damage_player('player1', reduced);
                 this.player1.windup = 1;
                 this.player2.windup = 0;
-                this.player1.messages.push("block successful -- hit for 1 damage");
+                this.player1.messages.push("block successful -- damage halved");
                 this.player2.messages.push("opponent: blocked punch");
                 this.next_turn();
                 return;
