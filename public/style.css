@@ -1,0 +1,403 @@
+html, body {
+    margin: 0;
+}
+
+:root {
+    --black: #1a1a1a;
+    --white: #fdfdfd;
+    --gray: lightgray;
+}
+
+body {
+    padding: .5em;
+    background: var(--white);
+    color: var(--black);
+}
+body.dragging, body.dragging * {
+    cursor: grabbing !important;
+}
+
+#fixed-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+body.hit #fixed-background {
+    border-top: 1px solid red;
+    border-bottom: 1px solid red;
+}
+
+button {
+    font-family: inherit;
+    font-size: inherit;
+    background-color: var(--white);
+    border: 1px dotted var(--black);
+    border-radius: 0;
+    cursor: pointer;
+    margin: 0;
+    padding: .5em;
+    position: relative;
+}
+button:active,
+button.locked,
+button:disabled {
+    border-style: solid;
+}
+
+button.locked,
+button:disabled {
+    cursor: default;
+}
+button:disabled {
+    border-color: var(--gray);
+}
+
+/* imagebutton */
+
+input {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+input[type="text"] {
+    border: none;
+    border-bottom: 1px dotted var(--black);
+    background: var(--white);
+    border-radius: 0;
+}
+input[type="text"]:focus {
+    border-bottom-style: solid;
+}
+input[type="text"]::placeholder {
+    font-style: italic;
+}
+
+input[type="image"] {
+    max-width: 300px;
+}
+
+.imagebutton {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: .5em;
+    pointer-events: none;
+}
+.imagebutton > * {
+    pointer-events: auto;
+}
+.imagebutton input[type="button"] {
+    padding: .5em;
+    background: var(--gray);
+}
+
+.imagebutton input {
+    border: 1px dotted transparent;
+    cursor: pointer;
+}
+.imagebutton.no-actions input {
+    cursor: default;
+}
+.imagebutton:not(.no-actions) input:focus,
+.imagebutton:not(.no-actions) input:hover {
+    border-color: var(--black);
+}
+.imagebutton.selected input,
+.imagebutton:has(button.locked) input {
+    border: 1px solid var(--black);
+}
+
+.imagebutton .tags-container,
+.imagebutton .actions-menu {
+    visibility: hidden;
+    pointer-events: none;
+}
+.imagebutton:has(input:hover) .tags-container,
+.imagebutton.selected .tags-container,
+.imagebutton.selected .actions-menu,
+.imagebutton:has(button.locked) .tags-container,
+.imagebutton:has(button.locked) .actions-menu {
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.imagebutton.overpowered > input {
+    border: 1px solid red !important;
+}
+
+.label {
+    position: absolute;
+    background: var(--black);
+    color: var(--white);
+    margin: .5em;
+    padding: .5em;
+    z-index: 11;
+    pointer-events: none;
+}
+
+.actions-menu .label {
+    width: 10em;
+    text-align: left;
+}
+
+.tags-container {
+    display: flex;
+    gap: .5em;
+    margin-bottom: .5em;
+}
+.tags-container .tag {
+    display: inline-block;
+    border: 1px solid var(--black);
+    border-radius: 2px;
+    padding: .2em .5em;
+}
+
+.actions-menu {
+    display: flex;
+    flex-direction: column;
+    gap: .5em;
+}
+.actions-menu button.selected {
+    background: var(--gray);
+}
+button.locked {
+    background: yellow;
+}
+.actions-menu:has(button.selected),
+.actions-menu:has(button.locked) {
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.stats {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    translate: 0 -100%;
+}
+.stats > div {
+    display: flex;
+    margin-bottom: .5em;
+}
+.stats > div > div {
+    width: 10px;
+    height: 10px;
+    margin-right: 1px;
+}
+
+.health > div {
+    border: 1px solid red;
+    background: red;
+    /* border-radius: 50%; */
+}
+.stats > .windup > div {
+    width: 1.3em;
+    height: 1em;
+}
+.windup > div:after {
+    content: "w";
+    display: inline-block;
+    width: inherit;
+    height: inherit;
+    text-align: center;
+    vertical-align: top;
+    font-style: italic;
+    background: var(--black);
+    color: var(--white);
+}
+.windup > div.empty:after {
+    background: var(--gray);
+}
+.stats div.empty,
+.stats > div > div.decrement {
+    background: transparent;
+}
+
+.stats > div > div.decrement {
+    animation: blank 1s linear;
+}
+@keyframes blank {
+    0% { }
+}
+
+.overpowered .stats {
+    display: none;
+}
+
+/* dialogue */
+
+.dialogue-container {
+    position: absolute;
+    z-index: 10;
+    width: max-content;
+    white-space: nowrap;
+}
+
+.dialogue {
+    border: 1px solid var(--black);
+    background: var(--white);
+    padding: .5em;
+    position: absolute;
+    cursor: default;
+}
+
+.dialogue.arrow-left {
+    top: .5em;
+    left: -2em;
+}
+
+.dialogue.arrow-right {
+    top: .5em;
+    right: -2em;
+}
+
+.dialogue.arrow-left:after,
+.dialogue.arrow-right:after,
+.dialogue.arrow-left:before,
+.dialogue.arrow-right:before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    width: .5em;
+    height: .5em;
+    background: var(--white);
+    rotate: 45deg;
+    translate: 0 -50%;
+    z-index: 10;
+}
+.dialogue.arrow-left:before,
+.dialogue.arrow-right:before {
+    background: var(--black);
+    translate: 0 calc(-50% + 1px);
+    z-index: 9;
+}
+.dialogue.arrow-right:after,
+.dialogue.arrow-right:before {
+    right: .5em;
+}
+.dialogue.arrow-left:after,
+.dialogue.arrow-left:before {
+    left: .5em;
+}
+
+/*  */
+
+.form {
+    padding: .5em;
+    border: 1px solid var(--black);
+    background: var(--white);
+    max-width: 300px;
+    position: absolute;
+    
+    display: flex;
+    flex-direction: column;
+    gap: .5em;
+
+    z-index: 10;
+}
+
+#match-form {
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+}
+
+#waiting-for-response {
+    display: none;
+}
+body.waiting #waiting-for-response {
+    display: block;
+}
+body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
+    display: none;
+}
+
+/* map */
+
+button.mapbutton {
+    opacity: 0;
+    pointer-events: none;
+    height: 0;
+    width: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.maplabel {
+    display: block;
+    position: absolute;
+    translate: -50% -50%;
+    pointer-events: none;
+    font-family: monospace;
+    font-size: .9em;
+    white-space: pre;
+}
+
+canvas.pointing {
+    cursor: pointer;
+}
+
+.canvas-container {
+    position: relative;
+}
+
+.mapgamedata {
+    font-family: monospace;
+    white-space: pre;
+}
+
+.mapgobutton {
+    position: absolute;
+    translate: -50% -150%;
+    z-index: 9;
+}
+.mapgobutton .label {
+    width: 6em;
+    text-align: left;
+}
+
+.ui-blink {
+    animation: blink 200ms steps(2, end);
+}
+
+body.phase-ended .ui-blink {
+    animation: blink-red 200ms steps(2, end);
+}
+
+@keyframes blink {
+    0% {
+        background: var(--black);
+        color: var(--white);
+    }
+    50% {
+        background: var(--white);
+        color: var(--black);
+    }
+}
+
+@keyframes blink-red {
+    0% {
+        background: red;
+        color: var(--white);
+    }
+    50% {
+        background: var(--white);
+        color: var(--black);
+    }
+}
+
+/* global */
+
+.gone {
+    display: none !important;
+}
+
+.monospace {
+    font-family: monospace;
+}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div id="fixed-background"></div>
+
+    <div id="host-form" class="form gone">
+        create a key.
+        <input type="text" placeholder="room name">
+        <button onclick="create_key(this.previousElementSibling.value)">create key and play</button>
+    </div>
+
+    <div id="join-form" class="form gone">
+        enter key.
+        <input type="text" placeholder="room name">
+        <button onclick="join_game(this.previousElementSibling.value)">join game</button>
+    </div>
+
+    <div id="match-form" class="form gone">
+        <div id="match-text">match found!</div>
+        <button id="match-confirm-button" onclick="confirm_match();">play</button>
+        <button onclick="cancel_match(); this.parentElement.classList.add('gone')">cancel</button>
+    </div>
+
+    <div id="no-opponent" class="gone">
+        waiting for opponent...<br>
+        the room key is <button onclick="navigator.clipboard.writeText(this.textContent); say('copied to clipboard', event.pageX, event.pageY)" id="room-key" class="monospace"></button>.<span id="invite-prompt"><br>you can also invite someone by sharing the game link!</span>
+    </div>
+
+    <div id="waiting-for-response">
+        action placed -- waiting for opponent...
+    </div>
+    
+</body>
+
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+
+<script src="js/lib/howler.core.min.js"></script>
+<script src="js/sounds.js"></script>
+
+<script src="js/classes/dialogue.js"></script>
+<script src="js/classes/imagebutton.js"></script>
+<script src="js/classes/thing.js"></script>
+<script src="js/classes/player.js"></script>
+<script src="js/classes/location.js"></script>
+<script src="js/classes/map.js"></script>
+
+<script src="js/dictionary.js"></script>
+<script src="js/ui.js"></script>
+
+<script src="js/game.js"></script>
+<script src="js/lobby.js"></script>
+<script>
+
+    const GAME_KEY = window.location.href.substring(window.location.href.lastIndexOf("/") + 1);
+
+    if (GAME_KEY != "") {
+        socket.on('connect', (attempt) => {
+            socket.emit('join game', GAME_KEY);
+        })
+    } else {
+        game.lobby.enter();
+    }
+
+</script>
+
+</html>
