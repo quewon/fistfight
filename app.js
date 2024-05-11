@@ -236,8 +236,8 @@ class Game {
                 }
     
                 if (command == 'block') {
-                    player.windup = 1;
-                    player.messages.push("blocked air");
+                    // player.windup = 1;
+                    player.messages.push("blocked air -- no windup");
                     return;
                 }
     

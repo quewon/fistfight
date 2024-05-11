@@ -196,7 +196,7 @@ class Opponent extends Player {
                 }
             },
             block: {
-                description: "get hit for half damage (rounded down). puts you on 1 WINDUP.",
+                description: "get hit for half damage (rounded down). puts you on 1 WINDUP if hit.",
                 function: function() { game_command('opponent', 'block', this) }
             },
             dodge: {
