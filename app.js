@@ -328,16 +328,16 @@ class Game {
             // punch v punch
 
             if (c1 == 'punch' && c2 == 'punch') {
-                let avg = ( this.punch_power('player1') + this.punch_power('player2') ) / 2;
-                this.damage_player('player1', avg);
-                this.damage_player('player2', avg);
+                // let avg = ( this.punch_power('player1') + this.punch_power('player2') ) / 2;
+                this.damage_player('player1', this.punch_power('player2'));
+                this.damage_player('player2', this.punch_power('player1'));
                 this.player1.windup = 0;
                 this.player2.windup = 0;
                 if (this.player1.overpowered && this.player2.overpowered) {
                     this.phase_complete();
                 } else {
-                    this.player1.messages.push("fist meets fist -- damage averaged");
-                    this.player2.messages.push("fist meets fist -- damage averaged");
+                    // this.player1.messages.push("fist meets fist -- damage averaged");
+                    // this.player2.messages.push("fist meets fist -- damage averaged");
                 }
                 this.next_turn();
                 return;
