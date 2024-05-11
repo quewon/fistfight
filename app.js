@@ -248,8 +248,8 @@ class Game {
             }
 
             if (player.overpowered) {
-                if (command == 'escape') {
-                    if (this.escape_success(player_what)) {
+                if (command == 'struggle') {
+                    if (this.struggle_success(player_what)) {
                         player.overpowered = false;
                         player.health = 1;
                         player.messages.push("me: ESCAPED HOLD");
@@ -290,7 +290,7 @@ class Game {
         return Math.random() <= this[player_what].dodge_chance;
     }
 
-    escape_success(player_what) {
+    struggle_success(player_what) {
         var player = this[player_what];
         var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
         var opponent = this[opponent_what];

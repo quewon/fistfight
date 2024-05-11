@@ -206,8 +206,11 @@ class Opponent extends Player {
         }
 
         var playerOverpoweredActions = {
-            escape: function() {
-                game_command('opponent', 'escape', this);
+            struggle: {
+                description: "chance (depending on STRENGTH ratio) of recovering 1 HEALTH",
+                function: function() {
+                    game_command('opponent', 'struggle', this);
+                }
             }
         }
 
