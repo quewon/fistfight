@@ -189,8 +189,11 @@ class Opponent extends Player {
                 description: "packs extra power into a punch.",
                 function: function() { game_command('opponent', 'windup', this) }
             },
-            "punch": function() {
-                game_command('opponent', 'punch', this);
+            "punch": {
+                description: "damages your opponent",
+                function: function() {
+                    game_command('opponent', 'punch', this);
+                }
             },
             block: {
                 description: "only get hit for -1 HEALTH. puts you on 1 WINDUP.",

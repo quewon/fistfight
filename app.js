@@ -697,7 +697,12 @@ io.on('connection', (socket) => {
     socket.on('game command', (data) => {
         var gameId = players[socket.id].game;
         var game = games[gameId];
+
+        if (!game) return;
+        
         var player_what = players[socket.id].player_what;
+
+        if (!player_what) return;
 
         var player = game[player_what];
         var opponent = game[player_what == 'player1' ? 'player2' : 'player1'];
