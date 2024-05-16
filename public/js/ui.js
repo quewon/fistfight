@@ -9,9 +9,14 @@ var ui = {
         joinForm: document.getElementById("join-form")
     },
     game: {
+        timer: document.getElementById("timer-background"),
+        container: document.getElementById("things"),
+
         noOpponent: document.getElementById("no-opponent"),
         roomKey: document.getElementById("room-key"),
         invitePrompt: document.getElementById("invite-prompt"),
+
+        log: document.getElementById("game-log"),
 
         location: document.createElement("span"),
         phase: document.createElement("span"),

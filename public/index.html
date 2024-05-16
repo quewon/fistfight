@@ -9,34 +9,46 @@
 
 <body>
 
+    <div id="timer-background"></div>
     <div id="fixed-background"></div>
 
-    <div id="host-form" class="form gone">
-        create a key.
-        <input type="text" placeholder="room name">
-        <button onclick="create_key(this.previousElementSibling.value)">create key and play</button>
-    </div>
+    <div style="display: flex; top: 0; left: 0; right: 0; bottom: 0; position: absolute; overflow: hidden;">
+        <div id="things" style="width: 100%; position: relative">
+            <div id="ui-container">
+                <div id="no-opponent" class="gone">
+                    <em>waiting for opponent...</em>
+                    the room key is <button onclick="navigator.clipboard.writeText(this.textContent); say('copied to clipboard', event.pageX, event.pageY)" id="room-key"></button>.<span id="invite-prompt">
+                    you can also invite someone by sharing the game link!</span>
+                </div>
+            
+                <div id="waiting-for-response">
+                    <em>action placed -- waiting for opponent...</em> (to <em>cancel action</em>, simply click off the button.)
+                </div>
+            </div>
+            
+            <div id="host-form" class="form gone">
+                create a key.
+                <input type="text" placeholder="room name">
+                <button onclick="create_key(this.previousElementSibling.value)">create key and play</button>
+            </div>
+        
+            <div id="join-form" class="form gone">
+                enter key.
+                <input type="text" placeholder="room name">
+                <button onclick="join_game(this.previousElementSibling.value)">join game</button>
+            </div>
+        
+            <div id="match-form" class="form gone">
+                <div id="match-text">match found!</div>
+                <button id="match-confirm-button" onclick="confirm_match();">play</button>
+                <button onclick="cancel_match(); this.parentElement.classList.add('gone')">cancel</button>
+            </div>
+        </div>
+    
+        <div id="game-log">
 
-    <div id="join-form" class="form gone">
-        enter key.
-        <input type="text" placeholder="room name">
-        <button onclick="join_game(this.previousElementSibling.value)">join game</button>
-    </div>
-
-    <div id="match-form" class="form gone">
-        <div id="match-text">match found!</div>
-        <button id="match-confirm-button" onclick="confirm_match();">play</button>
-        <button onclick="cancel_match(); this.parentElement.classList.add('gone')">cancel</button>
-    </div>
-
-    <div id="no-opponent" class="gone">
-        waiting for opponent...<br>
-        the room key is <button onclick="navigator.clipboard.writeText(this.textContent); say('copied to clipboard', event.pageX, event.pageY)" id="room-key" class="monospace"></button>.<span id="invite-prompt"><br>you can also invite someone by sharing the game link!</span>
-    </div>
-
-    <div id="waiting-for-response">
-        action placed -- waiting for opponent...<br>
-        you can click off the button to cancel!
+        </div>
+        <button id="log-toggle-button" onclick="ui.game.log.classList.toggle('gone'); this.textContent = ui.game.log.classList.contains('gone') ? 'log' : 'x'">x</button>
     </div>
     
 </body>

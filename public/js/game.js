@@ -32,11 +32,8 @@ game.start = async function(data) {
     ui.game.location.classList.add("ui-blink");
     ui.game.phase.classList.add("ui-blink");
     ui.game.time.classList.add("ui-blink");
-    ui.game.timeLabel = attach_label(ui.game.time, "");
 
     game.data = data;
-    ui.game.phase.textContent = ["morning", "afternoon", "night"][data.game.phase] + ", ";
-    ui.game.location.textContent = data.player.location;
 
     if (data.player.command || data.player.next_location) {
         socket.emit('cancel game command');
@@ -45,6 +42,8 @@ game.start = async function(data) {
     //
 
     await init_location(data);
+
+    update_log(data.player.log);
 }
 
 async function init_location(data) {
@@ -61,6 +60,8 @@ async function init_location(data) {
     } else {
         game.map = null;
     }
+
+    update_turn_info(data);
 
     for (let thingName of data.location) {
         var thingData = dictionary.things[thingName];
@@ -112,6 +113,10 @@ async function update_game(data) {
     }
 
     console.log("game updated");
+
+    clearTimeout(game.turn_timer);
+    document.body.classList.remove("timer-active");
+    game.timer_active = false;
 
     stop_waiting_for_response();
     close_action_menu();
@@ -188,13 +193,18 @@ async function update_game(data) {
     }
 
     if (data.game.phase != game.data.game.phase) {
-        // phase changed
+        if (data.game.shared_phase) {
+            update_log(data.player.log.slice(0, -2));
+        } else {
+            update_log(data.player.log.slice(0, -1));
+        }
 
         if (game.map) {
             ui.game.timeLabel.textContent = "time passes...";
             for (let time=game.data.player.time+1; time<=7; time++) {
                 sfx("ticking");
-                ui.game.time.textContent = (game.data.game.phase * 8 + time) + ":00";
+                // ui.game.time.textContent = (game.data.game.phase * 8 + time) + ":00";
+                ui.game.time.textContent = turn_to_time(game.data.game.phase, time, game.data.game.turns_this_phase);
                 ui.game.time.classList.remove("ui-blink");
                 ui.game.time.offsetWidth;
                 ui.game.time.classList.add("ui-blink");
@@ -226,18 +236,19 @@ async function update_game(data) {
 
         if (game.location) await game.location.exit();
     
-        ui.game.phase.textContent = ["morning", "afternoon", "night"][data.game.phase] + ", ";
-        ui.game.location.textContent = data.player.location;
-        ui.game.time.textContent = (data.game.phase * 8 + data.player.time) + ":00";
+        update_turn_info(data);
         sfx("ticking");
 
         await init_location(data);
+
+        update_log(data.player.log);
     } else {
         if (game.map) {
             ui.game.timeLabel.textContent = "time passes...";
             for (let time=game.data.player.time+1; time<=data.player.time; time++) {
                 sfx("ticking");
-                ui.game.time.textContent = (game.data.game.phase * 8 + time) + ":00";
+                // ui.game.time.textContent = (game.data.game.phase * 8 + time) + ":00";
+                ui.game.time.textContent = turn_to_time(game.data.game.phase, time, game.data.game.turns_this_phase);
                 ui.game.time.classList.remove("ui-blink");
                 ui.game.time.offsetWidth;
                 ui.game.time.classList.add("ui-blink");
@@ -245,23 +256,103 @@ async function update_game(data) {
             }
         }
 
+        // for now, only applies at the beginning of the game
+        // with the character selection location, you know
         if (game.data.player.location != data.player.location) {
             if (game.location) await game.location.exit();
-    
-            ui.game.phase.textContent = ["morning", "afternoon", "night"][data.game.phase] + ", ";
-            ui.game.location.textContent = data.player.location;
-            ui.game.time.textContent = (data.game.phase * 8 + data.player.time) + ":00";
+
             sfx("ticking");
 
             await init_location(data);
         }
+
+        update_turn_info(data);
+
+        update_log(data.player.log);
     }
 
-    ui.game.timeLabel.textContent = (8 - data.player.time) + "/8 turns left this phase";
+    if (data.game.shared_phase && !data.game.shared_phase_complete && data.game.shared_phase_timer != -1) {
+        let timer_duration = data.game.shared_phase_timer * 1000;
+        let remaining_time = timer_duration;
+        if (data.player.timer_started) {
+            remaining_time -= new Date().getTime() - data.player.timer_started;
+        } else {
+            socket.emit('timer started', new Date().getTime());
+        }
+
+        game.made_command = false;
+        document.body.classList.add("timer-active");
+        game.timer_active = true;
+
+        if (remaining_time <= 0) {
+            resolve_timer();
+        } else {
+            ui.game.timer.animate(
+                [
+                    { height: (remaining_time / timer_duration * 100) + "%" },
+                    { height: "0" }
+                ],
+                { duration: remaining_time }
+            );
+            game.turn_timer = setTimeout(resolve_timer, remaining_time);
+        }
+    }
 
     game.data = data;
     game.disable_actions = false;
     document.body.classList.remove("actions-disabled");
+}
+
+function resolve_timer() {
+    if (game.timer_active) {
+        document.body.classList.remove("timer-active");
+        game.timer_active = false;
+        if (!game.made_command) {
+            socket.emit('game command', {
+                thing: null,
+                command: 'timed out'
+            });
+        }
+    }
+}
+
+function update_turn_info(data) {
+    ui.game.phase.textContent = ["morning", "afternoon", "night"][data.game.phase] + ", ";
+    ui.game.location.textContent = data.player.location;
+    ui.game.time.textContent = turn_to_time(data.game.phase, data.player.time, data.game.turns_this_phase);
+    if (ui.game.timeLabel) ui.game.timeLabel.textContent = (data.game.turns_this_phase - data.player.time) + "/" + data.game.turns_this_phase + " turns left this phase";
+}
+
+function turn_to_time(phase, turn, turns_this_phase) {
+    let time = phase * 8 + turn * 8/turns_this_phase;
+    let hour = Math.floor(time);
+    let min = time % 1 * 60;
+
+    if (hour < 10) hour = "0" + hour;
+    if (min < 10) min = "0" + min;
+
+    return hour + ":" + min;
+}
+
+function update_log(log) {
+    for (let i=ui.game.log.children.length-1; i>=0; i--) {
+        let el = ui.game.log.children[i];
+        if (i >= log.length) {
+            el.remove();
+        } else if (el.innerHTML != log[i]) {
+            el.innerHTML = log[i];
+        }
+    }
+
+    if (ui.game.log.children.length < log.length) {
+        for (let i=ui.game.log.children.length; i<log.length; i++) {
+            let el = document.createElement("div");
+            el.innerHTML = log[i];
+            ui.game.log.appendChild(el);
+        }
+    }
+
+    ui.game.log.scrollTop = ui.game.log.scrollHeight;
 }
 
 function game_command(thing, command, button) {
@@ -273,6 +364,8 @@ function game_command(thing, command, button) {
         thing: thing,
         command: command
     });
+
+    game.made_command = true;
     
     if (game.data.game.shared_phase || command == 'select location') {
         start_waiting_for_response(button);
@@ -282,10 +375,12 @@ function game_command(thing, command, button) {
 function stop_waiting_for_response() {
     if (game.waiting_for_response) {
         socket.emit('cancel game command');
+        game.made_command = false;
         document.body.classList.remove("waiting");
         if (lockedButton) {
             lockedButton.classList.remove("locked");
             lockedButton = null;
+            game.saved_command = null;
         }
         game.waiting_for_response = false;
     }

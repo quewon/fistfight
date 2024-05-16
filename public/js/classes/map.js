@@ -20,7 +20,8 @@ class Map extends Thing {
         header.appendChild(timeElement);
         this.canvasContainer.appendChild(header);
 
-        ui.game.timeLabel = attach_label(timeElement, "X/8 actions left this phase");
+        ui.game.timeLabel = attach_label(timeElement, "");
+
         timeElement.style.position = "relative";
         timeElement.style.width = "fit-content";
 
@@ -166,7 +167,7 @@ class Map extends Thing {
         context.scale(window.devicePixelRatio, window.devicePixelRatio);
 
         context.lineWidth = 1;
-        if (game.data && game.data.player.time == 8) {
+        if (game.data && game.data.player.time == game.data.turns_this_phase) {
             context.strokeStyle = "red";
         } else {
             context.strokeStyle = "black";

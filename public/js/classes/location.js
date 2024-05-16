@@ -18,9 +18,9 @@ class Location {
 
             setTimeout(function() {
                 if (this.keep_in_back) {
-                    document.body.prepend(this.element);
+                    ui.game.container.prepend(this.element);
                 } else {
-                    document.body.appendChild(this.element);
+                    ui.game.container.appendChild(this.element);
                 }
             }.bind(thing.imageButton), duration);
 

@@ -9,7 +9,6 @@ html, body {
 }
 
 body {
-    padding: .5em;
     background: var(--white);
     color: var(--black);
 }
@@ -25,9 +24,19 @@ body.dragging, body.dragging * {
     bottom: 0;
     pointer-events: none;
 }
+#timer-background {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+}
 body.hit #fixed-background {
     border-top: 1px solid red;
     border-bottom: 1px solid red;
+}
+body.timer-active #timer-background {
+    background: rgb(255, 249, 205);
 }
 
 button {
@@ -76,6 +85,7 @@ input[type="text"]::placeholder {
 }
 
 input[type="image"] {
+    width: 100%;
     max-width: 300px;
 }
 
@@ -317,6 +327,24 @@ body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
     display: none;
 }
 
+/* ui */
+
+#ui-container {
+    font-family: monospace;
+}
+
+#ui-container > * {
+    padding: .5em;
+    background: var(--black);
+    color: var(--white);
+}
+
+#ui-container button {
+    background-color: var(--black);
+    border-color: var(--white);
+    color: inherit;
+}
+
 /* map */
 
 button.mapbutton {
@@ -390,6 +418,69 @@ body.phase-ended .ui-blink {
         background: var(--white);
         color: var(--black);
     }
+}
+
+#log-toggle-button,
+#game-log {
+    background: rgb(237, 237, 237, .8);
+    color: var(--black);
+}
+
+#game-log {
+    width: 50vw;
+    height: 100%;
+    min-width: 300px;
+    max-width: 400px;
+    padding: 1em;
+    font-family: monospace;
+
+    box-sizing: border-box;
+    overflow: auto;
+}
+#game-log em {
+    font-style: normal;
+    font-weight: bold;
+}
+#game-log > * {
+    margin-bottom: 5px;
+}
+#game-log > div > span {
+    display: block;
+    width: 100%;
+}
+#game-log .has-turn-info {
+    display: flex;
+    width: 100%;
+}
+#game-log .has-turn-info span:first-child {
+    display: block;
+    white-space: pre;
+    background: inherit;
+    padding-right: 1ch;
+}
+#game-log .has-turn-info span:last-child {
+    width: 100%;
+}
+#game-log .phase-starter {
+    margin-top: 1em;
+}
+#game-log .self {
+    background: rgb(205, 223, 244);
+}
+#game-log .opp {
+    background: rgb(255 175 110);
+}
+
+#log-toggle-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-family: monospace;
+    min-width: 3ch;
+    height: 3ch;
+    padding: 0 .5ch;
+    text-align: center;
+    line-height: 3ch;
 }
 
 /* global */

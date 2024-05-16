@@ -109,7 +109,7 @@ class ImageButton {
         this.clickOnDrop = true;
         this.element.classList.add("might-click");
 
-        if (!this.keep_in_back) document.body.appendChild(this.element);
+        if (!this.keep_in_back) ui.game.container.appendChild(this.element);
     }
 
     drop() {
