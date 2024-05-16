@@ -40,7 +40,7 @@ function stop_matchmaking() {
 
 var matchmakingButton = new Thing({
     position: { x: "20%", y: "20%" },
-    image: "res/images/lobby/jobs.jpg",
+    image: "lobby/jobs.jpg",
     actions: {
         "find match": function() {
             if (!game.matchmaking) {
@@ -120,7 +120,7 @@ socket.on('match cancelled', () => {
 
 var hostButton = new Thing({
     position: { x: "50%", y: "30%" },
-    image: "res/images/lobby/pc.jpg",
+    image: "lobby/pc.jpg",
     actions: {
         "host game": function(e) {
             reset_lobby();
@@ -137,7 +137,7 @@ var hostButton = new Thing({
 
 var joinButton = new Thing({
     position: { x: "20%", y: "50%" },
-    image: "res/images/lobby/phone.png",
+    image: "lobby/phone.png",
     actions: {
         "join game": function(e) {
             reset_lobby();

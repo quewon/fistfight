@@ -11,7 +11,8 @@ class Game {
             },
             characters: {
                 "bill": {
-                    text: "bill",
+                    name: "bill",
+                    image: "characters/bill.png",
                     lines: [
                         "not for the faint of heart",
                         "warning: WILL MURDER"
@@ -27,7 +28,8 @@ class Game {
                 },
 
                 "jim beans": {
-                    text: "jim beans",
+                    name: "jim beans",
+                    image: "characters/jim beans.png",
                     lines: [
                         "professional sneaker",
                         "international super spy"
@@ -165,6 +167,7 @@ class Game {
     
         return {
             character: data.character,
+            image: data.image,
             health: data.health,
             windup: data.windup,
             max_windup: data.max_windup,

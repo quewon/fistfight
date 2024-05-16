@@ -89,6 +89,11 @@ input[type="image"] {
     max-width: 300px;
 }
 
+.imagebutton.character input[type="image"] {
+    max-width: 150px;
+    max-height: 200px;
+}
+
 .imagebutton {
     position: absolute;
     display: flex;
@@ -112,7 +117,7 @@ input[type="image"] {
     cursor: default;
 }
 .imagebutton:not(.no-actions) input:focus,
-.imagebutton:not(.no-actions) input:hover {
+.imagebutton input:hover {
     border-color: var(--black);
 }
 .imagebutton.selected input,
@@ -194,41 +199,16 @@ button.locked {
     display: flex;
     margin-bottom: .5em;
 }
-.stats > div > div {
-    width: 10px;
-    height: 10px;
-    margin-right: 1px;
-}
-
-.health > div {
-    border: 1px solid red;
-    background: red;
-    /* border-radius: 50%; */
-}
-.stats > .windup > div {
-    width: 1.3em;
+.stats img {
+    width: 1em;
     height: 1em;
 }
-.windup > div:after {
-    content: "w";
-    display: inline-block;
-    width: inherit;
-    height: inherit;
-    text-align: center;
-    vertical-align: top;
-    font-style: italic;
-    background: var(--black);
-    color: var(--white);
-}
-.windup > div.empty:after {
-    background: var(--gray);
-}
-.stats div.empty,
-.stats > div > div.decrement {
-    background: transparent;
+.stats img.empty,
+.stats img.decrement {
+    opacity: .2;
 }
 
-.stats > div > div.decrement {
+.stats img.decrement {
     animation: blank 1s linear;
 }
 @keyframes blank {

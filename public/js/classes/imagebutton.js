@@ -69,9 +69,20 @@ class ImageButton {
         }
 
         this.buttonElement = document.createElement("input");
+        this.element.appendChild(this.buttonElement);
         if (p.image) {
             this.buttonElement.type = "image";
-            this.buttonElement.src = p.image;
+            this.buttonElement.src = "res/images/"+p.image;
+
+            if (p.text) {
+                let textElement = document.createElement("span");
+                textElement.textContent = p.text;
+                this.element.appendChild(textElement);
+            }
+
+            if (p.alt) {
+                this.buttonElement.alt = p.alt;
+            }
         } else if (p.text) {
             this.buttonElement.type = "button";
             this.buttonElement.value = p.text;
@@ -81,7 +92,6 @@ class ImageButton {
         this.buttonElement.addEventListener("mousedown", function(e) {
             this.drag(e);
         }.bind(this));
-        this.element.appendChild(this.buttonElement);
 
         if (p.label) {
             var label = attach_label(this.buttonElement, p.label);

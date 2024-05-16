@@ -5,16 +5,19 @@ class Player extends Thing {
         this.statsElement = document.createElement("div");
         this.statsElement.className = "stats";
         this.imageButton.element.appendChild(this.statsElement);
+        this.imageButton.element.classList.add("character");
 
         this.stats = {
             windup: {
                 element: this.createStatElement("windup"),
                 count: 0,
-                max: 0
+                max: 0,
+                icons_count: 5
             },
             health: {
                 element: this.createStatElement("health"),
-                count: 0
+                count: 0,
+                icons_count: 6
             }
         }
     }
@@ -37,16 +40,18 @@ class Player extends Thing {
 
         if (this.stats[statName].max) {
             for (let i=0; i<this.stats[statName].max; i++) {
-                let dot = document.createElement("div");
-                element.appendChild(dot);
+                let icon = document.createElement("img");
+                icon.src = "res/images/stats/"+statName+"/"+(i % this.stats[statName].icons_count + 1)+".png";
+                element.appendChild(icon);
                 if (i >= count) {
-                    dot.classList.add("empty");
+                    icon.classList.add("empty");
                 }
             }
         } else {
             for (let i=0; i<count; i++) {
-                let dot = document.createElement("div");
-                element.appendChild(dot);
+                let icon = document.createElement("img");
+                icon.src = "res/images/stats/"+statName+"/"+(i % this.stats[statName].icons_count + 1)+".png";
+                element.appendChild(icon);
             }
         }
     }
@@ -93,22 +98,22 @@ class Player extends Thing {
             if (this.stats[statName].count < 0) this.stats[statName].count = 0;
 
             for (let i=0; i<this.stats[statName].max; i++) {
-                let dot = element.children[i];
+                let icon = element.children[i];
                 if (i >= this.stats[statName].count) {
-                    dot.classList.add("empty");
+                    icon.classList.add("empty");
                 } else {
-                    dot.classList.remove("empty");
+                    icon.classList.remove("empty");
                 }
             }
         } else {
             if (this.stats[statName].count - 1 >= 0) {
                 for (let i=this.stats[statName].count-1; i>=0; i--) {
-                    let dot = element.children[i];
-                    if (dot.classList.contains("decrement")) {
+                    let icon = element.children[i];
+                    if (icon.classList.contains("decrement")) {
                         continue;
                     } else {
-                        dot.classList.add("decrement");
-                        dot.onanimationend = function() { this.remove() }
+                        icon.classList.add("decrement");
+                        icon.onanimationend = function() { this.remove() }
                         break;
                     }
                 }
@@ -127,16 +132,20 @@ class Player extends Thing {
             if (this.stats[statName].count > this.stats[statName].max) this.stats[statName].count = this.stats[statName].max;
 
             for (let i=0; i<this.stats[statName].max; i++) {
-                let dot = element.children[i];
+                let icon = element.children[i];
                 if (i >= this.stats[statName].count) {
-                    dot.classList.add("empty");
+                    icon.classList.add("empty");
                 } else {
-                    dot.classList.remove("empty");
+                    icon.classList.remove("empty");
                 }
             }
         } else {
-            let dot = document.createElement("div");
-            this.stats[statName].element.appendChild(dot);
+            let icon = document.createElement("img");
+
+            let i = this.stats[statName].count % this.stats[className].icons_count + 1;
+            icon.src = "res/images/stats/"+statName+"/"+i+".png";
+
+            this.stats[statName].element.appendChild(icon);
             this.stats[statName].count++;
         }
     }
@@ -149,8 +158,9 @@ class Player extends Thing {
 class PlayerSelector extends Player {
     constructor(name, data) {
         super({
-            position: { x: random(20, 80) + "%", y: random(20, 80) + "%" },
-            text: data.text,
+            position: { x: random(30, 70) + "%", y: random(30, 70) + "%" },
+            text: data.name,
+            image: data.image,
             label: data.job,
         });
 
@@ -172,7 +182,8 @@ class You extends Player {
         super({
             position: { x: "20%", y: "20%" },
             label: "you",
-            text: data.character
+            text: data.character,
+            image: data.image
         });
 
         this.setStat('health', data.health);
@@ -225,6 +236,7 @@ class Opponent extends Player {
             position: { x: "60%", y: "50%" },
             label: "opponent",
             text: data.character,
+            image: data.image,
             actions: fightActions
         })
 

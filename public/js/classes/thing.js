@@ -5,7 +5,7 @@ class Thing {
         this.imageButton = new ImageButton({
             position: p.position || { x: "20%", y: "20%" },
             image: p.image,
-            text: p.text || "no image",
+            text: p.text,
             label: p.label,
             tags: p.tags,
             actions: p.actions,

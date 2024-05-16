@@ -14,7 +14,8 @@ var dictionary = {
         "character selection title": {
             class: "Thing",
             construction: {
-                text: "select your character",
+                image: "character select.png",
+                alt: "select your character",
                 keep_in_back: true
             }
         },
