@@ -1,7 +1,8 @@
 const dictionary = require('./dictionary')
 
 class Game {
-    constructor(id, isCustom) {
+    constructor(server, id, isCustom) {
+        this.server = server;
         this.hidden = {
             locations: {
                 "character selection": [
@@ -160,12 +161,12 @@ class Game {
         }
     }
 
-    update(io, player_what) {
+    update(player_what) {
         if (this.player1.id && (!player_what || player_what == 'player1')) {
-            io.to(this.player1.id).emit('game update', this.dumb_data('player1'));
+            this.server.to(this.player1.id).emit('game update', this.dumb_data('player1'));
         }
         if (this.player2.id && (!player_what || player_what == 'player2')) {
-            io.to(this.player2.id).emit('game update', this.dumb_data('player2'));
+            this.server.to(this.player2.id).emit('game update', this.dumb_data('player2'));
         }
     }
 

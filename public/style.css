@@ -6,6 +6,7 @@ html, body {
     --black: #1a1a1a;
     --white: #fdfdfd;
     --gray: lightgray;
+    --lightgray: rgb(238, 238, 238);
 }
 
 body {
@@ -410,7 +411,7 @@ body.phase-ended .ui-blink {
 
 #log-toggle-button,
 #game-log {
-    background: rgb(237, 237, 237, .8);
+    background: var(--lightgray);
     color: var(--black);
 }
 

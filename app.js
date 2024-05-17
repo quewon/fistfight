@@ -29,7 +29,7 @@ const Game = require('./Game')
 
 const players = {}
 const games = {
-    test: new Game("test", true)
+    test: new Game(io, "test", true)
 }
 
 io.on('connection', (socket) => {
@@ -107,7 +107,7 @@ io.on('connection', (socket) => {
         players[socket.id].match_confirmed = true;
         if (players[matchId].match == socket.id && players[matchId].match_confirmed) {
             var gameId = unique_game_id(socket.id, matchId);
-            games[gameId] = new Game(gameId);
+            games[gameId] = new Game(io, gameId);
 
             console.log("game started : " + gameId);
 
@@ -135,7 +135,7 @@ io.on('connection', (socket) => {
         if (games[key]) {
             socket.emit('key is in use');
         } else {
-            games[key] = new Game(key, true);
+            games[key] = new Game(io, key, true);
             console.log("game started : " + key);
             socket.emit('game created', key);
         }
@@ -155,7 +155,7 @@ io.on('connection', (socket) => {
                 console.log("user (" + socket.id + ") joined game : " + gameId);
 
                 io.to(game[player_what].opponent).emit('player joined');
-                game.update(io, player_what);
+                game.update(player_what);
             } else {
                 socket.emit('tried to join full game');
             }
@@ -191,7 +191,7 @@ io.on('connection', (socket) => {
                 if (game.player1.next_location && game.player2.next_location) {
                     game.next_phase();
                 } else if (data.command != 'select location') {
-                    game.update(io);
+                    game.update();
                 }
             }
         } else {
@@ -202,7 +202,7 @@ io.on('connection', (socket) => {
             if (game.player1.next_location && game.player2.next_location) {
                 game.next_phase();
             } else if (data.command != 'select location') {
-                game.update(io, player_what);
+                game.update(player_what);
             }
         }
     })
