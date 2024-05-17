@@ -1,6 +1,7 @@
 var mouse = { x: -1, y: -1 };
 var draggingElement;
 var selectedElement;
+var lockedButton;
 
 function close_action_menu() {
     if (game.disable_actions) return;
@@ -68,8 +69,11 @@ class ImageButton {
             this.element.appendChild(this.tagsContainer);
         }
 
+        this.buttonWrapper = document.createElement("div");
+        this.buttonWrapper.className = "input-wrapper";
         this.buttonElement = document.createElement("input");
-        this.element.appendChild(this.buttonElement);
+        this.buttonWrapper.appendChild(this.buttonElement);
+        this.element.appendChild(this.buttonWrapper);
         if (p.image) {
             this.buttonElement.type = "image";
             this.buttonElement.src = "res/images/"+p.image;
@@ -236,10 +240,12 @@ function attach_label(element, text) {
 
     element.addEventListener("focus", function() {
         if (this.classList.contains("gone")) {
-            let x = this.parentElement.clientWidth;
-            let y = 0;
-            this.style.left = x+"px";
-            this.style.top = y+"px";
+            if (this.tabIndex != -1) {
+                let x = this.parentElement.clientWidth;
+                let y = 0;
+                this.style.left = x+"px";
+                this.style.top = y+"px";
+            }
             this.classList.remove("gone");
         }
     }.bind(label));

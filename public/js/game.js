@@ -1,12 +1,39 @@
 const socket = io();
 
-var lockedButton;
+const classLookup = {
+    "Thing": Thing,
+    "MissionPrompt": MissionPrompt
+}
 
 var game = {
     matchmaking: false,
+
     data: null,
-    waiting_for_response: false
+    waiting_for_response: false,
+
+    map: null,
+    player: null,
+    opponent: null,
+    location_name: null,
+    location: null,
+
+    disable_actions: false,
+    timer_active: false,
+    made_command: false,
+    turn_timer: null,
 }
+
+socket.on('player joined', () => {
+    console.log("player joined");
+    ui.game.noOpponent.classList.add("gone");
+})
+
+socket.on('player offline', () => {
+    console.log("player offline");
+    ui.game.noOpponent.classList.remove("gone");
+})
+
+socket.on('game update', update_game);
 
 game.start = async function(data) {
     console.log("game start!");
@@ -63,9 +90,9 @@ async function init_location(data) {
 
     update_turn_info(data);
 
-    for (let thingName of data.location) {
-        var thingData = dictionary.things[thingName];
-        var thing = new dictionary.classLookup[thingData.class](thingData.construction);
+    for (let thing_name in data.location) {
+        let thing_data = data.location[thing_name];
+        var thing = new classLookup[thing_data.class](thing_data.construction || {});
         locationThings.push(thing);
     }
 
@@ -94,18 +121,6 @@ async function init_location(data) {
     game.location = new Location({ things: locationThings });
     await game.location.enter();
 }
-
-socket.on('player joined', () => {
-    console.log("player joined");
-    ui.game.noOpponent.classList.add("gone");
-})
-
-socket.on('player offline', () => {
-    console.log("player offline");
-    ui.game.noOpponent.classList.remove("gone");
-})
-
-socket.on('game update', update_game);
 
 async function update_game(data) {
     if (!game.data) {
@@ -323,17 +338,6 @@ function update_turn_info(data) {
     if (ui.game.timeLabel) ui.game.timeLabel.textContent = (data.game.turns_this_phase - data.player.time) + "/" + data.game.turns_this_phase + " turns left this phase";
 }
 
-function turn_to_time(phase, turn, turns_this_phase) {
-    let time = phase * 8 + turn * 8/turns_this_phase;
-    let hour = Math.floor(time);
-    let min = time % 1 * 60;
-
-    if (hour < 10) hour = "0" + hour;
-    if (min < 10) min = "0" + min;
-
-    return hour + ":" + min;
-}
-
 function update_log(log) {
     for (let i=ui.game.log.children.length-1; i>=0; i--) {
         let el = ui.game.log.children[i];
@@ -393,6 +397,19 @@ function start_waiting_for_response(button) {
         button.classList.add("locked");
     }
     game.waiting_for_response = true;
+}
+
+//
+
+function turn_to_time(phase, turn, turns_this_phase) {
+    let time = phase * 8 + turn * 8/turns_this_phase;
+    let hour = Math.floor(time);
+    let min = time % 1 * 60;
+
+    if (hour < 10) hour = "0" + hour;
+    if (min < 10) min = "0" + min;
+
+    return hour + ":" + min;
 }
 
 function random(min, max) {

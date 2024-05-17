@@ -87,6 +87,7 @@ input[type="text"]::placeholder {
 input[type="image"] {
     width: 100%;
     max-width: 300px;
+    max-height: 300px;
 }
 
 .imagebutton.character input[type="image"] {
@@ -100,8 +101,14 @@ input[type="image"] {
     flex-direction: column;
     gap: .5em;
     pointer-events: none;
+    width: max-content;
 }
-.imagebutton > * {
+.imagebutton .input-wrapper {
+    position: relative;
+    pointer-events: none;
+}
+.imagebutton > *,
+.imagebutton .input-wrapper > input {
     pointer-events: auto;
 }
 .imagebutton input[type="button"] {
@@ -206,6 +213,7 @@ button.locked {
 .stats img.empty,
 .stats img.decrement {
     opacity: .2;
+    filter: grayscale(100%);
 }
 
 .stats img.decrement {
