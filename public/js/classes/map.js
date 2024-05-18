@@ -81,10 +81,6 @@ class Map extends Thing {
             element.className = "mapbutton";
             this.imageButton.element.appendChild(element);
 
-            if (location == data.player.location) {
-                element.tabIndex = -1;
-            }
-
             element.onfocus = function() {
                 this.focused = true;
             }.bind(l);
@@ -160,14 +156,36 @@ class Map extends Thing {
         }
     }
 
+    disable(message) {
+        for (let location in this.map) {
+            var l = this.map[location];
+
+            l.element.setAttribute("disabled", true);
+            l.element.tabIndex = -1;
+        }
+        this.disabledLabel = attach_label(this.canvasContainer, message);
+    }
+
+    enable() {
+        if (this.disabledLabel) this.disabledLabel.remove();
+        for (let location in this.map) {
+            var l = this.map[location];
+
+            l.element.removeAttribute("disabled");
+            l.element.tabIndex = 0;
+        }
+    }
+
     draw() {
         var context = this.context;
+
+        context.clearRect(0, 0, this.width, this.height);
 
         context.resetTransform();
         context.scale(window.devicePixelRatio, window.devicePixelRatio);
 
         context.lineWidth = 1;
-        if (game.data && game.data.player.time == game.data.turns_this_phase) {
+        if (game.data && game.data.player.phase_complete) {
             context.strokeStyle = "red";
         } else {
             context.strokeStyle = "black";
@@ -304,7 +322,11 @@ class Map extends Thing {
             var button = this.map[this.selectedLocation].is_current_location ? this.endPhaseButton : this.goButton;
             button.style.left = label.style.left;
             button.style.top = label.style.top;
-            this.canvasContainer.appendChild(button);
+
+            var location_button = this.map[this.selectedLocation].element;
+            location_button.parentElement.insertBefore(button, location_button.nextSibling);
+
+            // this.canvasContainer.appendChild(button);
         } else {
             if (lockedButton == this.goButton || lockedButton == this.endPhaseButton) {
                 lockedButton.classList.remove("locked");

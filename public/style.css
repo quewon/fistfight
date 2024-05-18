@@ -50,6 +50,14 @@ button {
     margin: 0;
     padding: .5em;
     position: relative;
+
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Edge, Opera and Firefox */
 }
 button:active,
 button.locked,
@@ -89,6 +97,8 @@ input[type="image"] {
     width: 100%;
     max-width: 300px;
     max-height: 300px;
+    width: auto;
+    height: auto;
 }
 
 .imagebutton.character input[type="image"] {
@@ -103,6 +113,14 @@ input[type="image"] {
     gap: .5em;
     pointer-events: none;
     width: max-content;
+
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Edge, Opera and Firefox */
 }
 .imagebutton .input-wrapper {
     position: relative;
@@ -122,7 +140,7 @@ input[type="image"] {
     cursor: pointer;
 }
 .imagebutton.no-actions input {
-    cursor: default;
+    cursor: grab;
 }
 .imagebutton:not(.no-actions) input:focus,
 .imagebutton input:hover {
@@ -210,6 +228,7 @@ button.locked {
 .stats img {
     width: 1em;
     height: 1em;
+    pointer-events: none;
 }
 .stats img.empty,
 .stats img.decrement {
@@ -371,7 +390,7 @@ canvas.pointing {
 
 .mapgobutton {
     position: absolute;
-    translate: -50% -150%;
+    translate: -50% calc(-100% - .5em);
     z-index: 9;
 }
 .mapgobutton .label {

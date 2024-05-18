@@ -184,26 +184,26 @@ io.on('connection', (socket) => {
         if (game.game.shared_phase) {
             if (player.command && opponent.command) {
                 game.process_simul_commands();
-
-                delete player.command;
-                delete opponent.command;
                 
                 if (game.player1.next_location && game.player2.next_location) {
                     game.next_phase();
-                } else if (data.command != 'select location') {
+                } else {
                     game.update();
                 }
+
+                delete player.command;
+                delete opponent.command;
             }
         } else {
             game.process_command(player_what);
-
-            delete player.command;
 
             if (game.player1.next_location && game.player2.next_location) {
                 game.next_phase();
             } else if (data.command != 'select location') {
                 game.update(player_what);
             }
+
+            delete player.command;
         }
     })
 

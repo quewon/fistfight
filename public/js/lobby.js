@@ -39,6 +39,7 @@ function stop_matchmaking() {
 }
 
 var matchmakingButton = new Thing({
+    label: "find match",
     position: { x: "20%", y: "20%" },
     image: "lobby/jobs.jpg",
     actions: {
@@ -119,6 +120,7 @@ socket.on('match cancelled', () => {
 //
 
 var hostButton = new Thing({
+    label: "host game",
     position: { x: "50%", y: "30%" },
     image: "lobby/pc.jpg",
     actions: {
@@ -136,6 +138,7 @@ var hostButton = new Thing({
 });
 
 var joinButton = new Thing({
+    label: "join game",
     position: { x: "20%", y: "50%" },
     image: "lobby/phone.png",
     actions: {

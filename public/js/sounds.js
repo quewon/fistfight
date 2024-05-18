@@ -2,6 +2,7 @@ var _sounds = {
     "boxing bell": new Howl({ src: "res/sounds/boxing bell.wav" }),
     ticking: new Howl({ src: "res/sounds/ticking.wav" }),
     hit: new Howl({ src: "res/sounds/hit.wav" }),
+    dodge: new Howl({ src: "res/sounds/dodge.wav" }),
     click: [
         new Howl({ src: "res/sounds/click/1.wav", volume: .2 }),
         new Howl({ src: "res/sounds/click/2.wav", volume: .2 }),

@@ -158,6 +158,14 @@ async function update_game(data) {
             await wait(300);
             document.body.classList.remove("hit");
         }
+
+        if (data.player.command) {
+            let c = data.player.command.command;
+            if (c == 'dodge' && curr.dodge_successful) {
+                sfx("dodge");
+                await wait(300);
+            }
+        }
     }
 
     if (game.opponent && data.opponent) {
@@ -169,6 +177,16 @@ async function update_game(data) {
             game.opponent.setActions(game.opponent.opponentOverpoweredActions);
         } else {
             game.opponent.setActions(game.opponent.fightActions);
+        }
+
+        let curr = data.opponent;
+
+        if (data.opponent.command) {
+            let c = data.opponent.command.command;
+            if (c == 'dodge' && curr.dodge_successful) {
+                sfx("dodge");
+                await wait(300);
+            }
         }
     }
 
@@ -216,14 +234,18 @@ async function update_game(data) {
 
         if (game.map) {
             ui.game.timeLabel.textContent = "time passes...";
-            for (let time=game.data.player.time+1; time<=7; time++) {
-                sfx("ticking");
-                // ui.game.time.textContent = (game.data.game.phase * 8 + time) + ":00";
+            for (let time=game.data.player.time+1; time<game.data.game.turns_this_phase; time++) {
                 ui.game.time.textContent = turn_to_time(game.data.game.phase, time, game.data.game.turns_this_phase);
                 ui.game.time.classList.remove("ui-blink");
                 ui.game.time.offsetWidth;
                 ui.game.time.classList.add("ui-blink");
-                await wait(500);
+
+                if (!game.data.game.shared_phase || time%2==0) sfx("ticking");
+                if (game.data.game.shared_phase) {
+                    await wait(250);
+                } else {
+                    await wait(500);
+                }
             }
         }
 
@@ -332,7 +354,7 @@ function resolve_timer() {
 }
 
 function update_turn_info(data) {
-    ui.game.phase.textContent = ["morning", "afternoon", "night"][data.game.phase] + ", ";
+    ui.game.phase.textContent = data.game.phases[data.game.phase] + ", ";
     ui.game.location.textContent = data.player.location;
     ui.game.time.textContent = turn_to_time(data.game.phase, data.player.time, data.game.turns_this_phase);
     if (ui.game.timeLabel) ui.game.timeLabel.textContent = (data.game.turns_this_phase - data.player.time) + "/" + data.game.turns_this_phase + " turns left this phase";

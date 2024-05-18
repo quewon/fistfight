@@ -3,20 +3,18 @@ const dictionary = require('./dictionary')
 class Game {
     constructor(server, id, isCustom) {
         this.server = server;
-        this.hidden = {
-            locations: {
-                "character selection": [
-                    "character selection title"
-                ],
+        this.locations = {
+            "character selection": [
+                "character selection title"
+            ],
 
-                "battlefield": [
-                ],
-            },
-            characters: ["bill", "jim beans"]
+            "battlefield": [
+            ],
         }
         this.game = {
             id: id,
             is_custom: isCustom || false,
+            phases: ["morning", "afternoon", "evening"],
             map: ['battlefield'],
             characters: ['bill', 'jim beans'],
             phase: 0,
@@ -59,7 +57,7 @@ class Game {
         for (let i=1; i<=10; i++) {
             let name = "apt #" + i;
             this.available_generic_locations.push(name);
-            this.hidden.locations[name] = [];
+            this.locations[name] = [];
             this.game.map.push(name);
         }
         
@@ -133,8 +131,10 @@ class Game {
             health: data.health,
             windup: data.windup,
             max_windup: data.max_windup,
+            command: data.command,
+
             overpowered: data.overpowered,
-            command: data.command
+            dodge_successful: data.dodge_successful
         }
     }
 
@@ -142,13 +142,13 @@ class Game {
         var characters;
         if (!this[player_what].character) {
             characters = {};
-            for (let character of this.hidden.characters) {
+            for (let character of this.game.characters) {
                 characters[character] = dictionary.characters[character];
             }
         }
 
         var location = {};
-        for (let thing_name of this.hidden.locations[this[player_what].location || 'character selection']) {
+        for (let thing_name of this.locations[this[player_what].location || 'character selection']) {
             location[thing_name] = dictionary.things[thing_name];
         }
 
@@ -182,7 +182,7 @@ class Game {
 
         // find home
         var location_name = this.available_generic_locations.splice(Math.random() * this.available_generic_locations.length | 0, 1);
-        this.hidden.locations[location_name] = player.home;
+        this.locations[location_name] = player.home;
         player.home = location_name;
         player.location = location_name;
     }
@@ -201,7 +201,7 @@ class Game {
             if (command == 'select character') {
                 this.set_character(player_what, thing);
                 this.log(player_what, "self", null, "selected <em>" + thing + "</em>.");
-                this.log(player_what, "phase-starter", null, "<em>morning</em> phase begins.");
+                this.log(player_what, "phase-starter", null, "<em>" + this.game.phases[0] + "</em> phase begins.");
             }
             return;
         }
@@ -278,6 +278,7 @@ class Game {
                 }
     
                 if (command == 'dodge') {
+                    player.dodge_successful = true;
                     player.messages.push("dodged air");
                     this.log(player_what, "self", turn, "<em>" + player.character + "</em> dodges nothing.");
                     this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> dodges nothing.");
@@ -354,24 +355,31 @@ class Game {
         this.player1.messages = [];
         this.player2.messages = [];
 
-        if (this.game.shared_phase_complete) {
-            if (this.player1.command.command == 'select location' &&
-                this.player2.command.command == 'select location'
-            ) {
-                this.process_command('player1');
-                this.process_command('player2', { no_timestamping: true });
-            }
+        let c1 = this.player1.command.command;
+        let c2 = this.player2.command.command;
+        let p1 = this.player1;
+        let p2 = this.player2;
+        let turn = this.game.shared_time + 1;
+        let turn_string = turn+"/"+this.game.turns_this_phase;
+
+        if (c1 == 'select location' && c2 != 'select location') {
+            this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> attempts to leave.");
+            this.log('player2',  "opp", turn_string, "<em>" + p1.character + "</em> attempts to leave.");
+            this.process_command('player2', { no_timestamping: true });
+            this.next_turn();
+            return;
+        }
+
+        if (c1 != 'select location' && c2 == 'select location') {
+            this.process_command('player1');
+            this.log('player2', "self", null, "<em>" + p2.character + "</em> attempts to leave.");
+            this.log('player1',  "opp", null, "<em>" + p2.character + "</em> attempts to leave.");
+            this.next_turn();
             return;
         }
         
-        if (this.player1.command.thing == 'opponent' && 
-            this.player2.command.thing == 'opponent') {
-
-            let c1 = this.player1.command.command;
-            let c2 = this.player2.command.command;
-            let p1 = this.player1;
-            let p2 = this.player2;
-            let turn = this.game.shared_time + 1;
+        if (p1.command.thing == 'opponent' && 
+            p2.command.thing == 'opponent') {
 
             // punch v punch
 
@@ -381,9 +389,9 @@ class Game {
                 this.damage_player('player2', this.punch_power('player1'));
                 p1.windup = 0;
                 p2.windup = 0;
-                this.log('player1', "self", turn+"/"+this.game.turns_this_phase, "<em>" + p1.character + "</em> punches <em>" + p2.character + "</em>.");
-                this.log('player2', "opp", turn+"/"+this.game.turns_this_phase,  "<em>" + p1.character + "</em> punches <em>" + p2.character + "</em>.");
-                this.log('player1', "opp", null, "<em>" + p2.character + "</em> returns the favor.");
+                this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> punches <em>" + p2.character + "</em>.");
+                this.log('player2',  "opp", turn_string,  "<em>" + p1.character + "</em> punches <em>" + p2.character + "</em>.");
+                this.log('player1',  "opp", null, "<em>" + p2.character + "</em> returns the favor.");
                 this.log('player2', "self", null, "<em>" + p2.character + "</em> returns the favor.");
 
                 if (p1.overpowered && p2.overpowered) {
@@ -411,8 +419,8 @@ class Game {
                 if (p1.overpowered && p2.overpowered) {
                     this.phase_complete();
                 }
-                this.log('player1', "self", turn+"/"+this.game.turns_this_phase, "<em>" + p1.character + "</em> punches <em>" + p2.character + "</em>.");
-                this.log('player2', "opp", turn+"/"+this.game.turns_this_phase,  "<em>" + p1.character + "</em> punches <em>" + p2.character + "</em>.");
+                this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> punches <em>" + p2.character + "</em>.");
+                this.log('player2', "opp", turn_string,  "<em>" + p1.character + "</em> punches <em>" + p2.character + "</em>.");
                 this.log('player1', "opp", null,  "<em>" + p2.character + "</em> fails to wind up.");
                 this.log('player2', "self", null, "<em>" + p2.character + "</em> fails to wind up.");
                 this.next_turn();
@@ -430,8 +438,8 @@ class Game {
                     p1.messages.push("me: got hit -- windup failed");
                     p2.messages.push("opponent: got hit -- windup failed");
                 }
-                this.log('player2', "self", turn+"/"+this.game.turns_this_phase, "<em>" + p2.character + "</em> punches <em>" + p1.character + "</em>.");
-                this.log('player1', "opp", turn+"/"+this.game.turns_this_phase, "<em>" + p2.character + "</em> punches <em>" + p1.character + "</em>.");
+                this.log('player2', "self", turn_string, "<em>" + p2.character + "</em> punches <em>" + p1.character + "</em>.");
+                this.log('player1', "opp", turn_string, "<em>" + p2.character + "</em> punches <em>" + p1.character + "</em>.");
                 this.log('player2', "opp",  null, "<em>" + p1.character + "</em> fails to wind up.");
                 this.log('player1', "self", null, "<em>" + p1.character + "</em> fails to wind up.");
                 this.next_turn();
@@ -448,8 +456,8 @@ class Game {
                 p2.messages.push("block successful -- damage halved");
                 p1.messages.push("opponent: blocked punch");
 
-                this.log('player1', "self", turn+"/"+this.game.turns_this_phase, "<em>" + p1.character + "</em> throws a punch--");
-                this.log('player2', "opp",  turn+"/"+this.game.turns_this_phase, "<em>" + p1.character + "</em> throws a punch--");
+                this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> throws a punch--");
+                this.log('player2', "opp",  turn_string, "<em>" + p1.character + "</em> throws a punch--");
                 this.log('player1', "opp",  null, "--<em>" + p2.character + "</em> blocks it.");
                 this.log('player2', "self", null, "--<em>" + p2.character + "</em> blocks it.");
                 this.next_turn();
@@ -464,8 +472,8 @@ class Game {
                 this.player1.messages.push("block successful -- damage halved");
                 this.player2.messages.push("opponent: blocked punch");
 
-                this.log('player2', "self", turn+"/"+this.game.turns_this_phase, "<em>" + p2.character + "</em> throws a punch--");
-                this.log('player1', "opp",  turn+"/"+this.game.turns_this_phase, "<em>" + p2.character + "</em> throws a punch--");
+                this.log('player2', "self", turn_string, "<em>" + p2.character + "</em> throws a punch--");
+                this.log('player1', "opp",  turn_string, "<em>" + p2.character + "</em> throws a punch--");
                 this.log('player2', "opp",  null, "--<em>" + p1.character + "</em> blocks it.");
                 this.log('player1', "self", null, "--<em>" + p1.character + "</em> blocks it.");
                 this.next_turn();
@@ -476,21 +484,23 @@ class Game {
 
             if (c1 == 'punch' && c2 == 'dodge') {
                 if (this.dodge_success('player2')) {
+                    p2.dodge_successful = true;
                     this.player2.messages.push("dodge success!");
                     this.player1.messages.push("opponent: punch dodged");
 
-                    this.log('player1', "opp",  turn+"/"+this.game.turns_this_phase, "<em>" + p2.character + "</em> dodges--");
-                    this.log('player2', "self", turn+"/"+this.game.turns_this_phase, "<em>" + p2.character + "</em> dodges--");
+                    this.log('player1', "opp",  turn_string, "<em>" + p2.character + "</em> dodges--");
+                    this.log('player2', "self", turn_string, "<em>" + p2.character + "</em> dodges--");
                     this.log('player1', "self", null, "--<em>" + p1.character + "</em> misses.");
                     this.log('player2', "opp",  null, "--<em>" + p1.character + "</em> misses.");
                 } else {
+                    p2.dodge_successful = false;
                     this.process_command('player1', { no_logging: true });
 
                     this.player2.messages.push("dodge failed");
                     this.player1.messages.push("opponent: dodge failed");
 
-                    this.log('player1', "opp",  turn+"/"+this.game.turns_this_phase, "<em>" + p2.character + "</em> dodges--");
-                    this.log('player2', "self", turn+"/"+this.game.turns_this_phase, "<em>" + p2.character + "</em> dodges--");
+                    this.log('player1', "opp",  turn_string, "<em>" + p2.character + "</em> dodges--");
+                    this.log('player2', "self", turn_string, "<em>" + p2.character + "</em> dodges--");
                     this.log('player1', "self", null, "--only to be hit by <em>" + p1.character + "</em> for " + this.punch_power('player1') + " damage.");
                     this.log('player2', "opp",  null, "--only to be hit by <em>" + p1.character + "</em> for " + this.punch_power('player1') + " damage.");
                 }
@@ -501,21 +511,23 @@ class Game {
 
             if (c1 == 'dodge' && c2 == 'punch') {
                 if (this.dodge_success('player1')) {
+                    p1.dodge_successful = true;
                     this.player1.messages.push("dodge success!");
                     this.player2.messages.push("opponent: punch dodged");
                     
-                    this.log('player2', "opp",  turn+"/"+this.game.turns_this_phase, "<em>" + p1.character + "</em> dodges--");
-                    this.log('player1', "self", turn+"/"+this.game.turns_this_phase, "<em>" + p1.character + "</em> dodges--");
+                    this.log('player2', "opp",  turn_string, "<em>" + p1.character + "</em> dodges--");
+                    this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> dodges--");
                     this.log('player2', "self", null, "--<em>" + p2.character + "</em> misses.");
                     this.log('player1', "opp",  null, "--<em>" + p2.character + "</em> misses.");
                 } else {
+                    p1.dodge_successful = false;
                     this.process_command('player2', { no_logging: true });
 
                     this.player1.messages.push("dodge failed");
                     this.player1.messages.push("opponent: tried to dodge");
 
-                    this.log('player2', "opp",  turn+"/"+this.game.turns_this_phase, "<em>" + p1.character + "</em> dodges--");
-                    this.log('player1', "self", turn+"/"+this.game.turns_this_phase, "<em>" + p1.character + "</em> dodges--");
+                    this.log('player2', "opp",  turn_string, "<em>" + p1.character + "</em> dodges--");
+                    this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> dodges--");
                     this.log('player2', "self", null, "--only to be hit by <em>" + p2.character + "</em> for " + this.punch_power('player2') + " damage.");
                     this.log('player1', "opp",  null, "--only to be hit by <em>" + p2.character + "</em> for " + this.punch_power('player2') + " damage.");
                 }
@@ -573,7 +585,7 @@ class Game {
     phase_complete(player_what) {
         if (this.game.shared_phase) {
             if (!this.game.shared_phase_complete) {
-                this.global_log("phase complete. select next location.");
+                this.global_log("phase complete.");
             }
 
             this.game.shared_time = this.game.turns_this_phase;
@@ -586,7 +598,7 @@ class Game {
         } else if (player_what) {
             this[player_what].time = this.game.turns_this_phase;
             this[player_what].phase_complete = true;
-            this.log(player_what, null, "phase complete. select next location.");
+            this.log(player_what, null, "phase complete.");
         }
     }
 
@@ -595,12 +607,16 @@ class Game {
         this.log('player2', "self", (this.player1.time + 1) + "/" + this.game.turns_this_phase, "selected location <em>" + this.player2.next_location + "</em>.");
 
         this.player1.time = 0;
-        this.player1.phase_complete = false;
-        this.player1.location = this.player1.next_location;
-        this.player1.next_location = null;
         this.player2.time = 0;
+
+        this.player1.windup = 0;
+        this.player2.windup = 0;
+
+        this.player1.phase_complete = false;
         this.player2.phase_complete = false;
+        this.player1.location = this.player1.next_location;
         this.player2.location = this.player2.next_location;
+        this.player1.next_location = null;
         this.player2.next_location = null;
 
         this.game.shared_phase = this.player1.location == this.player2.location;
@@ -621,7 +637,7 @@ class Game {
         this.game.phase++;
         if (this.game.phase >= 3) this.game.phase = 0;
 
-        this.global_log("<span class='phase-starter'><em>" + ["morning", "afternoon", "night"][this.game.phase] + "</em> phase begins.</span>");
+        this.global_log("<span class='phase-starter'><em>" + this.game.phases[this.game.phase] + "</em> phase begins.</span>");
 
         if (this.game.shared_phase) {
             this.global_log("<em>" + this.player1.character + "</em> meets <em>" + this.player2.character + "</em>.");

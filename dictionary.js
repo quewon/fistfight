@@ -52,7 +52,7 @@ const dictionary = {
             construction: {
                 to: "bill",
                 issued: "days ago",
-                from: "hana",
+                from: "bosswoman",
                 content: "otherside is active in your town. procure a WEAPON and KILL the agent."
             }
         },
@@ -62,7 +62,7 @@ const dictionary = {
             construction: {
                 to: "jim beans",
                 issued: "right now",
-                from: "pencil",
+                from: "bossman",
                 content: "enemy has intel. collect all (3) INFO and relay with INTERNET-CONNECTED DEVICE."
             }
         }
