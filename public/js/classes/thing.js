@@ -12,7 +12,7 @@ class Thing {
             if (p.in_pockets) {
                 actions["drop"] = function() { game_command(id, 'drop', this) }
             } else {
-                actions["take"] = {
+                actions["pocket"] = {
                     description: "hold up to 3 things",
                     function: function() { game_command(id, 'take', this) }
                 }
