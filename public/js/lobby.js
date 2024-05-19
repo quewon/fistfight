@@ -8,6 +8,9 @@ function reset_lobby() {
     ui.lobby.matchText.classList.remove("gone");
     ui.lobby.matchConfirmButton.disabled = false;
     ui.lobby.matchConfirmButton.textContent = "play";
+
+    ui.game.log.classList.add("gone");
+    ui.game.logButton.classList.add("gone");
 }
 
 // find match
@@ -39,18 +42,21 @@ function stop_matchmaking() {
 }
 
 var matchmakingButton = new Thing({
-    label: "find match",
-    position: { x: "20%", y: "20%" },
-    image: "lobby/jobs.jpg",
-    actions: {
-        "find match": function() {
-            if (!game.matchmaking) {
-                reset_lobby();
-                start_matchmaking(this);
-            } else {
-                stop_matchmaking();
-            }
-        },
+    name: "matchmaker",
+    construction: {
+        label: "find match",
+        position: { x: "35%", y: "35%" },
+        image: "lobby/jobs.jpg",
+        actions: {
+            "find match": function() {
+                if (!game.matchmaking) {
+                    reset_lobby();
+                    start_matchmaking(this);
+                } else {
+                    stop_matchmaking();
+                }
+            },
+        }
     }
 });
 
@@ -75,6 +81,7 @@ socket.on('potential matches', (players) => {
         }, 500);
     } else {
         socket.emit('match found', matchId);
+        sfx("hit");
     }
 })
 
@@ -120,38 +127,44 @@ socket.on('match cancelled', () => {
 //
 
 var hostButton = new Thing({
-    label: "host game",
-    position: { x: "50%", y: "30%" },
-    image: "lobby/pc.jpg",
-    actions: {
-        "host game": function(e) {
-            reset_lobby();
-
-            ui.lobby.hostForm.style.left = e.pageX+"px";
-            ui.lobby.hostForm.style.top = e.pageY+"px";
-            ui.lobby.hostForm.classList.remove("gone");
-            document.body.appendChild(ui.lobby.hostForm);
-
-            ui.lobby.hostForm.querySelector("input").focus();
-        },
+    name: "host game",
+    construction: {
+        label: "host game",
+        position: { x: "65%", y: "50%" },
+        image: "lobby/pc.jpg",
+        actions: {
+            "host game": function(e) {
+                reset_lobby();
+    
+                ui.lobby.hostForm.style.left = e.pageX+"px";
+                ui.lobby.hostForm.style.top = e.pageY+"px";
+                ui.lobby.hostForm.classList.remove("gone");
+                document.body.appendChild(ui.lobby.hostForm);
+    
+                ui.lobby.hostForm.querySelector("input").focus();
+            },
+        }
     }
 });
 
 var joinButton = new Thing({
-    label: "join game",
-    position: { x: "20%", y: "50%" },
-    image: "lobby/phone.png",
-    actions: {
-        "join game": function(e) {
-            reset_lobby();
+    name: "join game",
+    construction: {
+        label: "join game",
+        position: { x: "40%", y: "70%" },
+        image: "lobby/phone.png",
+        actions: {
+            "join game": function(e) {
+                reset_lobby();
 
-            ui.lobby.joinForm.style.left = e.pageX+"px";
-            ui.lobby.joinForm.style.top = e.pageY+"px";
-            ui.lobby.joinForm.classList.remove("gone");
-            document.body.appendChild(ui.lobby.joinForm);
+                ui.lobby.joinForm.style.left = e.pageX+"px";
+                ui.lobby.joinForm.style.top = e.pageY+"px";
+                ui.lobby.joinForm.classList.remove("gone");
+                document.body.appendChild(ui.lobby.joinForm);
 
-            ui.lobby.joinForm.querySelector("input").focus();
-        },
+                ui.lobby.joinForm.querySelector("input").focus();
+            },
+        }
     }
 });
 
@@ -166,13 +179,13 @@ socket.on('key is in use', () => {
     alert("this key is currently in use!");
 })
 
-function join_game(key) {
+async function join_game(key) {
     var trimmed = key.trim();
     if (trimmed == "") return;
 
     window.history.pushState('game', '', '/' + trimmed);
 
-    game.lobby.exit();
+    await game.lobby.exit();
 
     socket.emit('join game', trimmed);
 }
@@ -182,9 +195,9 @@ game.lobby = new Location({
         matchmakingButton,
         hostButton,
         joinButton,
-        new Thing({
+        new Thing("smiler", {
             text: ":-)",
-            position: { x: "45%", y: "50%" },
+            position: { x: "50%", y: "50%" },
             actions: {
                 "talk": function() {
                     game.lobby.things[3].say("hello welcome to the prototype !!!");

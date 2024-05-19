@@ -1,9 +1,9 @@
 class Map extends Thing {
     constructor(data) {
-        super({
-            position: { x: "calc(50% - 150px)", y: "calc(50% - 200px)" },
-            keep_in_back: true
-        });
+        data.name = "map";
+        data.position = { x: "50%", y: "50%" };
+        data.keep_in_back = true;
+        super(data);
 
         this.createCanvas();
 

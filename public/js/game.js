@@ -16,6 +16,7 @@ var game = {
     opponent: null,
     location_name: null,
     location: null,
+    pockets: null,
 
     disable_actions: false,
     timer_active: false,
@@ -59,6 +60,8 @@ game.start = async function(data) {
     ui.game.location.classList.add("ui-blink");
     ui.game.phase.classList.add("ui-blink");
     ui.game.time.classList.add("ui-blink");
+    ui.game.log.classList.remove("gone");
+    ui.game.logButton.classList.remove("gone");
 
     game.data = data;
 
@@ -68,9 +71,21 @@ game.start = async function(data) {
 
     //
 
+    init_pockets(data);
     await init_location(data);
 
     update_log(data.player.log);
+}
+
+function init_pockets(data) {
+    var pocketsThings = [];
+    for (let thing_data of data.player.things) {
+        thing_data.in_pockets = true;
+        var thing = new classLookup[thing_data.class](thing_data);
+        pocketsThings.push(thing);
+    }
+    game.pockets = new Location({ container: ui.game.pockets, things: pocketsThings });
+    game.pockets.enter();
 }
 
 async function init_location(data) {
@@ -90,9 +105,8 @@ async function init_location(data) {
 
     update_turn_info(data);
 
-    for (let thing_name in data.location) {
-        let thing_data = data.location[thing_name];
-        var thing = new classLookup[thing_data.class](thing_data.construction || {});
+    for (let thing_data of data.location) {
+        var thing = new classLookup[thing_data.class](thing_data);
         locationThings.push(thing);
     }
 
@@ -117,8 +131,11 @@ async function init_location(data) {
         }
     }
 
+    close_pockets();
+
     game.location_name = data.player.location;
     game.location = new Location({ things: locationThings });
+    document.title = game.location_name || 'character selection';
     await game.location.enter();
 }
 
@@ -144,6 +161,62 @@ async function update_game(data) {
         document.body.classList.remove("phase-ended");
     }
 
+    //
+
+    var things_removed_from_location = get_removed(game.data.location, data.location);
+    var things_added_to_location = get_added(game.data.location, data.location);
+    var things_removed_from_pockets = get_removed(game.data.player.things, data.player.things);
+    var things_added_to_pockets = get_added(game.data.player.things, data.player.things);
+
+    if (game.location_name == data.player.location && game.data.phase == data.phase) {
+        for (let thing_data of things_removed_from_location) {
+            var thing = game.location.remove_thing_by_data(thing_data);
+            if (thing) {
+                for (let i=0; i<things_added_to_pockets.length; i++) {
+                    let ptd = things_added_to_pockets[i];
+                    if (ptd.id == thing_data.id) {
+                        ptd.position = thing.get_position();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    for (let thing_data of things_added_to_pockets) {
+        thing_data.in_pockets = true;
+        var thing = new classLookup[thing_data.class](thing_data);
+        game.pockets.things.push(thing);
+        game.pockets.enter_thing(thing);
+    }
+
+    for (let thing_data of things_removed_from_pockets) {
+        var thing = game.pockets.remove_thing_by_data(thing_data);
+        if (thing) {
+            for (let i=0; i<things_added_to_location.length; i++) {
+                let ltd = things_added_to_location[i];
+                if (ltd.id == thing_data.id) {
+                    ltd.position = thing.get_position();
+                    break;
+                }
+            }
+        }
+    }
+
+    if (game.location_name == data.player.location && game.data.phase == data.phase) {
+        for (let thing_data of things_added_to_location) {
+            var thing = new classLookup[thing_data.class](thing_data);
+            game.location.things.push(thing);
+            game.location.enter_thing(thing);
+        }
+    }
+
+    if (things_added_to_pockets.length > 0) {
+        look_in_pockets();
+    } else if (things_removed_from_pockets.length > 0) {
+        close_pockets();
+    }
+    
     //
 
     if (game.player && data.player) {
@@ -240,11 +313,11 @@ async function update_game(data) {
                 ui.game.time.offsetWidth;
                 ui.game.time.classList.add("ui-blink");
 
-                if (!game.data.game.shared_phase || time%2==0) sfx("ticking");
-                if (game.data.game.shared_phase) {
-                    await wait(250);
-                } else {
+                if (game.data.game.turns_this_phase == 8 || game.data.game.turns_this_phase == 16 && time%2==0) sfx("ticking");
+                if (game.data.game.turns_this_phase == 8) {
                     await wait(500);
+                } else if (game.data.game.turns_this_phase == 16) {
+                    await wait(250);
                 }
             }
         }
@@ -421,6 +494,19 @@ function start_waiting_for_response(button) {
     game.waiting_for_response = true;
 }
 
+function look_in_pockets() {
+    if (game.data.phase_complete) return;
+    
+    ui.game.pockets.classList.remove("gone");
+    // game.pockets.enter();
+}
+
+function close_pockets() {
+    // game.pockets.exit();
+    ui.game.pockets.classList.add("gone");
+    close_action_menu();
+}
+
 //
 
 function turn_to_time(phase, turn, turns_this_phase) {
@@ -440,4 +526,46 @@ function random(min, max) {
 
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function get_removed(prev, curr) {
+    let removed = [];
+
+    for (let thing_data of prev) {
+        let in_curr = false;
+        for (let ctd of curr) {
+            if (ctd.id == thing_data.id) {
+                in_curr = true;
+                break;
+            }
+        }
+        if (in_curr) {
+            continue;
+        } else {
+            removed.push(thing_data);
+        }
+    }
+
+    return removed;
+}
+
+function get_added(prev, curr) {
+    let added = [];
+
+    for (let thing_data of curr) {
+        let in_prev = false;
+        for (let ptd of prev) {
+            if (ptd.id == thing_data.id) {
+                in_prev = true;
+                break;
+            }
+        }
+        if (in_prev) {
+            continue;
+        } else {
+            added.push(thing_data);
+        }
+    }
+
+    return added;
 }

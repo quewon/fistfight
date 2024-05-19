@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>game</title>
+    <title>lobby</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -43,12 +43,17 @@
                 <button id="match-confirm-button" onclick="confirm_match();">play</button>
                 <button onclick="cancel_match(); this.parentElement.classList.add('gone')">cancel</button>
             </div>
+
+            <div id="pockets" class="gone">
+                <span>pockets</span>
+                <button class="x-button" onclick="close_pockets(); event.stopPropagation()" onmouseup="event.stopPropagation()">x</button>
+            </div>
         </div>
     
         <div id="game-log">
 
         </div>
-        <button id="log-toggle-button" onclick="ui.game.log.classList.toggle('gone'); this.textContent = ui.game.log.classList.contains('gone') ? 'log' : 'x'">x</button>
+        <button id="log-toggle-button" class="x-button" onclick="ui.game.log.classList.toggle('gone'); this.textContent = ui.game.log.classList.contains('gone') ? 'log' : 'x'">x</button>
     </div>
     
 </body>
@@ -65,9 +70,8 @@
 <script src="js/classes/location.js"></script>
 <script src="js/classes/map.js"></script>
 
-<script src="js/ui.js"></script>
-
 <script src="js/game.js"></script>
+<script src="js/ui.js"></script>
 <script src="js/lobby.js"></script>
 <script>
 
@@ -80,6 +84,10 @@
     } else {
         game.lobby.enter();
     }
+
+    window.addEventListener('popstate', function(e) {
+        window.location.reload();
+    })
 
 </script>
 

@@ -1,6 +1,6 @@
 class Player extends Thing {
-    constructor(p) {
-        super(p);
+    constructor(data) {
+        super(data);
 
         this.statsElement = document.createElement("div");
         this.statsElement.className = "stats";
@@ -157,12 +157,12 @@ class Player extends Thing {
 
 class PlayerSelector extends Player {
     constructor(name, data) {
-        super({
-            position: { x: random(30, 70) + "%", y: random(30, 70) + "%" },
-            text: data.name,
-            image: data.image,
-            label: data.job,
-        });
+        data.name = name;
+        data.position = { x: random(30, 70) + "%", y: random(30, 70) + "%" };
+        data.text = data.name;
+        data.image = data.image;
+        data.label = data.job;
+        super(data);
 
         this.imageButton.setActions({
             inspect: function() {
@@ -179,12 +179,20 @@ class PlayerSelector extends Player {
 
 class You extends Player {
     constructor(data) {
-        super({
-            position: { x: "20%", y: "20%" },
-            label: "you",
-            text: data.character,
-            image: data.image
-        });
+        data.name = "you";
+        data.position = { x: "20%", y: "30%" };
+        data.label = "you";
+        data.text = data.character;
+        data.image = data.image;
+        data.actions = {
+            "look in <em>p</em>ockets": {
+                description: "does not cost a turn",
+                function: function() {
+                    look_in_pockets();
+                }
+            }
+        };
+        super(data);
 
         this.setStat('health', data.health);
         this.stats.windup.max = data.max_windup;
@@ -232,13 +240,13 @@ class Opponent extends Player {
             }
         }
 
-        super({
-            position: { x: "60%", y: "50%" },
-            label: "opponent",
-            text: data.character,
-            image: data.image,
-            actions: fightActions
-        })
+        data.name = "opponent";
+        data.position = { x: "80%", y: "70%" };
+        data.label = "opponent";
+        data.text = data.character;
+        data.label = data.image;
+        data.actions = fightActions;
+        super(data);
 
         this.fightActions = fightActions;
         this.playerOverpoweredActions = playerOverpoweredActions;

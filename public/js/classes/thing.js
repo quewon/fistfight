@@ -1,16 +1,40 @@
 class Thing {
-    constructor(p) {
-        p = p || {};
+    constructor(data) {
+        this.name = data.name;
+        this.id = data.id;
+
+        let p = data;
+        
+        var actions = p.actions || {};
+
+        const id = this.id;
+        if (p.portable) {
+            if (p.in_pockets) {
+                actions["drop"] = function() { game_command(id, 'drop', this) }
+            } else {
+                actions["take"] = {
+                    description: "hold up to 3 things",
+                    function: function() { game_command(id, 'take', this) }
+                }
+            }
+        }
 
         this.imageButton = new ImageButton({
-            position: p.position || { x: "20%", y: "20%" },
+            position: p.position || { x: random(20, 80)+"%", y: random(20, 80)+"%" },
             image: p.image,
             text: p.text,
             label: p.label,
             tags: p.tags,
-            actions: p.actions,
+            actions: actions,
             keep_in_back: p.keep_in_back
         });
+    }
+    
+    get_position() {
+        return {
+            x: this.imageButton.element.style.left,
+            y: this.imageButton.element.style.top
+        }
     }
 
     say(message) {
@@ -22,7 +46,7 @@ class Thing {
         let x;
         let y = -dialogue.height;
 
-        if (rect.left + rect.width/2 > window.innerWidth/2) {
+        if (rect.left + rect.width/2 > ui.game.container.clientWidth/2) {
             // dialogue on its left
             x = 0;
             dialogue.element.classList.add("arrow-right");
@@ -48,17 +72,19 @@ class Thing {
 }
 
 class MissionPrompt extends Thing {
-    constructor(prompt) {
-        super({
-            position: { x: "50%", y: "30%" },
-            image: "mission prompt.png",
-            actions: {
-                "take": {
-                    description: "hold up to 3 things",
-                    function: function() { }
-                }
-            }
-        });
+    constructor(data) {
+        data.position = data.position || { x: "80%", y: "70%" };
+        data.image = "mission prompt.png";
+        super(data);
+
+        let el = document.createElement("div");
+        el.style.position = "absolute";
+        
+        this.imageButton.buttonElement.addEventListener("load", function() {
+            el.style.width = this.imageButton.buttonElement.clientWidth+"px";
+            el.style.height = this.imageButton.buttonElement.clientHeight+"px";
+        }.bind(this));
+        this.imageButton.buttonWrapper.appendChild(el);
 
         let to = document.createElement("div");
         to.textContent = prompt.to;
@@ -74,29 +100,21 @@ class MissionPrompt extends Thing {
         from.style.position =
         content.style.position = "absolute";
 
-        // to.style.fontFamily = 
-        // issued.style.fontFamily =
-        // from.style.fontFamily =
-        // content.style.fontFamily = "monospace";
-
-        to.style.top = "29%";
-        issued.style.top = "35.5%";
-        from.style.top = "42%";
-        content.style.top = "61%";
+        to.style.top = "30%";
+        issued.style.top = "36.5%";
+        from.style.top = "43%";
+        content.style.top = "62%";
 
         to.style.left = "30%";
         issued.style.left = "48%";
         from.style.left = "39%";
         content.style.left = "14%";
 
-        content.style.width = "80%";
-        // content.style.height = "30%"
-        // content.style.overflow = "scroll";
-        // content.style.pointerEvents = "auto";
+        content.style.width = "75%";
 
-        this.imageButton.buttonWrapper.appendChild(to);
-        this.imageButton.buttonWrapper.appendChild(issued);
-        this.imageButton.buttonWrapper.appendChild(from);
-        this.imageButton.buttonWrapper.appendChild(content);
+        el.appendChild(to);
+        el.appendChild(issued);
+        el.appendChild(from);
+        el.appendChild(content);
     }
 }

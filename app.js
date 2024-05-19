@@ -47,35 +47,13 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log("user disconnected : " + socket.id);
 
-        if (players[socket.id].game && games[players[socket.id].game]) {
-            // currently in an online game
-
-            var gameId = players[socket.id].game;
-            var opponentId = games[gameId][players[socket.id].player_what].opponent;
-
-            if (!opponentId) {
-                if (gameId != "test") {
-                    delete games[gameId];
-                    console.log("game ended : " + gameId);
-                } else {
-                    games[gameId].remove_player(socket.id);
-                    players[socket.id].game = null;
-                    players[socket.id].player_what = null;
-                }
-            } else {
-                games[gameId].remove_player(socket.id);
-                players[socket.id].game = null;
-                players[socket.id].player_what = null;
-                io.to(opponentId).emit('player offline');
-            }
-        } else {
-            if (players[socket.id].match) {
-                var matchId = players[socket.id].match;
-                io.to(matchId).emit('match cancelled');
-            }
-        }
+        leave_game(socket.id);
 
         delete players[socket.id];
+    })
+
+    socket.on('leave game', () => {
+        leave_game(socket.id);
     })
 
     // matchmaking
@@ -244,4 +222,32 @@ function unique_game_id(player1, player2) {
         gameId += "a";
     }
     return gameId;
+}
+
+function leave_game(id) {
+    if (players[id].game && games[players[id].game]) {
+        var gameId = players[id].game;
+        var opponentId = games[gameId][players[id].player_what].opponent;
+
+        if (!opponentId) {
+            if (gameId != "test") {
+                delete games[gameId];
+                console.log("game ended : " + gameId);
+            } else {
+                games[gameId].remove_player(id);
+                players[id].game = null;
+                players[id].player_what = null;
+            }
+        } else {
+            games[gameId].remove_player(id);
+            players[id].game = null;
+            players[id].player_what = null;
+            io.to(opponentId).emit('player offline');
+        }
+    } else {
+        if (players[id].match) {
+            var matchId = players[id].match;
+            io.to(matchId).emit('match cancelled');
+        }
+    }
 }

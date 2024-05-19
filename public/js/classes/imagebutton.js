@@ -27,10 +27,13 @@ document.addEventListener("mousemove", function(e) {
             draggingElement.element.classList.remove("might-click");
             document.body.classList.add("dragging");
         }
-        
+
         let o = draggingElement.dragOffset;
-        draggingElement.element.style.left = x - o.x + "px";
-        draggingElement.element.style.top = y - o.y + "px";
+        x = (x - o.x) / draggingElement.container.clientWidth * 100;
+        y = (y - o.y) / draggingElement.container.clientHeight * 100;
+
+        draggingElement.element.style.left = x+"%";
+        draggingElement.element.style.top = y+"%";
     }
 });
 
@@ -51,6 +54,8 @@ class ImageButton {
 
         this.selected = false;
         this.keep_in_back = p.keep_in_back;
+
+        this.container = p.container || ui.game.container;
 
         this.element = document.createElement("div");
         this.element.className = "imagebutton";
@@ -87,6 +92,10 @@ class ImageButton {
             if (p.alt) {
                 this.buttonElement.alt = p.alt;
             }
+
+            this.buttonElement.onload = function() {
+                this.element.style.width = (this.buttonElement.clientWidth + 2)+"px";
+            }.bind(this);
         } else if (p.text) {
             this.buttonElement.type = "button";
             this.buttonElement.value = p.text;
@@ -106,6 +115,7 @@ class ImageButton {
     }
 
     drag(e) {
+        let crect = this.container.getBoundingClientRect();
         let rect = this.element.getBoundingClientRect();
 
         draggingElement = this;
@@ -116,14 +126,14 @@ class ImageButton {
         }
 
         this.dragOffset = {
-            x: e.pageX - (rect.left + window.scrollX),
-            y: e.pageY - (rect.top + window.scrollY)
+            x: e.pageX - (rect.left + window.scrollX) + crect.left - rect.width/2,
+            y: e.pageY - (rect.top + window.scrollY) + crect.top - rect.height/2
         }
 
         this.clickOnDrop = true;
         this.element.classList.add("might-click");
 
-        if (!this.keep_in_back) ui.game.container.appendChild(this.element);
+        if (!this.keep_in_back) this.container.appendChild(this.element);
     }
 
     drop() {
@@ -176,7 +186,7 @@ class ImageButton {
     setActions(actions) {
         if (this.actions && this.actions == actions) return;
 
-        if (actions) {
+        if (actions && Object.keys(actions).length > 0) {
             this.element.classList.remove("no-actions");
             this.buttonElement.removeAttribute("tabindex");
 
@@ -203,7 +213,7 @@ class ImageButton {
                 actionButton.onclick = actionFunction;
                 actionButton.addEventListener("click", function(e) { e.stopPropagation() });
                 actionButton.onmouseup = function(e) { e.stopPropagation() };
-                actionButton.textContent = action;
+                actionButton.innerHTML = action;
                 this.actionsMenu.appendChild(actionButton);
 
                 if (actionDescription) {

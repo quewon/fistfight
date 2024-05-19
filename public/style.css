@@ -7,6 +7,9 @@ html, body {
     --white: #fdfdfd;
     --gray: lightgray;
     --lightgray: rgb(238, 238, 238);
+
+    --self: rgb(205, 223, 244);
+    --opp: rgb(255 175 110);
 }
 
 body {
@@ -94,16 +97,15 @@ input[type="text"]::placeholder {
 }
 
 input[type="image"] {
-    width: 100%;
-    max-width: 300px;
-    max-height: 300px;
+    /* max-width: 300px;
+    max-height: 300px; */
     width: auto;
     height: auto;
 }
 
 .imagebutton.character input[type="image"] {
-    max-width: 150px;
-    max-height: 200px;
+    /* max-width: 150px;
+    max-height: 200px; */
 }
 
 .imagebutton {
@@ -112,7 +114,7 @@ input[type="image"] {
     flex-direction: column;
     gap: .5em;
     pointer-events: none;
-    width: max-content;
+    translate: -50% -50%;
 
     -webkit-touch-callout: none; /* iOS Safari */
       -webkit-user-select: none; /* Safari */
@@ -139,8 +141,12 @@ input[type="image"] {
     border: 1px dotted transparent;
     cursor: pointer;
 }
-.imagebutton.no-actions input {
+.imagebutton.no-actions input,
+body.phase-ended .imagebutton input {
     cursor: grab;
+}
+body.phase-ended .actions-menu {
+    display: none;
 }
 .imagebutton:not(.no-actions) input:focus,
 .imagebutton input:hover {
@@ -155,6 +161,10 @@ input[type="image"] {
 .imagebutton .actions-menu {
     visibility: hidden;
     pointer-events: none;
+}
+.actions-menu em {
+    font-style: normal;
+    color: blue;
 }
 .imagebutton:has(input:hover) .tags-container,
 .imagebutton.selected .tags-container,
@@ -220,6 +230,7 @@ button.locked {
     display: flex;
     flex-direction: column;
     translate: 0 -100%;
+    pointer-events: none;
 }
 .stats > div {
     display: flex;
@@ -228,7 +239,6 @@ button.locked {
 .stats img {
     width: 1em;
     height: 1em;
-    pointer-events: none;
 }
 .stats img.empty,
 .stats img.decrement {
@@ -428,7 +438,7 @@ body.phase-ended .ui-blink {
     }
 }
 
-#log-toggle-button,
+.x-button,
 #game-log {
     background: var(--lightgray);
     color: var(--black);
@@ -473,13 +483,13 @@ body.phase-ended .ui-blink {
     margin-top: 1em;
 }
 #game-log .self {
-    background: rgb(205, 223, 244);
+    background: var(--self);
 }
 #game-log .opp {
-    background: rgb(255 175 110);
+    background: var(--opp);
 }
 
-#log-toggle-button {
+.x-button {
     position: absolute;
     top: 0;
     right: 0;
@@ -491,6 +501,31 @@ body.phase-ended .ui-blink {
     line-height: 3ch;
 }
 
+/* pockets */
+
+#pockets {
+    z-index: 1000;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: color-mix(in srgb, transparent 10%, var(--self) 90%);
+    backdrop-filter: blur(3px);
+}
+
+#pockets > span {
+    display: block;
+    font-family: monospace;
+    width: 100%;
+    text-align: center;
+    margin-top: 1em;
+}
+
+body.phase-ended #pockets {
+    display: none;
+}
+
 /* global */
 
 .gone {
@@ -499,4 +534,12 @@ body.phase-ended .ui-blink {
 
 .monospace {
     font-family: monospace;
+}
+
+.input-wrapper {
+    display: flex;
+    width: max-content;
+}
+.input-wrapper input[type="image"] {
+    width: 20%;
 }

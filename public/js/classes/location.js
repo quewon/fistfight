@@ -5,29 +5,47 @@ class Location {
         this.things = p.things || [];
         if (p.onenter) this.onenter = p.onenter;
         if (p.onexit) this.onexit = p.onexit;
+        this.container = p.container || ui.game.container;
+    }
+
+    enter_thing(thing, duration) {
+        if (this.container.contains(thing.imageButton.element)) return;
+
+        thing.imageButton.deselect();
+        thing.imageButton.container = this.container;
+
+        setTimeout(function() {
+            if (this.keep_in_back) {
+                this.container.prepend(this.element);
+            } else {
+                this.container.appendChild(this.element);
+            }
+        }.bind(thing.imageButton), duration);
+    }
+
+    remove_thing_by_data(thing_data) {
+        for (let i=0; i<this.things.length; i++) {
+            let thing = this.things[i];
+            if (thing.id == thing_data.id) {
+                this.things.splice(i, 1);
+                thing.remove();
+
+                return thing;
+            }
+        }
+
+        return false;
     }
 
     async enter() {
         var maxDuration = 0;
         for (let thing of this.things) {
-            if (document.body.contains(thing.imageButton.element)) continue;
-
-            thing.imageButton.deselect();
-            
             let duration = Math.random() * 400;
-
-            setTimeout(function() {
-                if (this.keep_in_back) {
-                    ui.game.container.prepend(this.element);
-                } else {
-                    ui.game.container.appendChild(this.element);
-                }
-            }.bind(thing.imageButton), duration);
-
+            this.enter_thing(thing, duration);
             maxDuration = Math.max(maxDuration, duration);
         }
-        await wait(maxDuration);
         this.onenter();
+        await wait(maxDuration);
     }
 
     async exit() {
@@ -39,8 +57,8 @@ class Location {
             }.bind(thing.imageButton.element), duration);
             maxDuration = Math.max(maxDuration, duration);
         }
-        await wait(maxDuration);
         this.onexit();
+        await wait(maxDuration);
     }
 
     onenter() { }

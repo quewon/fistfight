@@ -8,13 +8,14 @@ const dictionary = {
                 "warning: WILL MURDER"
             ],
             job: "killer",
-            health: 10,
+            health: 7,
             strength: 1,
             max_windup: 3,
             dodge_chance: .5,
             item_capacity: 3,
             home: [
-                "note for bill"
+                "note for bill",
+                "generic object"
             ]
         },
 
@@ -26,45 +27,53 @@ const dictionary = {
                 "international super spy"
             ],
             job: "spy",
-            health: 10,
+            health: 7,
             strength: 1,
             max_windup: 3,
             dodge_chance: .5,
             item_capacity: 3,
             home: [
-                "note for jim beans"
+                "note for jim beans",
+                "generic object"
             ]
         }
     },
 
     things: {
+        "generic object": {
+            class: "Thing",
+
+            image: "things/generic.png",
+            portable: true
+        },
+
         "character selection title": {
             class: "Thing",
-            construction: {
-                image: "character select.png",
-                alt: "select your character",
-                keep_in_back: true
-            }
+            
+            position: { x: "30%", y: "20%" },
+            image: "character select.png",
+            alt: "select your character",
+            keep_in_back: true
         },
 
         "note for bill": {
             class: "MissionPrompt",
-            construction: {
-                to: "bill",
-                issued: "days ago",
-                from: "bosswoman",
-                content: "otherside is active in your town. procure a WEAPON and KILL the agent."
-            }
+            
+            to: "bill",
+            issued: "days ago",
+            from: "bosswoman",
+            content: "otherside is active in your town. procure a WEAPON and KILL the agent.",
+            portable: true
         },
 
         "note for jim beans": {
             class: "MissionPrompt",
-            construction: {
-                to: "jim beans",
-                issued: "right now",
-                from: "bossman",
-                content: "enemy has intel. collect all (3) INFO and relay with INTERNET-CONNECTED DEVICE."
-            }
+            
+            to: "jim beans",
+            issued: "right now",
+            from: "bossman",
+            content: "enemy has intel. collect all (3) INFO and relay with INTERNET-CONNECTED DEVICE.",
+            portable: true
         }
     }
 }
