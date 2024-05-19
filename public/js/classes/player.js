@@ -8,6 +8,11 @@ class Player extends Thing {
         this.imageButton.element.classList.add("character");
 
         this.stats = {
+            strength: {
+                element: this.createStatElement("strength"),
+                count: 0,
+                icons_count: 5
+            },
             windup: {
                 element: this.createStatElement("windup"),
                 count: 0,
@@ -20,6 +25,11 @@ class Player extends Thing {
                 icons_count: 6
             }
         }
+
+        this.setStat('strength', data.strength);
+        this.setStat('health', data.health);
+        this.stats.windup.max = data.max_windup;
+        this.setStat('windup', 0);
     }
 
     createStatElement(className) {
@@ -171,9 +181,7 @@ class PlayerSelector extends Player {
             select: function() { game_command(name, 'select character', this) }
         });
 
-        this.setStat('health', data.health);
-        this.stats.windup.max = data.max_windup;
-        this.setStat('windup', 0);
+        attach_label(this.stats.strength.element, "STRENGTH: "+data.strength);
     }
 }
 
@@ -183,7 +191,6 @@ class You extends Player {
         data.position = { x: "20%", y: "30%" };
         data.label = "you";
         data.text = data.character;
-        data.image = data.image;
         data.actions = {
             "look in <em>p</em>ockets": {
                 description: "does not cost a turn",
@@ -194,10 +201,8 @@ class You extends Player {
         };
         super(data);
 
-        this.setStat('health', data.health);
-        this.stats.windup.max = data.max_windup;
-        this.setStat('windup', data.windup);
         this.updateStats(data);
+        attach_label(this.stats.strength.element, "STRENGTH: "+data.strength);
     }
 }
 
@@ -244,7 +249,6 @@ class Opponent extends Player {
         data.position = { x: "80%", y: "70%" };
         data.label = "opponent";
         data.text = data.character;
-        data.label = data.image;
         data.actions = fightActions;
         super(data);
 
@@ -252,9 +256,7 @@ class Opponent extends Player {
         this.playerOverpoweredActions = playerOverpoweredActions;
         this.opponentOverpoweredActions = opponentOverpoweredActions;
         
-        this.setStat('health', data.health);
-        this.stats.windup.max = data.max_windup;
-        this.setStat('windup', data.windup);
         this.updateStats(data);
+        attach_label(this.stats.strength.element, "STRENGTH: "+data.strength+"\nratio: "+(game.data.player.strength / (game.data.player.strength + data.strength)));
     }
 }

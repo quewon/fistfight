@@ -74,7 +74,7 @@ class Thing {
 class MissionPrompt extends Thing {
     constructor(data) {
         data.position = data.position || { x: "80%", y: "70%" };
-        data.image = "mission prompt.png";
+        data.image = "things/mission prompt.png";
         super(data);
 
         let el = document.createElement("div");
@@ -100,17 +100,17 @@ class MissionPrompt extends Thing {
         from.style.position =
         content.style.position = "absolute";
 
-        to.style.top = "30%";
-        issued.style.top = "36.5%";
-        from.style.top = "43%";
-        content.style.top = "62%";
+        to.style.top = "23%";
+        issued.style.top = "32%";
+        from.style.top = "42%";
+        content.style.top = "70%";
 
-        to.style.left = "30%";
-        issued.style.left = "48%";
-        from.style.left = "39%";
-        content.style.left = "14%";
+        to.style.left = "26%";
+        issued.style.left = "49%";
+        from.style.left = "40.5%";
+        content.style.left = "6%";
 
-        content.style.width = "75%";
+        content.style.width = "87%";
 
         el.appendChild(to);
         el.appendChild(issued);

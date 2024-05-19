@@ -37,18 +37,11 @@ const dictionary = {
     },
 
     things: {
-        "generic object": {
-            class: "Thing",
-
-            image: "things/generic.png",
-            portable: true
-        },
-
         "character selection title": {
             class: "Thing",
             
             position: { x: "30%", y: "20%" },
-            image: "character select.png",
+            image: "things/character select.png",
             alt: "select your character",
             keep_in_back: true
         },
@@ -71,7 +64,32 @@ const dictionary = {
             from: "bossman",
             content: "enemy has intel. collect all (3) INFO and relay with INTERNET-CONNECTED DEVICE.",
             portable: true
-        }
+        },
+
+        // gentlepeople's lounge
+
+        "gentlepeople's lounge sign": {
+            class: "Thing",
+
+            position: { x: "50%", y: "17%" },
+            image: "things/gentlepeoples lounge sign.png",
+            alt: "gentlepeople's lounge: no fighting!",
+            keep_in_back: true
+        },
+
+        "lounge chair 1": {
+            class: "Thing",
+
+            position: { x: "0%", y: "0%" },
+            image: "things/gentlepeoples lounge sign.png"
+        },
+
+        "lounge chair 2": {
+            class: "Thing",
+
+            position: { x: "0%", y: "0%" },
+            image: "things/gentlepeoples lounge sign.png"
+        },
     }
 }
 

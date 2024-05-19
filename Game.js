@@ -10,14 +10,17 @@ class Game {
                 this.create_thing("character selection title")
             ],
 
-            "battlefield": [
-            ],
+            "lounge": [
+                this.create_thing("gentlepeople's lounge sign"),
+                // this.create_thing("lounge chair 1"),
+                // this.create_thing("lounge chair 2"),
+            ]
         }
         this.game = {
             id: id,
             is_custom: isCustom || false,
             phases: ["morning", "afternoon", "evening"],
-            map: ['battlefield'],
+            map: ['lounge'],
             characters: ['bill', 'jim beans'],
             phase: 0,
             shared_phase: false,
@@ -35,6 +38,7 @@ class Game {
             character: null,
             time: 0,
             log: [],
+            messages: [],
 
             things: [],
             health: 0,
@@ -49,6 +53,7 @@ class Game {
             character: null,
             time: 0,
             log: [],
+            messages: [],
 
             things: [],
             health: 0,
@@ -139,6 +144,7 @@ class Game {
         return {
             character: data.character,
             image: data.image,
+            strength: data.strength,
             health: data.health,
             windup: data.windup,
             max_windup: data.max_windup,
@@ -204,6 +210,12 @@ class Game {
 
         player.home = location_name;
         player.location = location_name;
+    }
+
+    get_thing_by_id(from, thing_id) {
+        for (let thing of from) {
+            if (thing.id == thing_id) return thing;
+        }
     }
 
     take_thing(player_what, thing_id) {
@@ -483,8 +495,11 @@ class Game {
         }
 
         if (c1 == 'take' && c2 == 'take' && p1.command.thing == p2.command.thing) {
-            this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> reaches for <em>" + p1.command.thing + "</em>...");
-            this.log('player2',  "opp", turn_string, "<em>" + p1.character + "</em> reaches for <em>" + p1.command.thing + "</em>...");
+            var thing = this.get_thing_by_id(this.locations[p1.location], p1.command.thing);
+            let thing_name;
+            if (thing) thing_name = thing.name;
+            this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> reaches for <em>" + thing_name + "</em>...");
+            this.log('player2',  "opp", turn_string, "<em>" + p1.character + "</em> reaches for <em>" + thing_name + "</em>...");
             this.log('player1',  "opp", null, "... and so does <em>" + p1.character + "</em>. meet cute :)");
             this.log('player2', "self", null, "... and so does <em>" + p1.character + "</em>. meet cute :)");
             this.next_turn();
@@ -712,10 +727,14 @@ class Game {
             this.player1.phase_complete = true;
             this.player2.time = this.game.turns_this_phase;
             this.player2.phase_complete = true;
+
+            this.player1.messages.push("phase complete -- pick next location!");
+            this.player2.messages.push("phase complete -- pick next location!");
         } else if (player_what) {
             this[player_what].time = this.game.turns_this_phase;
             this[player_what].phase_complete = true;
             this.log(player_what, null, null, "phase complete.");
+            this[player_what].messages.push("phase complete -- pick next location!");
         }
     }
 
@@ -725,6 +744,8 @@ class Game {
 
         this.player1.time = 0;
         this.player2.time = 0;
+        this.player1.messages = [];
+        this.player2.messages = [];
 
         this.player1.windup = 0;
         this.player2.windup = 0;

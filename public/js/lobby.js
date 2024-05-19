@@ -42,10 +42,9 @@ function stop_matchmaking() {
 }
 
 var matchmakingButton = new Thing({
-    name: "matchmaker",
     label: "find match",
-    position: { x: "35%", y: "35%" },
-    image: "lobby/jobs.jpg",
+    position: { x: "40%", y: "30%" },
+    image: "lobby/clock.png",
     actions: {
         "find match": function() {
             if (!game.matchmaking) {
@@ -57,6 +56,25 @@ var matchmakingButton = new Thing({
         },
     }
 });
+{
+    let date = new Date();
+    let hour = date.getHours();
+    let minute = date.getMinutes();
+
+    let img = document.createElement("img");
+    img.style.position = "absolute";
+    img.src = "res/images/lobby/minute hand.png";
+    matchmakingButton.imageButton.buttonWrapper.appendChild(img);
+
+    img.style.rotate = (minute * 6)+"deg";
+    
+    img = document.createElement("img");
+    img.style.position = "absolute";
+    img.src = "res/images/lobby/hour hand.png";
+    matchmakingButton.imageButton.buttonWrapper.appendChild(img);
+
+    img.style.rotate = (hour * 30)+"deg";
+}
 
 // match found
 
@@ -105,10 +123,10 @@ function cancel_match() {
     }
 }
 
-socket.on('game created', (gameId) => {
+socket.on('game created', async function(gameId) {
     window.history.pushState('game', '', '/' + gameId);
 
-    game.lobby.exit();
+    await game.lobby.exit();
 
     socket.emit('join game', gameId);
 })
@@ -125,10 +143,9 @@ socket.on('match cancelled', () => {
 //
 
 var hostButton = new Thing({
-    name: "host game",
     label: "host game",
-    position: { x: "65%", y: "50%" },
-    image: "lobby/pc.jpg",
+    position: { x: "60%", y: "55%" },
+    image: "lobby/computer.png",
     actions: {
         "host game": function(e) {
             reset_lobby();
@@ -144,10 +161,9 @@ var hostButton = new Thing({
 });
 
 var joinButton = new Thing({
-    name: "join game",
     label: "join game",
     position: { x: "40%", y: "70%" },
-    image: "lobby/phone.png",
+    image: "lobby/telephone.png",
     actions: {
         "join game": function(e) {
             reset_lobby();
@@ -190,9 +206,8 @@ game.lobby = new Location({
         hostButton,
         joinButton,
         new Thing({
-            name: "smiler",
             text: ":-)",
-            position: { x: "45%", y: "55%" },
+            position: { x: "60%", y: "38%" },
             actions: {
                 "talk": function() {
                     game.lobby.things[3].say("hello welcome to the prototype !!!");

@@ -32,6 +32,9 @@ document.addEventListener("mousemove", function(e) {
         x = (x - o.x) / draggingElement.container.clientWidth * 100;
         y = (y - o.y) / draggingElement.container.clientHeight * 100;
 
+        x = Math.max(0, Math.min(100, x));
+        y = Math.max(0, Math.min(100, y));
+
         draggingElement.element.style.left = x+"%";
         draggingElement.element.style.top = y+"%";
     }

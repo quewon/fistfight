@@ -109,20 +109,6 @@ async function init_location(data) {
         var thing = new classLookup[thing_data.class](thing_data);
         locationThings.push(thing);
     }
-
-    if (data.game.shared_phase) {
-        game.opponent = new Opponent(data.opponent);
-        locationThings.push(game.opponent);
-    } else {
-        game.opponent = null;
-    }
-
-    if (data.player.character) {
-        game.player = new You(data.player);
-        locationThings.push(game.player);
-    } else {
-        game.player = null;
-    }
     
     // character select
     if (data.characters) {
@@ -137,6 +123,26 @@ async function init_location(data) {
     game.location = new Location({ things: locationThings });
     document.title = game.location_name || 'character selection';
     await game.location.enter();
+
+    if (data.game.shared_phase) {
+        document.body.classList.add("shared-phase");
+        game.opponent = new Opponent(data.opponent);
+        game.location.things.push(game.opponent);
+        game.location.enter_thing(game.opponent);
+    } else {
+        document.body.classList.remove("shared-phase");
+        game.opponent = null;
+    }
+
+    if (data.player.character) {
+        document.body.classList.add("solo-phase");
+        game.player = new You(data.player);
+        game.location.things.push(game.player);
+        game.location.enter_thing(game.player);
+    } else {
+        document.body.classList.remove("solo-phase");
+        game.player = null;
+    }
 }
 
 async function update_game(data) {

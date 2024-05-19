@@ -3,9 +3,10 @@ html, body {
 }
 
 :root {
-    --black: #1a1a1a;
-    --white: #fdfdfd;
-    --gray: lightgray;
+    --bg: #fdfdfd;
+    --ink: #292a2b;
+
+    --wait: yellow;
     --lightgray: rgb(238, 238, 238);
 
     --self: rgb(205, 223, 244);
@@ -13,8 +14,8 @@ html, body {
 }
 
 body {
-    background: var(--white);
-    color: var(--black);
+    background: var(--bg);
+    color: var(--ink);
 }
 body.dragging, body.dragging * {
     cursor: grabbing !important;
@@ -40,14 +41,16 @@ body.hit #fixed-background {
     border-bottom: 1px solid red;
 }
 body.timer-active #timer-background {
-    background: rgb(255, 249, 205);
+    background: var(--ink);
+    opacity: .1;
 }
 
 button {
     font-family: inherit;
     font-size: inherit;
-    background-color: var(--white);
-    border: 1px dotted var(--black);
+    background-color: var(--bg);
+    color: var(--ink);
+    border: 1px dotted var(--ink);
     border-radius: 0;
     cursor: pointer;
     margin: 0;
@@ -73,7 +76,7 @@ button:disabled {
     cursor: default;
 }
 button:disabled {
-    border-color: var(--gray);
+    border-color: var(--ink);
 }
 
 /* imagebutton */
@@ -85,8 +88,8 @@ input {
 
 input[type="text"] {
     border: none;
-    border-bottom: 1px dotted var(--black);
-    background: var(--white);
+    border-bottom: 1px dotted var(--ink);
+    background: var(--bg);
     border-radius: 0;
 }
 input[type="text"]:focus {
@@ -134,7 +137,8 @@ input[type="image"] {
 }
 .imagebutton input[type="button"] {
     padding: .5em;
-    background: var(--gray);
+    background: var(--bg);
+    color: var(--ink);
 }
 
 .imagebutton input {
@@ -150,11 +154,11 @@ body.phase-ended .actions-menu {
 }
 .imagebutton:not(.no-actions) input:focus,
 .imagebutton input:hover {
-    border-color: var(--black);
+    border-color: var(--ink);
 }
 .imagebutton.selected input,
 .imagebutton:has(button.locked) input {
-    border: 1px solid var(--black);
+    border: 1px solid var(--ink);
 }
 
 .imagebutton .tags-container,
@@ -164,7 +168,7 @@ body.phase-ended .actions-menu {
 }
 .actions-menu em {
     font-style: normal;
-    color: blue;
+    font-weight: bold;
 }
 .imagebutton:has(input:hover) .tags-container,
 .imagebutton.selected .tags-container,
@@ -181,8 +185,8 @@ body.phase-ended .actions-menu {
 
 .label {
     position: absolute;
-    background: var(--black);
-    color: var(--white);
+    background: var(--ink);
+    color: var(--lightgray);
     margin: .5em;
     padding: .5em;
     z-index: 11;
@@ -201,21 +205,30 @@ body.phase-ended .actions-menu {
 }
 .tags-container .tag {
     display: inline-block;
-    border: 1px solid var(--black);
+    border: 1px solid var(--ink);
     border-radius: 2px;
     padding: .2em .5em;
 }
 
 .actions-menu {
+    position: absolute;
+    top: 100%;
+    margin-top: .5em;
     display: flex;
     flex-direction: column;
     gap: .5em;
 }
+.actions-menu button {
+    width: fit-content;
+    white-space: pre;
+    text-align: left;
+}
 .actions-menu button.selected {
-    background: var(--gray);
+    background: var(--ink);
+    color: var(--bg);
 }
 button.locked {
-    background: yellow;
+    background: var(--wait);
 }
 .actions-menu:has(button.selected),
 .actions-menu:has(button.locked) {
@@ -225,16 +238,14 @@ button.locked {
 
 .stats {
     position: absolute;
-    top: 0;
+    top: -.25em;
     left: 0;
-    display: flex;
-    flex-direction: column;
     translate: 0 -100%;
     pointer-events: none;
 }
 .stats > div {
     display: flex;
-    margin-bottom: .5em;
+    margin-bottom: .25em;
 }
 .stats img {
     width: 1em;
@@ -257,6 +268,25 @@ button.locked {
     display: none;
 }
 
+.stats .strength,
+.stats .windup {
+    display: inline-block;
+    width: fit-content;
+}
+.stats .strength {
+    pointer-events: auto;
+}
+.stats .label {
+    white-space: pre;
+}
+
+body.solo-phase .stats {
+    display: none;
+}
+body.solo-phase .imagebutton.selected .stats {
+    display: block;
+}
+
 /* dialogue */
 
 .dialogue-container {
@@ -267,8 +297,8 @@ button.locked {
 }
 
 .dialogue {
-    border: 1px solid var(--black);
-    background: var(--white);
+    border: 1px solid var(--ink);
+    background: var(--bg);
     padding: .5em;
     position: absolute;
     cursor: default;
@@ -293,14 +323,14 @@ button.locked {
     top: 100%;
     width: .5em;
     height: .5em;
-    background: var(--white);
+    background: var(--bg);
     rotate: 45deg;
     translate: 0 -50%;
     z-index: 10;
 }
 .dialogue.arrow-left:before,
 .dialogue.arrow-right:before {
-    background: var(--black);
+    background: var(--ink);
     translate: 0 calc(-50% + 1px);
     z-index: 9;
 }
@@ -317,8 +347,8 @@ button.locked {
 
 .form {
     padding: .5em;
-    border: 1px solid var(--black);
-    background: var(--white);
+    border: 1px solid var(--ink);
+    background: var(--bg);
     max-width: 300px;
     position: absolute;
     
@@ -353,14 +383,14 @@ body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
 
 #ui-container > * {
     padding: .5em;
-    background: var(--black);
-    color: var(--white);
+    background: var(--ink);
+    color: var(--lightgray);
 }
 
 #ui-container button {
-    background-color: var(--black);
-    border-color: var(--white);
-    color: inherit;
+    background: var(--ink);
+    border-color: var(--lightgray);
+    color: var(--bg);
 }
 
 /* map */
@@ -418,30 +448,30 @@ body.phase-ended .ui-blink {
 
 @keyframes blink {
     0% {
-        background: var(--black);
-        color: var(--white);
+        background: var(--ink);
+        color: var(--bg);
     }
     50% {
-        background: var(--white);
-        color: var(--black);
+        background: var(--bg);
+        color: var(--bg);
     }
 }
 
 @keyframes blink-red {
     0% {
         background: red;
-        color: var(--white);
+        color: var(--bg);
     }
     50% {
-        background: var(--white);
-        color: var(--black);
+        background: var(--bg);
+        color: var(--ink);
     }
 }
 
 .x-button,
 #game-log {
     background: var(--lightgray);
-    color: var(--black);
+    color: var(--ink);
 }
 
 #game-log {
@@ -510,8 +540,9 @@ body.phase-ended .ui-blink {
     height: 100%;
     top: 0;
     left: 0;
-    background: color-mix(in srgb, transparent 10%, var(--self) 90%);
+    background: color-mix(in srgb, transparent 30%, var(--bg) 70%);
     backdrop-filter: blur(3px);
+    /* color: var(--bg); */
 }
 
 #pockets > span {
@@ -540,6 +571,7 @@ body.phase-ended #pockets {
     display: flex;
     width: max-content;
 }
-.input-wrapper input[type="image"] {
+.input-wrapper input[type="image"],
+.input-wrapper img {
     width: 20%;
 }
