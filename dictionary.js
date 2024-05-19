@@ -14,8 +14,7 @@ const dictionary = {
             dodge_chance: .5,
             item_capacity: 3,
             home: [
-                "note for bill",
-                "generic object"
+                "note for bill"
             ]
         },
 
@@ -23,8 +22,7 @@ const dictionary = {
             name: "jim beans",
             image: "characters/jim beans.png",
             lines: [
-                "professional sneaker",
-                "international super spy"
+                "professional sneaker"
             ],
             job: "spy",
             health: 7,
@@ -34,7 +32,6 @@ const dictionary = {
             item_capacity: 3,
             home: [
                 "note for jim beans",
-                "generic object"
             ]
         }
     },

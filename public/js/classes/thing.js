@@ -87,13 +87,13 @@ class MissionPrompt extends Thing {
         this.imageButton.buttonWrapper.appendChild(el);
 
         let to = document.createElement("div");
-        to.textContent = prompt.to;
+        to.textContent = data.to;
         let issued = document.createElement("div");
-        issued.textContent = prompt.issued;
+        issued.textContent = data.issued;
         let from = document.createElement("div");
-        from.textContent = prompt.from;
+        from.textContent = data.from;
         let content = document.createElement("div");
-        content.textContent = prompt.content;
+        content.textContent = data.content;
 
         to.style.position = 
         issued.style.position =
