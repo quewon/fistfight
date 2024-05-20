@@ -9,6 +9,7 @@ var ui = {
         joinForm: document.getElementById("join-form")
     },
     game: {
+        uiContainer: document.getElementById("ui-container"),
         timer: document.getElementById("timer-background"),
         container: document.getElementById("things"),
         pockets: document.getElementById("pockets"),

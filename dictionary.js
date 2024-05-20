@@ -68,13 +68,22 @@ const dictionary = {
 
         // gentlepeople's lounge
 
-        "gentlepeople's lounge sign": {
+        "gentlepeople's lounge": {
             class: "Thing",
 
             position: { x: "50%", y: "17%" },
-            image: "things/gentlepeoples lounge sign.png",
-            alt: "gentlepeople's lounge: no fighting!",
+            image: "things/gentlepeoples lounge.png",
+            alt: "gentlepeople's lounge",
             keep_in_back: true
+        },
+
+        "no fighting sign": {
+            class: "Thing",
+
+            position: { x: "65%", y: "20%" },
+            image: "things/no fighting.png",
+            alt: "no fighting!",
+            portable: true
         },
 
         "lounge chair 1": {

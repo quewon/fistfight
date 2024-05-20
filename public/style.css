@@ -6,87 +6,54 @@ html, body {
     --bg: #fdfdfd;
     --ink: #292a2b;
 
-    --wait: yellow;
-    --lightgray: rgb(238, 238, 238);
-
-    --self: rgb(205, 223, 244);
+    --self: rgb(164 207 226);
     --opp: rgb(255 175 110);
+    --overpowered: red;
+
+    --wait: var(--self);
+    --lightgray: rgb(238, 238, 238);
 }
 
 body {
     background: var(--bg);
     color: var(--ink);
 }
+
 body.dragging, body.dragging * {
     cursor: grabbing !important;
 }
 
-#fixed-background {
-    position: fixed;
+/* timer and background effects */
+
+#fixed-background,
+#timer-background {
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     pointer-events: none;
 }
-#timer-background {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    pointer-events: none;
-}
+
 body.hit #fixed-background {
     border-top: 1px solid red;
     border-bottom: 1px solid red;
 }
+
 body.timer-active #timer-background {
-    background: var(--ink);
-    opacity: .1;
+    top: unset;
+    background: var(--wait);
+    opacity: .3;
 }
 
-button {
-    font-family: inherit;
-    font-size: inherit;
-    background-color: var(--bg);
-    color: var(--ink);
-    border: 1px dotted var(--ink);
-    border-radius: 0;
-    cursor: pointer;
-    margin: 0;
-    padding: .5em;
-    position: relative;
-
-    -webkit-touch-callout: none; /* iOS Safari */
-      -webkit-user-select: none; /* Safari */
-       -khtml-user-select: none; /* Konqueror HTML */
-         -moz-user-select: none; /* Old versions of Firefox */
-          -ms-user-select: none; /* Internet Explorer/Edge */
-              user-select: none; /* Non-prefixed version, currently
-                                    supported by Chrome, Edge, Opera and Firefox */
-}
-button:active,
-button.locked,
-button:disabled {
-    border-style: solid;
-}
-
-button.locked,
-button:disabled {
-    cursor: default;
-}
-button:disabled {
-    border-color: var(--ink);
-}
-
-/* imagebutton */
+/* default tags */
 
 input {
     font-family: inherit;
     font-size: inherit;
 }
 
-input[type="text"] {
+input[type="text"] { /* used in lobby */
     border: none;
     border-bottom: 1px dotted var(--ink);
     background: var(--bg);
@@ -99,17 +66,48 @@ input[type="text"]::placeholder {
     font-style: italic;
 }
 
-input[type="image"] {
-    /* max-width: 300px;
-    max-height: 300px; */
-    width: auto;
-    height: auto;
+button {
+    font-family: inherit;
+    font-size: inherit;
+    background-color: var(--bg);
+    color: var(--ink);
+    border: 1px dotted var(--ink);
+    border-radius: 0;
+    margin: 0;
+    padding: .5em;
+    position: relative;
+
+    cursor: pointer;
+
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Edge, Opera and Firefox */
 }
 
-.imagebutton.character input[type="image"] {
-    /* max-width: 150px;
-    max-height: 200px; */
+button:active,
+button.locked,
+button:disabled {
+    border-style: solid;
 }
+
+button.locked,
+button:disabled {
+    cursor: default;
+}
+
+button:disabled {
+    border-color: var(--ink);
+}
+
+button.locked {
+    background: var(--wait);
+}
+
+/* imagebutton */
 
 .imagebutton {
     position: absolute;
@@ -127,37 +125,61 @@ input[type="image"] {
               user-select: none; /* Non-prefixed version, currently
                                     supported by Chrome, Edge, Opera and Firefox */
 }
-.imagebutton .input-wrapper {
+
+.input-wrapper {
     position: relative;
     pointer-events: none;
+    display: flex;
+    width: max-content;
 }
-.imagebutton > *,
-.imagebutton .input-wrapper > input {
+.input-wrapper input,
+.imagebutton canvas,
+.imagebutton button {
     pointer-events: auto;
 }
-.imagebutton input[type="button"] {
+.input-wrapper input[type="image"],
+.input-wrapper img {
+    width: 20%;
+}
+
+input[type="image"] {
+    width: auto;
+    height: auto;
+}
+
+.imagebutton input[type="button"] { /* text imagebuttons */
     padding: .5em;
     background: var(--bg);
     color: var(--ink);
 }
 
-.imagebutton input {
+.imagebutton input,
+.imagebutton canvas {
     border: 1px dotted transparent;
     cursor: pointer;
 }
+
+body.phase-ended .imagebutton canvas {
+    border: 1px solid var(--wait);
+}
+
 .imagebutton.no-actions input,
 body.phase-ended .imagebutton input {
     cursor: grab;
 }
+
 body.phase-ended .actions-menu {
     display: none;
 }
-.imagebutton:not(.no-actions) input:focus,
-.imagebutton input:hover {
+
+body:not(.phase-ended) .imagebutton:not(.no-actions) input:focus,
+.imagebutton input:hover,
+.imagebutton canvas:hover {
     border-color: var(--ink);
 }
-.imagebutton.selected input,
-.imagebutton:has(button.locked) input {
+
+body:not(.phase-ended) .imagebutton.selected input,
+body:not(.phase-ended) .imagebutton:has(button.locked) input {
     border: 1px solid var(--ink);
 }
 
@@ -166,10 +188,7 @@ body.phase-ended .actions-menu {
     visibility: hidden;
     pointer-events: none;
 }
-.actions-menu em {
-    font-style: normal;
-    font-weight: bold;
-}
+
 .imagebutton:has(input:hover) .tags-container,
 .imagebutton.selected .tags-container,
 .imagebutton.selected .actions-menu,
@@ -180,7 +199,7 @@ body.phase-ended .actions-menu {
 }
 
 .imagebutton.overpowered > input {
-    border: 1px solid red !important;
+    border: 1px solid var(--overpowered) !important;
 }
 
 .label {
@@ -191,11 +210,8 @@ body.phase-ended .actions-menu {
     padding: .5em;
     z-index: 11;
     pointer-events: none;
-}
-
-.actions-menu .label {
-    width: 10em;
     text-align: left;
+    white-space: pre;
 }
 
 .tags-container {
@@ -227,9 +243,11 @@ body.phase-ended .actions-menu {
     background: var(--ink);
     color: var(--bg);
 }
-button.locked {
-    background: var(--wait);
+.actions-menu em {
+    font-style: normal;
+    font-weight: bold;
 }
+
 .actions-menu:has(button.selected),
 .actions-menu:has(button.locked) {
     visibility: visible;
@@ -275,9 +293,6 @@ button.locked {
 }
 .stats .strength {
     pointer-events: auto;
-}
-.stats .label {
-    white-space: pre;
 }
 
 body.solo-phase .stats {
@@ -343,7 +358,7 @@ body.solo-phase .imagebutton.selected .stats {
     left: .5em;
 }
 
-/*  */
+/* lobby */
 
 .form {
     padding: .5em;
@@ -378,11 +393,12 @@ body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
 /* ui */
 
 #ui-container {
+    position: relative;
     font-family: monospace;
 }
 
 #ui-container > * {
-    padding: .5em;
+    padding: 1em;
     background: var(--ink);
     color: var(--lightgray);
 }
@@ -391,11 +407,41 @@ body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
     background: var(--ink);
     border-color: var(--lightgray);
     color: var(--bg);
+    vertical-align: middle;
+    padding: 0 .5em;
+}
+
+.gamedata {
+    /* background: transparent;
+    color: var(--ink); */
+    display: block;
+    position: absolute;
+    bottom: 0;
+    /* translate: 0 100%; */
+    white-space: pre;
+    pointer-events: none;
+
+    font-family: monospace;
+    padding: 1em;
+}
+.gamedata > * {
+    pointer-events: auto;
+}
+.gamedata .label {
+    translate: 1em 0;
 }
 
 /* map */
 
-button.mapbutton {
+canvas.pointing {
+    cursor: pointer;
+}
+
+.canvas-container {
+    position: relative;
+}
+
+.mapbutton {
     opacity: 0;
     pointer-events: none;
     height: 0;
@@ -415,27 +461,10 @@ button.mapbutton {
     white-space: pre;
 }
 
-canvas.pointing {
-    cursor: pointer;
-}
-
-.canvas-container {
-    position: relative;
-}
-
-.mapgamedata {
-    font-family: monospace;
-    white-space: pre;
-}
-
 .mapgobutton {
     position: absolute;
     translate: -50% calc(-100% - .5em);
     z-index: 9;
-}
-.mapgobutton .label {
-    width: 6em;
-    text-align: left;
 }
 
 .ui-blink {
@@ -468,7 +497,21 @@ body.phase-ended .ui-blink {
     }
 }
 
-.x-button,
+/* log */
+
+.x-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-family: monospace;
+    min-width: 3ch;
+    height: 3ch;
+    padding: 0 .5ch;
+    text-align: center;
+    line-height: 3ch;
+}
+
+#game-log .x-button,
 #game-log {
     background: var(--lightgray);
     color: var(--ink);
@@ -519,18 +562,6 @@ body.phase-ended .ui-blink {
     background: var(--opp);
 }
 
-.x-button {
-    position: absolute;
-    top: 0;
-    right: 0;
-    font-family: monospace;
-    min-width: 3ch;
-    height: 3ch;
-    padding: 0 .5ch;
-    text-align: center;
-    line-height: 3ch;
-}
-
 /* pockets */
 
 #pockets {
@@ -542,7 +573,6 @@ body.phase-ended .ui-blink {
     left: 0;
     background: color-mix(in srgb, transparent 30%, var(--bg) 70%);
     backdrop-filter: blur(3px);
-    /* color: var(--bg); */
 }
 
 #pockets > span {
@@ -565,13 +595,4 @@ body.phase-ended #pockets {
 
 .monospace {
     font-family: monospace;
-}
-
-.input-wrapper {
-    display: flex;
-    width: max-content;
-}
-.input-wrapper input[type="image"],
-.input-wrapper img {
-    width: 20%;
 }

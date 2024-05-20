@@ -11,7 +11,8 @@ class Game {
             ],
 
             "lounge": [
-                this.create_thing("gentlepeople's lounge sign"),
+                this.create_thing("gentlepeople's lounge"),
+                this.create_thing("no fighting sign"),
                 // this.create_thing("lounge chair 1"),
                 // this.create_thing("lounge chair 2"),
             ]
@@ -304,10 +305,10 @@ class Game {
             var taken_thing = this.take_thing(player_what, thing);
             if (taken_thing) {
                 if (this.game.shared_phase) {
-                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> picks up <em>" + taken_thing.name + "</em>.");
-                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> picks up <em>" + taken_thing.name + "</em>.");
+                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> pockets <em>" + taken_thing.name + "</em>.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> pockets <em>" + taken_thing.name + "</em>.");
                 } else {
-                    this.log(player_what, "self", turn, "picked up <em>" + taken_thing.name + "</em>.");
+                    this.log(player_what, "self", turn, "pocketed <em>" + taken_thing.name + "</em>.");
                 }
             } else {
                 if (this.game.shared_phase) {
@@ -613,9 +614,10 @@ class Game {
             // punch v dodge
 
             if (c1 == 'punch' && c2 == 'dodge') {
+                this.log('player1', "opp",  turn_string, "<em>" + p2.character + "</em> moves to dodge--");
+                this.log('player2', "self", turn_string, "<em>" + p2.character + "</em> moves to dodge--");
+                
                 if (this.dodge_success('player2')) {
-                    this.log('player1', "opp",  turn_string, "<em>" + p2.character + "</em> dodges--");
-                    this.log('player2', "self", turn_string, "<em>" + p2.character + "</em> dodges--");
                     this.log('player1', "self", null, "--<em>" + p1.character + "</em> misses.");
                     this.log('player2', "opp",  null, "--<em>" + p1.character + "</em> misses.");
                     
@@ -623,8 +625,6 @@ class Game {
                     this.player2.messages.push("dodge success!");
                     this.player1.messages.push("opponent: punch dodged");
                 } else {
-                    this.log('player1', "opp",  turn_string, "<em>" + p2.character + "</em> dodges--");
-                    this.log('player2', "self", turn_string, "<em>" + p2.character + "</em> dodges--");
                     this.log('player1', "self", null, "--only to be hit by <em>" + p1.character + "</em> for " + this.punch_power('player1') + " damage.");
                     this.log('player2', "opp",  null, "--only to be hit by <em>" + p1.character + "</em> for " + this.punch_power('player1') + " damage.");
 
@@ -640,9 +640,10 @@ class Game {
             }
 
             if (c1 == 'dodge' && c2 == 'punch') {
+                this.log('player2', "opp",  turn_string, "<em>" + p1.character + "</em> moves to dodge--");
+                this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> moves to dodge--");
+
                 if (this.dodge_success('player1')) {
-                    this.log('player2', "opp",  turn_string, "<em>" + p1.character + "</em> dodges--");
-                    this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> dodges--");
                     this.log('player2', "self", null, "--<em>" + p2.character + "</em> misses.");
                     this.log('player1', "opp",  null, "--<em>" + p2.character + "</em> misses.");
 
@@ -650,8 +651,6 @@ class Game {
                     this.player1.messages.push("dodge success!");
                     this.player2.messages.push("opponent: punch dodged");
                 } else {
-                    this.log('player2', "opp",  turn_string, "<em>" + p1.character + "</em> dodges--");
-                    this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> dodges--");
                     this.log('player2', "self", null, "--only to be hit by <em>" + p2.character + "</em> for " + this.punch_power('player2') + " damage.");
                     this.log('player1', "opp",  null, "--only to be hit by <em>" + p2.character + "</em> for " + this.punch_power('player2') + " damage.");
 

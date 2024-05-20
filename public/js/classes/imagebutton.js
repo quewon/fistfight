@@ -97,7 +97,10 @@ class ImageButton {
             }
 
             this.buttonElement.onload = function() {
-                this.element.style.width = (this.buttonElement.clientWidth + 2)+"px";
+                this.width = this.buttonElement.clientWidth + 2;
+                this.height = this.buttonElement.clientHeight + 2;
+
+                this.element.style.width = this.width+"px";
             }.bind(this);
         } else if (p.text) {
             this.buttonElement.type = "button";
@@ -230,7 +233,7 @@ class ImageButton {
     }
 }
 
-function attach_label(element, text) {
+function attach_label(element, text, container) {
     const label = document.createElement("div");
     label.innerHTML = text;
     label.className = "label gone";
@@ -244,7 +247,7 @@ function attach_label(element, text) {
     }.bind(label));
 
     element.addEventListener("mousemove", function(e) {
-        let rect = this.parentElement.getBoundingClientRect();
+        let rect = container.getBoundingClientRect();
         let x = e.pageX - (rect.left + window.scrollX);
         let y = e.pageY - (rect.top + window.scrollY);
         this.style.left = x+"px";
@@ -254,7 +257,7 @@ function attach_label(element, text) {
     element.addEventListener("focus", function() {
         if (this.classList.contains("gone")) {
             if (this.tabIndex != -1) {
-                let x = this.parentElement.clientWidth;
+                let x = container.clientWidth;
                 let y = 0;
                 this.style.left = x+"px";
                 this.style.top = y+"px";
@@ -267,9 +270,11 @@ function attach_label(element, text) {
         this.classList.add("gone");
     }.bind(label));
 
-    let container = element;
-    while (container.tagName == 'INPUT') {
-        container = container.parentElement;
+    if (!container) {
+        container = element;
+        while (container.tagName == 'INPUT') {
+            container = container.parentElement;
+        }
     }
 
     container.appendChild(label);

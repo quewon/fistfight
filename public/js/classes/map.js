@@ -7,26 +7,6 @@ class Map extends Thing {
 
         this.createCanvas();
 
-        var header = document.createElement("div");
-        var locationElement = document.createElement("div");
-        locationElement.innerHTML = "location. ";
-        locationElement.appendChild(ui.game.location);
-        header.appendChild(locationElement);
-
-        var timeElement = document.createElement("div");
-        timeElement.innerHTML =     "time.     ";
-        timeElement.appendChild(ui.game.phase);
-        timeElement.appendChild(ui.game.time);
-        header.appendChild(timeElement);
-        this.canvasContainer.appendChild(header);
-
-        ui.game.timeLabel = attach_label(timeElement, "");
-
-        timeElement.style.position = "relative";
-        timeElement.style.width = "fit-content";
-
-        header.className = "mapgamedata";
-
         this.createMap(data);
 
         this.draw();
@@ -52,11 +32,9 @@ class Map extends Thing {
         this.context = canvas.getContext("2d");
         this.canvas = canvas;
 
-        // canvas.addEventListener("mousemove", this.mousemove.bind(this));
         canvas.addEventListener("mouseout", function() {
             this.mousemove({ pageX: -Infinity, pageY: -Infinity });
         }.bind(this));
-        // canvas.addEventListener("click", this.click.bind(this));
 
         this.imageButton.buttonElement.remove();
         this.canvasContainer.appendChild(this.canvas);
@@ -179,20 +157,13 @@ class Map extends Thing {
     draw() {
         var context = this.context;
 
-        context.clearRect(0, 0, this.width, this.height);
+        context.fillStyle = "white";
+        context.fillRect(0, 0, this.width, this.height);
 
         context.resetTransform();
         context.scale(window.devicePixelRatio, window.devicePixelRatio);
-
-        context.lineWidth = 1;
-        if (game.data && game.data.player.phase_complete) {
-            context.strokeStyle = "red";
-        } else {
-            context.strokeStyle = "black";
-        }
-        context.strokeRect(0.5, 0.5, this.width-1, this.height-1);
         
-        context.lineWidth = 2;
+        context.lineWidth = window.devicePixelRatio;
         for (let location in this.map) {
             let l = this.map[location];
 

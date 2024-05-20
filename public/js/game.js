@@ -89,19 +89,9 @@ function init_pockets(data) {
 }
 
 async function init_location(data) {
+    console.log("initializing location.");
+    
     var locationThings = [];
-
-    if (data.player.location) {
-        if (!game.map) {
-            game.map = new Map(data);
-        } else {
-            game.map.updateData(data);
-            close_action_menu();
-        }
-        locationThings.push(game.map);
-    } else {
-        game.map = null;
-    }
 
     update_turn_info(data);
 
@@ -117,32 +107,56 @@ async function init_location(data) {
         }
     }
 
-    close_pockets();
-
-    game.location_name = data.player.location;
-    game.location = new Location({ things: locationThings });
-    document.title = game.location_name || 'character selection';
-    await game.location.enter();
-
     if (data.game.shared_phase) {
+        document.body.classList.remove("solo-phase");
         document.body.classList.add("shared-phase");
-        game.opponent = new Opponent(data.opponent);
-        game.location.things.push(game.opponent);
-        game.location.enter_thing(game.opponent);
+        if (!game.opponent) game.opponent = new Opponent(data.opponent);
+        locationThings.push(game.opponent);
     } else {
+        if (game.location_name) document.body.classList.add("solo-phase");
         document.body.classList.remove("shared-phase");
         game.opponent = null;
     }
 
     if (data.player.character) {
-        document.body.classList.add("solo-phase");
-        game.player = new You(data.player);
-        game.location.things.push(game.player);
-        game.location.enter_thing(game.player);
+        if (!game.player) game.player = new You(data.player);
+        locationThings.push(game.player);
     } else {
-        document.body.classList.remove("solo-phase");
         game.player = null;
     }
+
+    game.location_name = data.player.location;
+    game.location = new Location({ things: locationThings });
+    document.title = game.location_name || 'character selection';
+
+    if (game.location_name) {
+        // gamedata
+    
+        var header = document.createElement("div");
+        header.className = "gamedata";
+
+        var locationElement = document.createElement("div");
+        locationElement.innerHTML = "location. ";
+        locationElement.appendChild(ui.game.location);
+        header.appendChild(locationElement);
+
+        var timeElement = document.createElement("div");
+        timeElement.innerHTML =     "time.     ";
+        timeElement.appendChild(ui.game.phase);
+        timeElement.appendChild(ui.game.time);
+        header.appendChild(timeElement);
+        
+        ui.game.container.appendChild(header);
+
+        ui.game.timeLabel = attach_label(timeElement, "");
+        ui.game.timeLabel.classList.add("monospace");
+    }
+
+    close_pockets();
+    game.map = null;
+    if (game.player && game.player.mapButton) game.player.mapButton.classList.remove("gone");
+
+    await game.location.enter();
 }
 
 async function update_game(data) {
@@ -150,7 +164,9 @@ async function update_game(data) {
         game.start(data);
     }
 
-    console.log("game updated");
+    const prev = game.data;
+
+    console.log("game updated.");
 
     clearTimeout(game.turn_timer);
     document.body.classList.remove("timer-active");
@@ -163,20 +179,22 @@ async function update_game(data) {
 
     if (data.game.over) console.log("game over!");
 
-    if (data.game.phase != game.data.game.phase) {
+    if (data.game.phase != prev.game.phase) {
         document.body.classList.remove("phase-ended");
     }
 
+    if (data.player.phase_complete) create_map(data);
+
     //
 
-    var things_removed_from_location = get_removed(game.data.location, data.location);
-    var things_added_to_location = get_added(game.data.location, data.location);
-    var things_removed_from_pockets = get_removed(game.data.player.things, data.player.things);
-    var things_added_to_pockets = get_added(game.data.player.things, data.player.things);
+    var things_removed_from_location = get_removed(prev.location, data.location);
+    var things_added_to_location = get_added(prev.location, data.location);
+    var things_removed_from_pockets = get_removed(prev.player.things, data.player.things);
+    var things_added_to_pockets = get_added(prev.player.things, data.player.things);
 
-    if (game.location_name == data.player.location && game.data.phase == data.phase) {
+    if (prev.player.location == data.player.location && prev.phase == data.phase) {
         for (let thing_data of things_removed_from_location) {
-            var thing = game.location.remove_thing_by_data(thing_data);
+            var thing = game.location.remove_thing(thing_data);
             if (thing) {
                 for (let i=0; i<things_added_to_pockets.length; i++) {
                     let ptd = things_added_to_pockets[i];
@@ -192,12 +210,11 @@ async function update_game(data) {
     for (let thing_data of things_added_to_pockets) {
         thing_data.in_pockets = true;
         var thing = new classLookup[thing_data.class](thing_data);
-        game.pockets.things.push(thing);
-        game.pockets.enter_thing(thing);
+        game.pockets.add_thing(thing);
     }
 
     for (let thing_data of things_removed_from_pockets) {
-        var thing = game.pockets.remove_thing_by_data(thing_data);
+        var thing = game.pockets.remove_thing(thing_data);
         if (thing) {
             for (let i=0; i<things_added_to_location.length; i++) {
                 let ltd = things_added_to_location[i];
@@ -209,11 +226,10 @@ async function update_game(data) {
         }
     }
 
-    if (game.location_name == data.player.location && game.data.phase == data.phase) {
+    if (prev.player.location == data.player.location && prev.phase == data.phase) {
         for (let thing_data of things_added_to_location) {
             var thing = new classLookup[thing_data.class](thing_data);
-            game.location.things.push(thing);
-            game.location.enter_thing(thing);
+            game.location.add_thing(thing);
         }
     }
 
@@ -228,10 +244,10 @@ async function update_game(data) {
     if (game.player && data.player) {
         game.player.updateStats(data.player);
 
-        let prev = game.data.player;
+        let past = prev.player;
         let curr = data.player;
 
-        if (curr.health < prev.health) {
+        if (curr.health < past.health) {
             document.body.classList.add("hit");
             sfx("hit");
             await wait(300);
@@ -304,28 +320,28 @@ async function update_game(data) {
         await wait(1000);
     }
 
-    if (data.game.phase != game.data.game.phase) {
+    if (data.game.phase != prev.game.phase) {
         if (data.game.shared_phase) {
             update_log(data.player.log.slice(0, -2));
         } else {
             update_log(data.player.log.slice(0, -1));
         }
 
-        if (game.map) {
+        if (ui.game.timeLabel) {
             ui.game.timeLabel.textContent = "time passes...";
-            for (let time=game.data.player.time+1; time<game.data.game.turns_this_phase; time++) {
-                ui.game.time.textContent = turn_to_time(game.data.game.phase, time, game.data.game.turns_this_phase);
+            for (let time=prev.player.time+1; time<prev.game.turns_this_phase; time++) {
+                ui.game.time.textContent = turn_to_time(prev.game.phase, time, prev.game.turns_this_phase);
                 ui.game.time.classList.remove("ui-blink");
                 ui.game.time.offsetWidth;
                 ui.game.time.classList.add("ui-blink");
 
-                if (game.data.game.turns_this_phase == 8 || game.data.game.turns_this_phase == 16 && time%2==0) sfx("ticking");
-                if (game.data.game.turns_this_phase == 8) {
+                if (prev.game.turns_this_phase == 8 || prev.game.turns_this_phase == 16 && time%2==0) sfx("ticking");
+                if (prev.game.turns_this_phase == 8) {
                     await wait(500);
-                } else if (game.data.game.turns_this_phase == 16) {
+                } else if (prev.game.turns_this_phase == 16) {
                     await wait(250);
                 }
-            }
+            }   
         }
 
         // if (data.player.location != game.data.player.location) {
@@ -359,12 +375,12 @@ async function update_game(data) {
 
         update_log(data.player.log);
     } else {
-        if (game.map) {
+        if (ui.game.timeLabel) {
             ui.game.timeLabel.textContent = "time passes...";
-            for (let time=game.data.player.time+1; time<=data.player.time; time++) {
+            for (let time=prev.player.time+1; time<=data.player.time; time++) {
                 sfx("ticking");
                 // ui.game.time.textContent = (game.data.game.phase * 8 + time) + ":00";
-                ui.game.time.textContent = turn_to_time(game.data.game.phase, time, game.data.game.turns_this_phase);
+                ui.game.time.textContent = turn_to_time(prev.game.phase, time, prev.game.turns_this_phase);
                 ui.game.time.classList.remove("ui-blink");
                 ui.game.time.offsetWidth;
                 ui.game.time.classList.add("ui-blink");
@@ -374,7 +390,7 @@ async function update_game(data) {
 
         // for now, only applies at the beginning of the game
         // with the character selection location, you know
-        if (game.data.player.location != data.player.location) {
+        if (prev.player.location != data.player.location) {
             if (game.location) await game.location.exit();
 
             sfx("ticking");
@@ -504,13 +520,18 @@ function look_in_pockets() {
     if (game.data.phase_complete) return;
     
     ui.game.pockets.classList.remove("gone");
-    // game.pockets.enter();
 }
 
 function close_pockets() {
-    // game.pockets.exit();
     ui.game.pockets.classList.add("gone");
     close_action_menu();
+}
+
+function create_map(data) {
+    if (data.player.location && !game.map) {
+        game.map = new Map(data);
+        game.location.add_thing(game.map);
+    }
 }
 
 //

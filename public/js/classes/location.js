@@ -8,12 +8,31 @@ class Location {
         this.container = p.container || ui.game.container;
     }
 
+    // add something after location has been created
+    add_thing(thing) {
+        this.things.push(thing);
+        this.enter_thing(thing);
+    }
+
+    remove_thing(thing) {
+        for (let i=0; i<this.things.length; i++) {
+            let compare = this.things[i];
+            if (compare.id == thing.id) {
+                this.things.splice(i, 1);
+                compare.remove();
+                return compare;
+            }
+        }
+
+        return false;
+    }
+
     enter_thing(thing, duration) {
         if (this.container.contains(thing.imageButton.element)) return;
 
         thing.imageButton.deselect();
         thing.imageButton.container = this.container;
-
+        
         setTimeout(function() {
             if (this.keep_in_back) {
                 this.container.prepend(this.element);
@@ -21,20 +40,6 @@ class Location {
                 this.container.appendChild(this.element);
             }
         }.bind(thing.imageButton), duration);
-    }
-
-    remove_thing_by_data(thing_data) {
-        for (let i=0; i<this.things.length; i++) {
-            let thing = this.things[i];
-            if (thing.id == thing_data.id) {
-                this.things.splice(i, 1);
-                thing.remove();
-
-                return thing;
-            }
-        }
-
-        return false;
     }
 
     async enter() {

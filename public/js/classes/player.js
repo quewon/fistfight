@@ -11,7 +11,7 @@ class Player extends Thing {
             strength: {
                 element: this.createStatElement("strength"),
                 count: 0,
-                icons_count: 5
+                icons_count: 3
             },
             windup: {
                 element: this.createStatElement("windup"),
@@ -168,7 +168,7 @@ class Player extends Thing {
 class PlayerSelector extends Player {
     constructor(name, data) {
         data.name = name;
-        data.position = { x: random(30, 70) + "%", y: random(30, 70) + "%" };
+        data.position = { x: random(10, 90) + "%", y: random(45, 80)+"%" };
         data.text = data.name;
         data.image = data.image;
         data.label = data.job;
@@ -193,10 +193,12 @@ class You extends Player {
         data.text = data.character;
         data.actions = {
             "look in <em>p</em>ockets": {
-                description: "does not cost a turn",
-                function: function() {
-                    look_in_pockets();
-                }
+                description: "(free action)",
+                function: function() { look_in_pockets() }
+            },
+            "open map": {
+                description: "(free action)\nuse the map to end the phase early",
+                function: function() { create_map(game.data); this.classList.add("gone"); game.player.mapButton = this; }
             }
         };
         super(data);
@@ -246,7 +248,7 @@ class Opponent extends Player {
         }
 
         data.name = "opponent";
-        data.position = { x: "80%", y: "70%" };
+        data.position = { x: "80%", y: "60%" };
         data.label = "opponent";
         data.text = data.character;
         data.actions = fightActions;
