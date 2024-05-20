@@ -2,32 +2,72 @@ class Thing {
     constructor(data) {
         this.name = data.name;
         this.id = data.id;
+        this.is_constructed = true;
 
         let p = data;
-        
-        var actions = p.actions || {};
 
-        const id = this.id;
-        if (p.portable) {
-            if (p.in_pockets) {
-                actions["drop"] = function() { game_command(id, 'drop', this) }
-            } else {
-                actions["pocket"] = {
-                    description: "hold up to 3 things",
-                    function: function() { game_command(id, 'take', this) }
-                }
-            }
-        }
-
+        this.base_actions = p.actions || {};
         this.imageButton = new ImageButton({
             position: p.position || { x: random(20, 80)+"%", y: random(20, 80)+"%" },
             image: p.image,
             text: p.text,
             label: p.label,
             tags: p.tags,
-            actions: actions,
+            actions: this.base_actions,
             keep_in_back: p.keep_in_back
         });
+
+        if (p.portable) {
+            if (p.in_opponent_pockets) {
+                this.pocket('opp');
+            } else if (p.in_pockets) {
+                this.pocket('self');
+            } else {
+                this.unpocket();
+            }
+        }
+    }
+
+    copy_actions(actions) {
+        let copy = {};
+        for (let name in actions) {
+            copy[name] = actions[name];
+        }
+        return copy;
+    }
+
+    pocket(subject) {
+        var actions = this.copy_actions(this.base_actions);
+        
+        const id = this.id;
+        if (subject == 'self') {
+            actions["drop"] = function() { game_command(id, 'drop', this) }
+            if (game.pockets) game.pockets.add_thing(this);
+        } else if (subject == 'opp') {
+            actions["pick"] = {
+                description: "hold up to " + game.data.player.item_capacity + " things",
+                function: function() { game_command(id, 'steal', this) }
+            }
+            if (game.opponent_pockets) game.opponent_pockets.add_thing(this);
+        }
+
+        this.imageButton.setActions(actions);
+        this.imageButton.deselect();
+    }
+
+    unpocket() {
+        var actions = this.copy_actions(this.base_actions);
+
+        const id = this.id;
+        actions["pocket"] = {
+            description: "hold up to " + game.data.player.item_capacity + " things",
+            function: function() { game_command(id, 'take', this) }
+        }
+
+        this.imageButton.setActions(actions);
+        this.imageButton.deselect();
+
+        if (game.location) game.location.add_thing(this);
     }
     
     get_position() {
@@ -37,7 +77,12 @@ class Thing {
         }
     }
 
-    say(message) {
+    set_position(p) {
+        this.imageButton.element.style.left = p.x;
+        this.imageButton.element.style.top = p.y;
+    }
+
+    async say(message) {
         if (this.dialogue) this.dialogue.destroy();
 
         let dialogue = new Dialogue(message);
@@ -46,7 +91,7 @@ class Thing {
         let x;
         let y = -dialogue.height;
 
-        if (rect.left + rect.width/2 > ui.game.container.clientWidth/2) {
+        if (rect.left > ui.game.container.clientWidth/2) {
             // dialogue on its left
             x = 0;
             dialogue.element.classList.add("arrow-right");
@@ -60,6 +105,10 @@ class Thing {
         dialogue.setPosition(x, y);
 
         this.dialogue = dialogue;
+
+        if (this.imageButton.element.parentElement) this.imageButton.element.parentElement.appendChild(this.imageButton.element);
+        
+        await wait(this.dialogue.get_total_duration());
     }
 
     setActions(actions) {
@@ -73,7 +122,7 @@ class Thing {
 
 class MissionPrompt extends Thing {
     constructor(data) {
-        data.position = data.position || { x: "80%", y: "70%" };
+        data.position = data.position || { x: "50%", y: "50%" };
         data.image = "things/mission prompt.png";
         super(data);
 

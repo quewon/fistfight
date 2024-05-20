@@ -20,7 +20,7 @@ function start_matchmaking(button) {
         if (button) ui.lobby.matchmakingButton = button;
 
         game.matchmaking = true;
-        ui.lobby.matchmakingButton.classList.add("selected");
+        ui.lobby.matchmakingButton.classList.add("matchmaking");
         ui.lobby.matchmakingButton.textContent = "stop looking for match";
 
         console.log("looking for players...");
@@ -33,7 +33,7 @@ function stop_matchmaking() {
 
     if (game.matchmaking) {
         game.matchmaking = false;
-        ui.lobby.matchmakingButton.classList.remove("selected");
+        ui.lobby.matchmakingButton.classList.remove("matchmaking");
         ui.lobby.matchmakingButton.textContent = "find match";
 
         console.log("stopped looking for players.");

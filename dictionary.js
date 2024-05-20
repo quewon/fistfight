@@ -12,10 +12,32 @@ const dictionary = {
             strength: 1,
             max_windup: 3,
             dodge_chance: .5,
-            item_capacity: 3,
+            item_capacity: 5,
             home: [
                 "note for bill"
-            ]
+            ],
+
+            dialogue: {
+                'initial encounter': [
+                    "guess you're the one from the memo"
+                ],
+
+                'repeated encounter': [
+                    "oh you must have gotten lost",
+                    "who are you again? no wait, don't tell me",
+                    "i like this town, it's quiet"
+                ],
+
+                'fight adjourned': [
+                    "i think i left my oven on",
+                    "i'm tired can we go now?",
+                    "zzzz"
+                ],
+
+                'win': [
+                    "i win :)"
+                ]
+            }
         },
 
         "jim beans": {
@@ -29,10 +51,32 @@ const dictionary = {
             strength: 1,
             max_windup: 3,
             dodge_chance: .5,
-            item_capacity: 3,
+            item_capacity: 5,
             home: [
                 "note for jim beans",
-            ]
+            ],
+
+            dialogue: {
+                'initial encounter': [
+                    "you must be the intel!"
+                ],
+
+                'repeated encounter': [
+                    "it's nothing personal",
+                    "if it isn't whatever your name is!",
+                    "how's the pay over there?"
+                ],
+
+                'fight adjourned': [
+                    "well, that's my 8 contracted hours",
+                    "let's do this at my place next time",
+                    "nice to meet you, too"
+                ],
+
+                'win': [
+                    "that's done, then"
+                ]
+            }
         }
     },
 
@@ -68,7 +112,7 @@ const dictionary = {
 
         // gentlepeople's lounge
 
-        "gentlepeople's lounge": {
+        "gentlepeople's lounge title": {
             class: "Thing",
 
             position: { x: "50%", y: "17%" },

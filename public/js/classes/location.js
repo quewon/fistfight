@@ -42,28 +42,34 @@ class Location {
         }.bind(thing.imageButton), duration);
     }
 
-    async enter() {
+    async enter(conditions) {
+        conditions = conditions || {};
         var maxDuration = 0;
         for (let thing of this.things) {
-            let duration = Math.random() * 400;
+            let duration = conditions.immediate ? 0 : Math.random() * 400;
             this.enter_thing(thing, duration);
             maxDuration = Math.max(maxDuration, duration);
         }
         this.onenter();
-        await wait(maxDuration);
+        if (!conditions.immediate) await wait(maxDuration);
     }
 
-    async exit() {
+    async exit(conditions) {
+        conditions = conditions || {};
         var maxDuration = 0;
         for (let thing of this.things) {
-            let duration = Math.random() * 400;
-            setTimeout(function() {
-                this.remove();
-            }.bind(thing.imageButton.element), duration);
-            maxDuration = Math.max(maxDuration, duration);
+            if (conditions.immediate) {
+                thing.imageButton.element.remove();
+            } else {
+                let duration = conditions.immediate ? 0 : Math.random() * 400;
+                setTimeout(function() {
+                    this.remove();
+                }.bind(thing.imageButton.element), duration);
+                maxDuration = Math.max(maxDuration, duration);
+            }
         }
         this.onexit();
-        await wait(maxDuration);
+        if (!conditions.immediate) await wait(maxDuration);
     }
 
     onenter() { }

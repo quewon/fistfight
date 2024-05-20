@@ -1,10 +1,11 @@
-function say(text, x, y) {
-    return new Dialogue(text, x, y);
+async function say(text, x, y) {
+    var dialogue = new Dialogue(text, x, y, true);
+    await wait(dialogue.get_total_duration());
 }
 
 class Dialogue {
-    constructor(text, x, y, ondestroy) {
-        this.ondestroy = ondestroy;
+    constructor(text, x, y, mute) {
+        this.mute = mute;
 
         x = x || mouse.x;
         y = y || mouse.y;
@@ -56,6 +57,19 @@ class Dialogue {
         this.elementContainer.style.top = y+"px";
     }
 
+    get_total_duration() {
+        let duration = 0;
+        for (let syllable of this.syllables) {
+            if (syllable == " ") {
+                duration += 100;
+            } else {
+                duration += syllable.length * 40;
+            }
+        }
+        duration += 500;
+        return duration;
+    }
+
     update() {
         this.syllableIndex++;
 
@@ -76,7 +90,7 @@ class Dialogue {
                 duration = 100;
             }
 
-            if (currentSyllable.trim() != "") {
+            if (currentSyllable.trim() != "" && !this.mute) {
                 sfx("click");
             }
 
@@ -89,9 +103,5 @@ class Dialogue {
     destroy() {
         clearTimeout(this.timeout);
         this.elementContainer.remove();
-        if (this.ondestroy) {
-            this.ondestroy();
-            this.ondestroy = null;
-        }
     }
 }

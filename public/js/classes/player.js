@@ -29,7 +29,7 @@ class Player extends Thing {
         this.setStat('strength', data.strength);
         this.setStat('health', data.health);
         this.stats.windup.max = data.max_windup;
-        this.setStat('windup', 0);
+        this.setStat('windup', data.windup || 0);
     }
 
     createStatElement(className) {
@@ -88,6 +88,10 @@ class Player extends Thing {
                         }.bind(this), (i * amount) * 100);
                     }
                 }
+            }
+        } else {
+            for (let statName in this.stats) {
+                this.setStat(statName, data[statName]);
             }
         }
 
@@ -152,7 +156,7 @@ class Player extends Thing {
         } else {
             let icon = document.createElement("img");
 
-            let i = this.stats[statName].count % this.stats[className].icons_count + 1;
+            let i = this.stats[statName].count % this.stats[statName].icons_count + 1;
             icon.src = "res/images/stats/"+statName+"/"+i+".png";
 
             this.stats[statName].element.appendChild(icon);
@@ -193,15 +197,21 @@ class You extends Player {
         data.text = data.character;
         data.actions = {
             "look in <em>p</em>ockets": {
-                description: "(free action)",
-                function: function() { look_in_pockets() }
+                description: "<i>(free action)</i>",
+                function: function() { look_in_pockets('self'); close_action_menu() }
             },
-            "open map": {
-                description: "(free action)\nuse the map to end the phase early",
-                function: function() { create_map(game.data); this.classList.add("gone"); game.player.mapButton = this; }
+            "open <em>m</em>ap": {
+                description: "end the phase early\n<i>(free action)</i>",
+                function: function() {
+                    create_map(game.data, this);
+                    close_action_menu()
+                }
             }
         };
+
         super(data);
+
+        this.mapButton = this.imageButton.actionsMenu.lastElementChild;
 
         this.updateStats(data);
         attach_label(this.stats.strength.element, "STRENGTH: "+data.strength);
@@ -212,7 +222,7 @@ class Opponent extends Player {
     constructor(data) {
         var fightActions = {
             "wind up punch": {
-                description: "packs extra power into a punch.",
+                description: "+1 punch power",
                 function: function() { game_command('opponent', 'windup', this) }
             },
             "punch": {
@@ -222,18 +232,18 @@ class Opponent extends Player {
                 }
             },
             block: {
-                description: "get hit for half damage (rounded down). puts you on 1 WINDUP if hit.",
+                description: "if hit:\n- halves damage <i>(rounded down)</i>\n- puts you on 1 WINDUP",
                 function: function() { game_command('opponent', 'block', this) }
             },
             dodge: {
-                description: "chance (depending on STRENGTH ratio) of avoiding a punch completely.",
+                description: (game.data.player.dodge_chance * 100) + "% chance of avoiding a hit",
                 function: function() { game_command('opponent', 'dodge', this) }
             }
         }
 
         var playerOverpoweredActions = {
             struggle: {
-                description: "chance (depending on STRENGTH ratio) of recovering 1 HEALTH",
+                description: "chance <i>(depending on STRENGTH ratio)</i>\nof recovering +1 HEALTH",
                 function: function() {
                     game_command('opponent', 'struggle', this);
                 }
@@ -242,8 +252,13 @@ class Opponent extends Player {
 
         var opponentOverpoweredActions = {
             question: {
-                description: "+1 INFORMATION.",
+                description: "+1 INFORMATION",
                 function: function() { game_command('opponent', 'question', this) }
+            },
+
+            pickpocket: {
+                description: "steal something\nor steal a glance <i>for free</i>",
+                function: function() { look_in_pockets('opp'); close_action_menu() }
             }
         }
 

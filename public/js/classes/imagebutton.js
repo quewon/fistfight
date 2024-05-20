@@ -96,13 +96,18 @@ class ImageButton {
                 this.buttonElement.alt = p.alt;
             }
 
+            // this.image_ready = false;
             this.buttonElement.onload = function() {
                 this.width = this.buttonElement.clientWidth + 2;
                 this.height = this.buttonElement.clientHeight + 2;
+                // this.image_ready = true;
+                // this.onready();
 
                 this.element.style.width = this.width+"px";
+                this.element.style.height = this.height+"px";
             }.bind(this);
         } else if (p.text) {
+            // this.image_ready = true;
             this.buttonElement.type = "button";
             this.buttonElement.value = p.text;
         }
@@ -171,6 +176,7 @@ class ImageButton {
     }
  
     select() {
+        if (game.data && game.data.player.phase_complete) return;
         if (!this.actions) return;
 
         close_action_menu();
@@ -190,8 +196,6 @@ class ImageButton {
     }
 
     setActions(actions) {
-        if (this.actions && this.actions == actions) return;
-
         if (actions && Object.keys(actions).length > 0) {
             this.element.classList.remove("no-actions");
             this.buttonElement.removeAttribute("tabindex");
@@ -231,6 +235,8 @@ class ImageButton {
             this.buttonElement.tabIndex = -1;
         }
     }
+
+    // onready() { }
 }
 
 function attach_label(element, text, container) {

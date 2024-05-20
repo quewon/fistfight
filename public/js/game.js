@@ -85,7 +85,14 @@ function init_pockets(data) {
         pocketsThings.push(thing);
     }
     game.pockets = new Location({ container: ui.game.pockets, things: pocketsThings });
-    game.pockets.enter();
+
+    pocketsThings = [];
+    for (let thing_data of data.opponent.things) {
+        thing_data.in_opponent_pockets = true;
+        var thing = new classLookup[thing_data.class](thing_data);
+        pocketsThings.push(thing);
+    }
+    game.opponent_pockets = new Location({ container: ui.game.pockets, things: pocketsThings });
 }
 
 async function init_location(data) {
@@ -153,8 +160,9 @@ async function init_location(data) {
     }
 
     close_pockets();
+
     game.map = null;
-    if (game.player && game.player.mapButton) game.player.mapButton.classList.remove("gone");
+    if (game.player) game.player.mapButton.classList.remove("gone");
 
     await game.location.enter();
 }
@@ -191,17 +199,80 @@ async function update_game(data) {
     var things_added_to_location = get_added(prev.location, data.location);
     var things_removed_from_pockets = get_removed(prev.player.things, data.player.things);
     var things_added_to_pockets = get_added(prev.player.things, data.player.things);
+    var things_removed_from_opp_pockets = get_removed(prev.opponent.things, data.opponent.things);
+    var things_added_to_opp_pockets = get_added(prev.opponent.things, data.opponent.things);
+
+    var pocketed_count = things_added_to_pockets.length;
+    var unpocketed_count = things_removed_from_pockets.length;
 
     if (prev.player.location == data.player.location && prev.phase == data.phase) {
         for (let thing_data of things_removed_from_location) {
             var thing = game.location.remove_thing(thing_data);
-            if (thing) {
+            check: if (thing) {
                 for (let i=0; i<things_added_to_pockets.length; i++) {
                     let ptd = things_added_to_pockets[i];
                     if (ptd.id == thing_data.id) {
-                        ptd.position = thing.get_position();
-                        break;
+                        thing.pocket('self');
+                        things_added_to_pockets.splice(i, 1);
+                        break check;
                     }
+                }
+
+                for (let i=0; i<things_added_to_opp_pockets.length; i++) {
+                    let otd = things_added_to_opp_pockets[i];
+                    if (otd.id == thing_data.id) {
+                        thing.pocket('opp');
+                        things_added_to_opp_pockets.splice(i, 1);
+                        break check;
+                    }
+                }
+            }
+        }
+    }
+
+    for (let thing_data of things_removed_from_opp_pockets) {
+        var thing = game.opponent_pockets.remove_thing(thing_data);
+        check: if (thing) {
+            for (let i=0; i<things_added_to_pockets.length; i++) {
+                let ptd = things_added_to_pockets[i];
+                if (ptd.id == thing_data.id) {
+                    thing.pocket('self');
+                    game.pockets.add_thing(thing);
+                    things_added_to_pockets.splice(i, 1);
+                    break check;
+                }
+            }
+
+            for (let i=0; i<things_added_to_location.length; i++) {
+                let ltd = things_added_to_location[i];
+                if (ltd.id == thing_data.id) {
+                    thing.unpocket();
+                    things_added_to_location.splice(i, 1);
+                    break check;
+                }
+            }
+        }
+    }
+
+    for (let thing_data of things_removed_from_pockets) {
+        var thing = game.pockets.remove_thing(thing_data);
+        check: if (thing) {
+            for (let i=0; i<things_added_to_location.length; i++) {
+                let ltd = things_added_to_location[i];
+                if (ltd.id == thing_data.id) {
+                    thing.unpocket();
+                    things_added_to_location.splice(i, 1);
+                    break check;
+                }
+            }
+
+            for (let i=0; i<things_added_to_opp_pockets.length; i++) {
+                let otd = things_added_to_opp_pockets[i];
+                if (otd.id == thing_data.id) {
+                    thing.pocket('opp');
+                    game.opponent_pockets.add_thing(thing);
+                    things_added_to_opp_pockets.splice(i, 1);
+                    break check;
                 }
             }
         }
@@ -209,34 +280,28 @@ async function update_game(data) {
 
     for (let thing_data of things_added_to_pockets) {
         thing_data.in_pockets = true;
-        var thing = new classLookup[thing_data.class](thing_data);
+        var thing = thing_data.is_constructed ? thing_data : new classLookup[thing_data.class](thing_data);
         game.pockets.add_thing(thing);
     }
 
-    for (let thing_data of things_removed_from_pockets) {
-        var thing = game.pockets.remove_thing(thing_data);
-        if (thing) {
-            for (let i=0; i<things_added_to_location.length; i++) {
-                let ltd = things_added_to_location[i];
-                if (ltd.id == thing_data.id) {
-                    ltd.position = thing.get_position();
-                    break;
-                }
-            }
-        }
+    for (let thing_data of things_added_to_opp_pockets) {
+        var thing = thing_data.is_constructed ? thing_data : new classLookup[thing_data.class](thing_data);
+        game.opponent_pockets.add_thing(thing);
     }
 
     if (prev.player.location == data.player.location && prev.phase == data.phase) {
         for (let thing_data of things_added_to_location) {
-            var thing = new classLookup[thing_data.class](thing_data);
+            var thing = thing_data.is_constructed ? thing_data : new classLookup[thing_data.class](thing_data);
             game.location.add_thing(thing);
         }
     }
 
-    if (things_added_to_pockets.length > 0) {
-        look_in_pockets();
-    } else if (things_removed_from_pockets.length > 0) {
-        close_pockets();
+    if (!data.game.shared_phase) {
+        if (pocketed_count > 0) {
+            look_in_pockets('self');
+        } else if (unpocketed_count > 0) {
+            close_pockets();
+        }
     }
     
     //
@@ -281,31 +346,6 @@ async function update_game(data) {
             if (c == 'dodge' && curr.dodge_successful) {
                 sfx("dodge");
                 await wait(300);
-            }
-        }
-    }
-
-    if (data.player.messages) {
-        for (let message of data.player.messages) {
-            let split = message.split(": ");
-            let speaker = split[0];
-            let msg = split.length > 1 ? split[1] : split[0];
-
-            if (msg == "overwound") {
-                var lines = [
-                    "nothing left to pack in this punch",
-                    "can't wind up any further",
-                    "no more winding up"
-                ];
-                msg = lines[Math.random() * lines.length | 0];
-            }
-
-            if (speaker == 'opponent') {
-                game.opponent.say(msg);
-            } else if (speaker == 'me') {
-                game.player.say(msg);
-            } else {
-                say(msg);
             }
         }
     }
@@ -374,7 +414,11 @@ async function update_game(data) {
         await init_location(data);
 
         update_log(data.player.log);
+
+        play_messages(data.player.messages);
     } else {
+        play_messages(data.player.messages);
+
         if (ui.game.timeLabel) {
             ui.game.timeLabel.textContent = "time passes...";
             for (let time=prev.player.time+1; time<=data.player.time; time++) {
@@ -433,6 +477,59 @@ async function update_game(data) {
     game.data = data;
     game.disable_actions = false;
     document.body.classList.remove("actions-disabled");
+}
+
+function play_messages(messages) {
+    if (messages) {
+        var thing_messages = [];
+        var mouse_messages = [];
+
+        for (let message of messages) {
+            if (message.includes(": ")) {
+                thing_messages.push(message);
+            } else {
+                mouse_messages.push(message);
+            }
+        }
+
+        play_mouse_messages(mouse_messages);
+        play_thing_messages(thing_messages);
+    }
+}
+
+async function play_mouse_messages(mouse_messages) {
+    for (let message of mouse_messages) {
+        if (message == "overwound") {
+            var lines = [
+                "nothing left to pack in this punch",
+                "can't wind up any further",
+                "no more winding up"
+            ];
+            message = lines[Math.random() * lines.length | 0];
+        }
+
+        await say(message);
+    }
+}
+
+async function play_thing_messages(thing_messages) {
+    for (let message of thing_messages) {
+        let split = message.split(": ");
+        let speaker = split[0];
+        let msg = split.length > 1 ? split[1] : split[0];
+
+        if (speaker == 'opp') {
+            await game.opponent.say(msg);
+        } else if (speaker == 'self') {
+            await game.player.say(msg);
+        } else {
+            for (let thing of game.location) {
+                if (thing.id == speaker) {
+                    await thing.say(msg);
+                }
+            }
+        }
+    }
 }
 
 function resolve_timer() {
@@ -516,8 +613,26 @@ function start_waiting_for_response(button) {
     game.waiting_for_response = true;
 }
 
-function look_in_pockets() {
+function look_in_pockets(subject) {
     if (game.data.phase_complete) return;
+
+    if (subject == 'self') {
+        if (!game.data.player) return;
+
+        ui.game.pocketOwner.textContent = "your";
+        ui.game.pocketCapacity.textContent = game.data.player.item_capacity - game.data.player.things.length;
+        ui.game.pockets.classList.remove("opponent");
+        game.opponent_pockets.exit({ immediate: true });
+        game.pockets.enter({ immediate: true });
+    } else if (subject == 'opp') {
+        if (!game.data.opponent) return;
+
+        ui.game.pocketOwner.textContent = "their";
+        ui.game.pocketCapacity.textContent = game.data.opponent.item_capacity - game.data.opponent.things.length;
+        ui.game.pockets.classList.add("opponent");
+        game.pockets.exit({ immediate: true });
+        game.opponent_pockets.enter({ immediate: true });
+    }
     
     ui.game.pockets.classList.remove("gone");
 }
@@ -531,6 +646,10 @@ function create_map(data) {
     if (data.player.location && !game.map) {
         game.map = new Map(data);
         game.location.add_thing(game.map);
+
+        if (game.player) {
+            game.player.mapButton.classList.add("gone");
+        }
     }
 }
 

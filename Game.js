@@ -5,13 +5,14 @@ class Game {
         this.server = server;
         this.thing_count = 0;
 
+        this.npcs = [];
         this.locations = {
             "character selection": [
                 this.create_thing("character selection title")
             ],
 
             "lounge": [
-                this.create_thing("gentlepeople's lounge"),
+                this.create_thing("gentlepeople's lounge title"),
                 this.create_thing("no fighting sign"),
                 // this.create_thing("lounge chair 1"),
                 // this.create_thing("lounge chair 2"),
@@ -26,11 +27,13 @@ class Game {
             phase: 0,
             shared_phase: false,
             shared_time: 0,
+            shared_encounters: 0,
 
             solo_phase_turns: 8,
             shared_phase_turns: 8,
             turns_this_phase: 8,
-            shared_phase_timer: 60 //seconds
+            // shared_phase_timer: 60 //seconds
+            shared_phase_timer: -1
         }
         this.player1 = {
             opponent: null,
@@ -40,11 +43,8 @@ class Game {
             time: 0,
             log: [],
             messages: [],
-
             things: [],
-            health: 0,
-            strength: 0,
-            windup: 0,
+
             info: 0
         }
         this.player2 = {
@@ -55,11 +55,8 @@ class Game {
             time: 0,
             log: [],
             messages: [],
-
             things: [],
-            health: 0,
-            strength: 0,
-            windup: 0,
+            
             info: 0
         }
 
@@ -73,6 +70,18 @@ class Game {
         
         this.global_log("game created with key <em>" + this.game.id + "</em>.");
         this.global_log("<span class='phase-starter'><em>character selection</em> phase begins.</span>");
+    }
+
+    create_thing(name) {
+        var thing = JSON.parse(JSON.stringify(dictionary.things[name]));
+        thing.name = name;
+        thing.id = this.thing_count++;
+        return thing;
+    }
+
+    create_npc(name) {
+        var npc = JSON.parse(JSON.stringify(dictionary.npcs[name]));
+        return npc;
     }
 
     global_log(message) {
@@ -127,13 +136,6 @@ class Game {
         return false;
     }
 
-    create_thing(name) {
-        var thing = JSON.parse(JSON.stringify(dictionary.things[name]));
-        thing.name = name;
-        thing.id = this.thing_count++;
-        return thing;
-    }
-
     opponent_data(player_what) {
         var data;
         if (player_what == 'player1') {
@@ -141,19 +143,28 @@ class Game {
         } else if (player_what == 'player2') {
             data = this.player1;
         }
+        
+        if (this.game.shared_phase) {
+            return {
+                character: data.character,
+                image: data.image,
+                
+                item_capacity: data.item_capacity,
+                strength: data.strength,
+                health: data.health,
+                windup: data.windup,
+                max_windup: data.max_windup,
+                command: data.command,
+                things: data.things,
 
-        return {
-            character: data.character,
-            image: data.image,
-            strength: data.strength,
-            health: data.health,
-            windup: data.windup,
-            max_windup: data.max_windup,
-            command: data.command,
-            things: data.things,
-
-            overpowered: data.overpowered,
-            dodge_successful: data.dodge_successful
+                overpowered: data.overpowered,
+                dodge_successful: data.dodge_successful
+            }
+        } else {
+            return {
+                things: [],
+                item_capacity: data.item_capacity
+            }
         }
     }
 
@@ -177,7 +188,7 @@ class Game {
         return {
             game: this.game,
             player: this.player_data(player_what),
-            opponent: this.game.shared_phase ? this.opponent_data(player_what) : null,
+            opponent: this.opponent_data(player_what),
             location: this.locations[this[player_what].location || 'character selection'],
             characters: characters
         }
@@ -241,6 +252,28 @@ class Game {
         return false;
     }
 
+    steal_thing(player_what, thing_id) {
+        var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
+        var opponent = this[opponent_what];
+
+        var thing;
+        var thing_index = -1;
+        for (let i=0; i<opponent.things.length; i++) {
+            if (opponent.things[i].id == thing_id) {
+                thing_index = i;
+                thing = opponent.things[i];
+                break;
+            }
+        }
+
+        if (thing && thing.portable) {
+            opponent.things.splice(thing_index, 1);
+            this[player_what].things.push(thing);
+            return thing;
+        }
+        return false;
+    }
+
     drop_thing(player_what, thing_id) {
         var player = this[player_what];
 
@@ -274,6 +307,13 @@ class Game {
         var thing = player.command.thing;
         var command = player.command.command;
 
+        if (command == 'select location') {
+            player.next_location = thing;
+            return;
+        }
+
+        if (player.phase_complete) return;
+
         if (!player.character) {
             if (command == 'select character') {
                 this.set_character(player_what, thing);
@@ -282,13 +322,6 @@ class Game {
             }
             return;
         }
-
-        if (command == 'select location') {
-            player.next_location = thing;
-            return;
-        }
-
-        if (player.phase_complete) return;
 
         var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
         var opponent = this[opponent_what];
@@ -302,13 +335,25 @@ class Game {
         }
 
         if (command == 'take') {
+            if (player.things.length >= player.item_capacity) {
+                if (this.game.shared_phase) {
+                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> tries to take <em>" + taken_thing.name + "</em> with full pockets.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> tries to take <em>" + taken_thing.name + "</em> with full pockets.");
+                } else {
+                    this.log(player_what, "self", turn, "tried to take something at full pocket capacity.");
+                }
+
+                this.next_turn(player_what);
+                return;
+            }
+
             var taken_thing = this.take_thing(player_what, thing);
             if (taken_thing) {
                 if (this.game.shared_phase) {
                     this.log(player_what,  "self", turn, "<em>" + player.character + "</em> pockets <em>" + taken_thing.name + "</em>.");
                     this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> pockets <em>" + taken_thing.name + "</em>.");
                 } else {
-                    this.log(player_what, "self", turn, "pocketed <em>" + taken_thing.name + "</em>.");
+                    this.log(player_what, "self", turn, "took <em>" + taken_thing.name + "</em>.");
                 }
             } else {
                 if (this.game.shared_phase) {
@@ -319,6 +364,21 @@ class Game {
                 }
             }
             this.next_turn(player_what);
+            return;
+        }
+
+        if (command == 'steal') {
+            var taken_thing = this.steal_thing(player_what, thing);
+            if (taken_thing) {
+                this.log(player_what,  "self", turn, "<em>" + player.character + "</em> steals <em>" + taken_thing.name + "</em> from <em>" + opponent.character + "</em>.");
+                this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> steals <em>" + taken_thing.name + "</em> from <em>" + opponent.character + "</em>.");
+                opponent.messages.push("<em>" + taken_thing.name + "</em> got stolen!");
+            } else {
+                this.log(player_what,  "self", turn, "<em>" + player.character + "</em> tried to steal something that isn't there.");
+                this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> tried to steal something that isn't there.");
+            }
+            this.next_turn(player_what);
+            return;
         }
 
         if (command == 'drop') {
@@ -339,6 +399,7 @@ class Game {
                 }
             }
             this.next_turn(player_what);
+            return;
         }
 
         if (thing == 'opponent') {
@@ -360,7 +421,7 @@ class Game {
                         let pp = this.punch_power(player_what);
                         this.damage_player(opponent_what, pp);
                         if (opponent.windup > 0) {
-                            opponent.messages.push("me: got hit -- windups lost");
+                            opponent.messages.push("self: got hit -- windups lost");
                         }
                         opponent.windup = 0;
                         player.windup = 0;
@@ -409,8 +470,8 @@ class Game {
                     if (this.struggle_success(player_what)) {
                         player.overpowered = false;
                         player.health = 1;
-                        player.messages.push("me: ESCAPED HOLD");
-                        opponent.messages.push("opponent: ESCAPED HOLD");
+                        player.messages.push("ESCAPED HOLD");
+                        opponent.messages.push("OPPONENT ESCAPES HOLD");
                         this.log(player_what, "self", turn, "<em>" + player.character + "</em> struggles free.");
                         this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> struggles free.");
                     } else {
@@ -440,12 +501,11 @@ class Game {
             this[player_what].health = 0;
             this[player_what].windup = 0;
             this[player_what].overpowered = true;
-            this[player_what].messages.push("OPPONENT DOWN");
-            this[player_what].messages.push("opponent: OVERPOWERED");
+            this[player_what].messages.push("OVERPOWERED");
 
             var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
 
-            this[opponent_what].messages.push("me: OVERPOWERED");
+            this[opponent_what].messages.push("OPPONENT DOWN");
 
             this.log(player_what, "self",  null, "<em>" + this[player_what].character + "</em> is <em>overpowered</em>.");
             this.log(opponent_what, "opp", null, "<em>" + this[player_what].character + "</em> is <em>overpowered</em>.");
@@ -542,11 +602,11 @@ class Game {
                 p1.windup = 0;
                 if (p2.windup > 0) {
                     p2.windup = 0;
-                    p2.messages.push("me: got hit -- windups lost");
-                    p1.messages.push("opponent: got hit -- windups lost");
+                    p2.messages.push("self: got hit -- windups lost");
+                    p1.messages.push("opp: got hit -- windups lost");
                 } else {
-                    p2.messages.push("me: got hit -- windup failed");
-                    p1.messages.push("opponent: got hit -- windup failed");
+                    p2.messages.push("self: got hit -- windup failed");
+                    p1.messages.push("opp: got hit -- windup failed");
                 }
                 if (p1.overpowered && p2.overpowered) {
                     this.phase_complete();
@@ -565,11 +625,11 @@ class Game {
                 p2.windup = 0;
                 if (p1.windup > 0) {
                     p1.windup = 0;
-                    p1.messages.push("me: got hit -- windups lost");
-                    p2.messages.push("opponent: got hit -- windups lost");
+                    // p1.messages.push("self: got hit -- windups lost");
+                    // p2.messages.push("opp: got hit -- windups lost");
                 } else {
-                    p1.messages.push("me: got hit -- windup failed");
-                    p2.messages.push("opponent: got hit -- windup failed");
+                    // p1.messages.push("self: got hit -- windup failed");
+                    // p2.messages.push("opp: got hit -- windup failed");
                 }
                 this.next_turn();
                 return;
@@ -588,7 +648,7 @@ class Game {
                 p1.windup = 0;
                 p2.windup = 1;
                 p2.messages.push("block successful -- damage halved");
-                p1.messages.push("opponent: blocked punch");
+                // p1.messages.push("opp: blocked punch");
 
                 this.next_turn();
                 return;
@@ -605,7 +665,7 @@ class Game {
                 this.player1.windup = 1;
                 this.player2.windup = 0;
                 this.player1.messages.push("block successful -- damage halved");
-                this.player2.messages.push("opponent: blocked punch");
+                // this.player2.messages.push("opp: blocked punch");
 
                 this.next_turn();
                 return;
@@ -623,7 +683,7 @@ class Game {
                     
                     p2.dodge_successful = true;
                     this.player2.messages.push("dodge success!");
-                    this.player1.messages.push("opponent: punch dodged");
+                    // this.player1.messages.push("opp: punch dodged");
                 } else {
                     this.log('player1', "self", null, "--only to be hit by <em>" + p1.character + "</em> for " + this.punch_power('player1') + " damage.");
                     this.log('player2', "opp",  null, "--only to be hit by <em>" + p1.character + "</em> for " + this.punch_power('player1') + " damage.");
@@ -632,7 +692,7 @@ class Game {
                     this.process_command('player1', { no_logging: true });
 
                     this.player2.messages.push("dodge failed");
-                    this.player1.messages.push("opponent: dodge failed");
+                    // this.player1.messages.push("opp: dodge failed");
                 }
                 this.player1.windup = 0;
                 this.next_turn();
@@ -649,7 +709,7 @@ class Game {
 
                     p1.dodge_successful = true;
                     this.player1.messages.push("dodge success!");
-                    this.player2.messages.push("opponent: punch dodged");
+                    // this.player2.messages.push("opp: punch dodged");
                 } else {
                     this.log('player2', "self", null, "--only to be hit by <em>" + p2.character + "</em> for " + this.punch_power('player2') + " damage.");
                     this.log('player1', "opp",  null, "--only to be hit by <em>" + p2.character + "</em> for " + this.punch_power('player2') + " damage.");
@@ -658,7 +718,7 @@ class Game {
                     this.process_command('player2', { no_logging: true });
 
                     this.player1.messages.push("dodge failed");
-                    this.player1.messages.push("opponent: tried to dodge");
+                    // this.player1.messages.push("opp: tried to dodge");
                 }
                 this.player2.windup = 0;
                 this.next_turn();
@@ -713,10 +773,32 @@ class Game {
         }
     }
 
+    dialogue(player_what, key) {
+        let array = this[player_what].dialogue[key];
+        let first_line = array.shift();
+        array.push(first_line);
+        return first_line;
+    }
+
+    share_dialogue(key) {
+        let d1 = this.dialogue('player1', key);
+        let d2 = this.dialogue('player2', key);
+
+        this.player1.messages.push("self: " + d1);
+        this.player1.messages.push( "opp: " + d2);
+        this.player2.messages.push( "opp: " + d1);
+        this.player2.messages.push("self: " + d2);
+    }
+
+    monologue(player_what, key) {
+        this[player_what].messages.push(this.dialogue(player_what, key));
+    }
+
     phase_complete(player_what) {
         if (this.game.shared_phase) {
             if (!this.game.shared_phase_complete) {
                 this.global_log("phase complete.");
+                this.share_dialogue('fight adjourned');
             }
 
             this.game.shared_time = this.game.turns_this_phase;
@@ -778,6 +860,12 @@ class Game {
 
         if (this.game.shared_phase) {
             this.global_log("<em>" + this.player1.character + "</em> meets <em>" + this.player2.character + "</em>.");
+            if (this.game.shared_encounters == 0) {
+                this.share_dialogue('initial encounter');
+            } else {
+                this.share_dialogue('repeated encounter');
+            }
+            this.game.shared_encounters++;
         }
 
         this.update();
@@ -806,6 +894,15 @@ class Game {
 
         this.global_log("<span class='phase-starter'>game ended.</span>");
         this.global_log(this[this.game.winner].character + " wins.");
+        
+        if (this.game.shared_phase) {
+            let line = this.dialogue(this[this.game.winner], 'fight adjourned');
+            let opponent_what = this.game.winner == 'player1' ? 'player2' : 'player1';
+            this[this.game.winner].messages.push("self: " + line);
+            this[opponent_what].messages.push("opp: " + line);
+        } else {
+            this.monologue(this[this.game.winner], 'fight adjourned');
+        }
     }
 }
 

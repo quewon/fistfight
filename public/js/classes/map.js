@@ -242,6 +242,7 @@ class Map extends Thing {
         for (let location in this.map) {
             this.map[location].focused = false;
         }
+        this.canvas.classList.remove("selected");
     }
 
     close_menu() {
@@ -297,13 +298,15 @@ class Map extends Thing {
             var location_button = this.map[this.selectedLocation].element;
             location_button.parentElement.insertBefore(button, location_button.nextSibling);
 
-            // this.canvasContainer.appendChild(button);
+            this.canvas.classList.add("selected");
         } else {
             if (lockedButton == this.goButton || lockedButton == this.endPhaseButton) {
                 lockedButton.classList.remove("locked");
                 lockedButton = null;
                 stop_waiting_for_response();
             }
+
+            this.canvas.classList.remove("selected");
         }
     }
 }

@@ -23,7 +23,10 @@ var ui = {
 
         location: document.createElement("span"),
         phase: document.createElement("span"),
-        time: document.createElement("span")
+        time: document.createElement("span"),
+        
+        pocketCapacity: document.getElementById("pocket-capacity"),
+        pocketOwner: document.getElementById("pocket-owner")
     }
 }
 
@@ -56,10 +59,15 @@ document.addEventListener("keydown", async function(e) {
 document.addEventListener("keypress", async function(e) {
     if (e.code == 'KeyP') {
         if (ui.game.pockets.classList.contains("gone")) {
-            look_in_pockets();
+            look_in_pockets('self');
         } else {
             close_pockets();
         }
+        return;
+    }
+
+    if (e.code == 'KeyM') {
+        create_map(game.data);
         return;
     }
 })
