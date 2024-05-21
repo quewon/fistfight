@@ -1,14 +1,17 @@
-async function say(text, x, y) {
-    var dialogue = new Dialogue(text, x, y, true);
+async function say(text) {
+    var dialogue = new Dialogue({
+        text: text,
+        mute: true
+    });
     await wait(dialogue.get_total_duration());
 }
 
 class Dialogue {
-    constructor(text, x, y, mute) {
-        this.mute = mute;
+    constructor(p) {
+        p = p || {};
+        var text = p.text || "";
 
-        x = x || mouse.x;
-        y = y || mouse.y;
+        this.mute = p.mute;
 
         this.elementContainer = document.createElement("div");
         this.elementContainer.className = "dialogue-container";
@@ -23,12 +26,18 @@ class Dialogue {
 
         // calculate width
         this.elementContainer.appendChild(this.element);
-        this.element.textContent = text;
+        this.element.innerHTML = text;
         this.width = this.element.offsetWidth;
         this.height = this.element.offsetHeight;
-        this.element.textContent = "";
+        this.element.innerHTML = "";
 
-        this.setPosition(x, y);
+        if (p.thing) {
+            p.thing.imageButton.element.appendChild(this.elementContainer);
+            this.position_in_imagebutton(p.thing.imageButton);
+            p.thing.imageButton.dialogue = this;
+        } else {
+            this.setPosition(mouse.x, mouse.y);
+        }
 
         // break down text
         this.syllables = [];
@@ -47,6 +56,26 @@ class Dialogue {
         this.syllableIndex = -1;
 
         this.update();
+    }
+
+    position_in_imagebutton(imagebutton) {
+        let rect = imagebutton.buttonElement.getBoundingClientRect();
+        let x;
+        let y = -this.height;
+
+        if (rect.left + rect.width/2 > ui.game.container.clientWidth/2) {
+            // dialogue on its left
+            x = 0;
+            this.element.classList.remove("arrow-left");
+            this.element.classList.add("arrow-right");
+        } else {
+            // dialogue on its right
+            x = rect.width;
+            this.element.classList.remove("arrow-right");
+            this.element.classList.add("arrow-left");
+        }
+        
+        this.setPosition(x, y);
     }
 
     setPosition(x, y) {
@@ -79,7 +108,7 @@ class Dialogue {
                 string += this.syllables[i];
             }
 
-            this.element.textContent = string;
+            this.element.innerHTML = string;
 
             let currentSyllable = this.syllables[this.syllableIndex];
             let duration = currentSyllable.length * 40;

@@ -5,9 +5,9 @@ var lockedButton;
 
 function close_action_menu() {
     if (game.disable_actions) return;
-
     if (selectedElement) selectedElement.deselect();
     if (game.map) game.map.deselect();
+    stop_waiting_for_response();
 }
 
 document.addEventListener("mousemove", function(e) {
@@ -37,6 +37,10 @@ document.addEventListener("mousemove", function(e) {
 
         draggingElement.element.style.left = x+"%";
         draggingElement.element.style.top = y+"%";
+
+        if (draggingElement.dialogue) {
+            draggingElement.dialogue.position_in_imagebutton(draggingElement);
+        }
     }
 });
 
@@ -45,10 +49,8 @@ document.addEventListener("mouseup", function(e) {
         draggingElement.drop();
         return;
     }
-
-    if (selectedElement) {
-        selectedElement.deselect();
-    }
+    
+    close_action_menu();
 });
 
 class ImageButton {

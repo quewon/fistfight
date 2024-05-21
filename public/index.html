@@ -47,12 +47,17 @@
             <div id="pockets" class="gone">
                 <span><span id="pocket-owner">your</span> pockets, with space for <b><span id="pocket-capacity">?</span></b> more item(s)<br><br><i>click anywhere to exit this menu</i></span>
             </div>
+
+            <div id="gamedata" class="gone">
+                <div>location. <span id="game-location"></span></div>
+                <div>time.     <span id="game-phase"></span><span id="game-time"></span></div>
+            </div>
         </div>
     
         <div id="game-log">
 
         </div>
-        <button id="log-toggle-button" class="x-button" onclick="ui.game.log.classList.toggle('gone'); this.textContent = ui.game.log.classList.contains('gone') ? 'log' : 'x'">x</button>
+        <button id="log-toggle-button" class="x-button" onclick="toggle_log()">x</button>
     </div>
     
 </body>
@@ -65,6 +70,7 @@
 <script src="js/classes/dialogue.js"></script>
 <script src="js/classes/imagebutton.js"></script>
 <script src="js/classes/thing.js"></script>
+<script src="js/classes/npc.js"></script>
 <script src="js/classes/player.js"></script>
 <script src="js/classes/location.js"></script>
 <script src="js/classes/map.js"></script>

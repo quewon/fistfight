@@ -21,9 +21,10 @@ var ui = {
         log: document.getElementById("game-log"),
         logButton: document.getElementById("log-toggle-button"),
 
-        location: document.createElement("span"),
-        phase: document.createElement("span"),
-        time: document.createElement("span"),
+        data: document.getElementById("gamedata"),
+        location: document.getElementById("game-location"),
+        phase: document.getElementById("game-phase"),
+        time: document.getElementById("game-time"),
         
         pocketCapacity: document.getElementById("pocket-capacity"),
         pocketOwner: document.getElementById("pocket-owner")
@@ -67,9 +68,19 @@ document.addEventListener("keypress", async function(e) {
     }
 
     if (e.code == 'KeyM') {
-        create_map(game.data);
+        toggle_map();
+        return;
+    }
+
+    if (e.code == 'KeyL') {
+        toggle_log();
         return;
     }
 })
 
 ui.game.pockets.addEventListener("click", close_pockets);
+
+function toggle_log() {
+    ui.game.log.classList.toggle('gone');
+    ui.game.logButton.textContent = ui.game.log.classList.contains('gone') ? 'log' : 'x';
+}

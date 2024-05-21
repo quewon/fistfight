@@ -15,13 +15,26 @@ class Location {
     }
 
     remove_thing(thing) {
-        for (let i=0; i<this.things.length; i++) {
-            let compare = this.things[i];
-            if (compare.id == thing.id) {
-                this.things.splice(i, 1);
-                compare.remove();
-                return compare;
+        if (thing.id) {
+            for (let i=0; i<this.things.length; i++) {
+                let compare = this.things[i];
+                if (compare.id == thing.id) {
+                    this.things.splice(i, 1);
+                    compare.remove();
+                    return compare;
+                }
             }
+        } else if (thing.name) {
+            for (let i=0; i<this.things.length; i++) {
+                let compare = this.things[i];
+                if (compare.name == thing.name) {
+                    this.things.splice(i, 1);
+                    compare.remove();
+                    return compare;
+                }
+            }
+        } else {
+            console.error("thing has no name or id.");
         }
 
         return false;

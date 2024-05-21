@@ -23,14 +23,14 @@ const dictionary = {
                 ],
 
                 'repeated encounter': [
-                    "oh you must have gotten lost",
-                    "who are you again? no wait, don't tell me",
+                    "are you lost",
+                    "i missed you too",
                     "i like this town, it's quiet"
                 ],
 
                 'fight adjourned': [
                     "i think i left my oven on",
-                    "i'm tired can we go now?",
+                    "i'm tired can we go now",
                     "zzzz"
                 ],
 
@@ -78,6 +78,60 @@ const dictionary = {
                 ]
             }
         }
+    },
+
+    npcs: {
+        // generic
+
+        "dude": {
+            name: "dude",
+            image: "npcs/generic 1.png",
+            dialogue: [
+                "woah you scared me!",
+                "hello there",
+                "hmm"
+            ]
+        },
+
+        "guy": {
+            name: "guy",
+            image: "npcs/generic 2.png",
+            dialogue: [
+                "sup",
+                "yo",
+                "who are you"
+            ]
+        },
+
+        "old man": {
+            name: "old man",
+            image: "npcs/generic 3.png",
+            dialogue: [
+                "get out of my home",
+                "i don't get company very often",
+                "how's the weather these days i can't see too good"
+            ]
+        },
+
+        "girl": {
+            name: "girl",
+            image: "npcs/generic 4.png",
+            dialogue: [
+                "hi",
+                "hullo",
+                "just chillin"
+            ]
+        },
+
+        "old woman": {
+            name: "old woman",
+            image: "npcs/generic 5.png",
+            dialogue: [
+                "don't disturb me, dear",
+                "can't talk busy reading some huge book",
+                "i probably believe in god"
+            ]
+        },
     },
 
     things: {

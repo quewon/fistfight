@@ -100,11 +100,19 @@ button:disabled {
 }
 
 button:disabled {
-    border-color: var(--ink);
+    border-color: gray;
+    color: gray;
+    font-style: italic;
 }
 
 button.locked {
     background: var(--wait);
+}
+
+/*  */
+
+#things {
+    overflow: hidden;
 }
 
 /* imagebutton */
@@ -413,23 +421,23 @@ body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
     padding: 0 .5em;
 }
 
-.gamedata {
+#gamedata {
     /* background: transparent;
     color: var(--ink); */
     display: block;
     position: absolute;
     bottom: 0;
     /* translate: 0 100%; */
-    white-space: pre;
     pointer-events: none;
 
     font-family: monospace;
     padding: 1em;
 }
-.gamedata > div {
+#gamedata > div {
     pointer-events: auto;
+    white-space: pre;
 }
-.gamedata .label {
+#gamedata .label {
     translate: 1em 0;
 }
 

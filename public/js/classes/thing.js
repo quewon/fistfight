@@ -45,7 +45,7 @@ class Thing {
             if (game.pockets) game.pockets.add_thing(this);
         } else if (subject == 'opp') {
             actions["pick"] = {
-                description: "hold up to " + game.data.player.item_capacity + " things",
+                description: "hold up to " + game.item_capacity + " things",
                 function: function() { game_command(id, 'steal', this) }
             }
             if (game.opponent_pockets) game.opponent_pockets.add_thing(this);
@@ -60,7 +60,7 @@ class Thing {
 
         const id = this.id;
         actions["pocket"] = {
-            description: "hold up to " + game.data.player.item_capacity + " things",
+            description: "hold up to " + game.item_capacity + " things",
             function: function() { game_command(id, 'take', this) }
         }
 
@@ -85,26 +85,10 @@ class Thing {
     async say(message) {
         if (this.dialogue) this.dialogue.destroy();
 
-        let dialogue = new Dialogue(message);
-
-        let rect = this.imageButton.buttonElement.getBoundingClientRect();
-        let x;
-        let y = -dialogue.height;
-
-        if (rect.left > ui.game.container.clientWidth/2) {
-            // dialogue on its left
-            x = 0;
-            dialogue.element.classList.add("arrow-right");
-        } else {
-            // dialogue on its right
-            x = rect.width;
-            dialogue.element.classList.add("arrow-left");
-        }
-        
-        this.imageButton.element.appendChild(dialogue.elementContainer);
-        dialogue.setPosition(x, y);
-
-        this.dialogue = dialogue;
+        this.dialogue = new Dialogue({
+            text: message,
+            thing: this
+        });
 
         if (this.imageButton.element.parentElement) this.imageButton.element.parentElement.appendChild(this.imageButton.element);
         
@@ -117,6 +101,7 @@ class Thing {
 
     remove() {
         this.imageButton.element.remove();
+        if (this.dialogue) this.dialogue.destroy();
     }
 }
 

@@ -26,10 +26,8 @@ class Player extends Thing {
             }
         }
 
-        this.setStat('strength', data.strength);
-        this.setStat('health', data.health);
         this.stats.windup.max = data.max_windup;
-        this.setStat('windup', data.windup || 0);
+        this.updateStats(data);
     }
 
     createStatElement(className) {
@@ -176,6 +174,7 @@ class PlayerSelector extends Player {
         data.text = data.name;
         data.image = data.image;
         data.label = data.job;
+        data.windup = 0;
         super(data);
 
         this.imageButton.setActions({
@@ -203,8 +202,8 @@ class You extends Player {
             "open <em>m</em>ap": {
                 description: "end the phase early\n<i>(free action)</i>",
                 function: function() {
-                    create_map(game.data, this);
-                    close_action_menu()
+                    toggle_map();
+                    close_action_menu();
                 }
             }
         };
@@ -213,7 +212,6 @@ class You extends Player {
 
         this.mapButton = this.imageButton.actionsMenu.lastElementChild;
 
-        this.updateStats(data);
         attach_label(this.stats.strength.element, "STRENGTH: "+data.strength);
     }
 }
@@ -273,7 +271,6 @@ class Opponent extends Player {
         this.playerOverpoweredActions = playerOverpoweredActions;
         this.opponentOverpoweredActions = opponentOverpoweredActions;
         
-        this.updateStats(data);
         attach_label(this.stats.strength.element, "STRENGTH: "+data.strength+"\nratio: "+(game.data.player.strength / (game.data.player.strength + data.strength)));
     }
 }

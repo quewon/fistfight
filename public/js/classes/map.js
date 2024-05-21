@@ -2,7 +2,6 @@ class Map extends Thing {
     constructor(data) {
         data.name = "map";
         data.position = { x: "50%", y: "50%" };
-        data.keep_in_back = true;
         super(data);
 
         this.createCanvas();
@@ -40,8 +39,8 @@ class Map extends Thing {
         this.canvasContainer.appendChild(this.canvas);
         this.imageButton.element.appendChild(this.canvasContainer);
 
-        document.addEventListener("mousemove", this.mousemove.bind(this));
-        document.addEventListener("click", this.click.bind(this));
+        this.canvasContainer.addEventListener("mousemove", this.mousemove.bind(this));
+        this.canvasContainer.addEventListener("mouseup", this.click.bind(this));
     }
 
     createMap(data) {
@@ -113,6 +112,7 @@ class Map extends Thing {
             }
             e.stopPropagation();
         });
+        this.goButton.addEventListener("mouseup", function(e) { e.stopPropagation() });
         this.canvasContainer.appendChild(this.goButton);
         attach_label(this.goButton, "will end this phase");
         this.goButton.remove();
@@ -126,6 +126,7 @@ class Map extends Thing {
             }
             e.stopPropagation();
         });
+        this.endPhaseButton.addEventListener("mouseup", function(e) { e.stopPropagation() });
     }
 
     updateData(data) {
@@ -255,6 +256,7 @@ class Map extends Thing {
     }
 
     click(e) {
+        if (!this.imageButton.clickOnDrop) return;
         if (game.disable_actions) return;
 
         e = e || {};
@@ -307,6 +309,24 @@ class Map extends Thing {
             }
 
             this.canvas.classList.remove("selected");
+        }
+    }
+}
+
+function toggle_map() {
+    if (game.data.player.location) {
+        if (!game.map) {
+            game.map = new Map(game.data);
+            game.location.add_thing(game.map);
+            if (game.player) {
+                game.player.mapButton.classList.add("gone");
+            }
+        } else {
+            game.location.remove_thing(game.map);
+            game.map = null;
+            if (game.player) {
+                game.player.mapButton.classList.remove("gone");
+            }
         }
     }
 }

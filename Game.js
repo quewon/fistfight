@@ -32,44 +32,60 @@ class Game {
             solo_phase_turns: 8,
             shared_phase_turns: 8,
             turns_this_phase: 8,
-            // shared_phase_timer: 60 //seconds
-            shared_phase_timer: -1
+            shared_phase_timer: 60, //seconds
+            // shared_phase_timer: -1
         }
-        this.player1 = {
-            opponent: null,
-            id: null,
-            location: null,
-            character: null,
-            time: 0,
-            log: [],
-            messages: [],
-            things: [],
+        this.player1 = this.create_player();
+        this.player2 = this.create_player();
 
-            info: 0
-        }
-        this.player2 = {
-            opponent: null,
-            id: null,
-            location: null,
-            character: null,
-            time: 0,
-            log: [],
-            messages: [],
-            things: [],
-            
-            info: 0
-        }
+        // generic locations
 
-        this.available_generic_locations = [];
+        var available_generic_locations = [];
         for (let i=1; i<=10; i++) {
             let name = "apt #" + i;
-            this.available_generic_locations.push(name);
+            available_generic_locations.push(name);
             this.locations[name] = [];
             this.game.map.push(name);
         }
+
+        this.player1.assigned_generic_location = available_generic_locations.splice(Math.random() * available_generic_locations.length | 0, 1)[0];
+        this.player2.assigned_generic_location = available_generic_locations.splice(Math.random() * available_generic_locations.length | 0, 1)[0];
+
+        var generic_npcs = ['dude', 'guy', 'old man', 'girl', 'old woman'];
+        for (let location_name of available_generic_locations) {
+            let random_npc = generic_npcs[Math.random() * generic_npcs.length | 0];
+            let npc = this.create_npc(random_npc);
+            npc.schedule = [location_name];
+            this.npcs.push(npc);
+        }
+
+        //
         
+        this.update_npcs();
+
         this.global_log("game created with key <em>" + this.game.id + "</em>.");
         this.global_log("<span class='phase-starter'><em>character selection</em> phase begins.</span>");
+    }
+
+    create_player() {
+        return {
+            opponent: null,
+            id: null,
+            location: null,
+            character: null,
+            time: 0,
+            log: [],
+            messages: [],
+            things: [],
+
+            info: 0,
+            info_delivered: false,
+            opponent_dead: false,
+
+            windup: 0,
+            health: 0,
+            strength: 0
+        }
     }
 
     create_thing(name) {
@@ -81,7 +97,27 @@ class Game {
 
     create_npc(name) {
         var npc = JSON.parse(JSON.stringify(dictionary.npcs[name]));
+        npc.id = this.thing_count++;
         return npc;
+    }
+
+    update_npcs() {
+        var phase = this.game.phase;
+        for (let npc of this.npcs) {
+            npc.location = npc.schedule[phase % npc.schedule.length];
+        }
+    }
+
+    get_npcs_in_location(location) {
+        var npcs = [];
+
+        for (let npc of this.npcs) {
+            if (npc.location == location) {
+                npcs.push(npc);
+            }
+        }
+
+        return npcs;
     }
 
     global_log(message) {
@@ -190,6 +226,7 @@ class Game {
             player: this.player_data(player_what),
             opponent: this.opponent_data(player_what),
             location: this.locations[this[player_what].location || 'character selection'],
+            npcs: this.get_npcs_in_location(this[player_what].location),
             characters: characters
         }
     }
@@ -197,9 +234,11 @@ class Game {
     update(player_what) {
         if (this.player1.id && (!player_what || player_what == 'player1')) {
             this.server.to(this.player1.id).emit('game update', this.dumb_data('player1'));
+            this.player1.messages = [];
         }
         if (this.player2.id && (!player_what || player_what == 'player2')) {
             this.server.to(this.player2.id).emit('game update', this.dumb_data('player2'));
+            this.player2.messages = [];
         }
     }
 
@@ -214,7 +253,7 @@ class Game {
         player.character = character_name;
 
         // find home
-        var location_name = this.available_generic_locations.splice(Math.random() * this.available_generic_locations.length | 0, 1)[0];
+        var location_name = player.assigned_generic_location;
         this.locations[location_name] = [];
         for (let thing_name of character.home) {
             this.locations[location_name].push(this.create_thing(thing_name));
@@ -297,6 +336,20 @@ class Game {
         return false;
     }
 
+    talk_to_npc(player_what, npc_id) {
+        let player = this[player_what];
+        let location = player.location;
+        for (let npc of this.get_npcs_in_location(location)) {
+            if (npc.id == npc_id) {
+                let dialogue = npc.dialogue.shift();
+                npc.dialogue.push(dialogue);
+                player.messages.push(npc_id + ": " + dialogue);
+                return npc;
+            }
+        }
+        return false;
+    }
+
     process_command(player_what, conditions) {
         if (this.game.over) return;
 
@@ -333,6 +386,8 @@ class Game {
             this.next_turn(player_what);
             return;
         }
+
+        // things
 
         if (command == 'take') {
             if (player.things.length >= player.item_capacity) {
@@ -402,6 +457,31 @@ class Game {
             return;
         }
 
+        // npcs
+
+        if (command == 'talk') {
+            var npc = this.talk_to_npc(player_what, thing);
+            if (npc) {
+                if (this.game.shared_phase) {
+                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> talks to <em>" + npc.name + "</em>.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> talks to <em>" + npc.name + "</em>.");
+                } else {
+                    this.log(player_what, "self", turn, "talked to <em>" + npc.name + "</em>.");
+                }
+            } else {
+                if (this.game.shared_phase) {
+                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> tries to talk to someone...?");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> tries to talk to someone...?");
+                } else {
+                    this.log(player_what, "self", turn, "tried to talk to someone...?");
+                }
+            }
+            this.next_turn(player_what);
+            return;
+        }
+
+        // opponent
+
         if (thing == 'opponent') {
             if (!player.overpowered) {
                 if (command == 'question') {
@@ -420,9 +500,9 @@ class Game {
                     } else {
                         let pp = this.punch_power(player_what);
                         this.damage_player(opponent_what, pp);
-                        if (opponent.windup > 0) {
-                            opponent.messages.push("self: got hit -- windups lost");
-                        }
+                        // if (opponent.windup > 0) {
+                        //     opponent.messages.push("self: got hit -- windups lost");
+                        // }
                         opponent.windup = 0;
                         player.windup = 0;
                         if (!conditions.no_logging) {
@@ -487,7 +567,7 @@ class Game {
 
     punch_power(player_what) {
         var p = this[player_what];
-        return p.strength * (Math.min(p.windup, p.max_windup) + 1);
+        return p.strength + p.windup;
     }
 
     blocked_punch_power(player_what) {
@@ -528,9 +608,6 @@ class Game {
     
     process_simul_commands() {
         if (this.game.over) return;
-
-        this.player1.messages = [];
-        this.player2.messages = [];
 
         let c1 = this.player1.command.command;
         let c2 = this.player2.command.command;
@@ -602,11 +679,11 @@ class Game {
                 p1.windup = 0;
                 if (p2.windup > 0) {
                     p2.windup = 0;
-                    p2.messages.push("self: got hit -- windups lost");
-                    p1.messages.push("opp: got hit -- windups lost");
+                    // p2.messages.push("self: got hit -- windups lost");
+                    // p1.messages.push("opp: got hit -- windups lost");
                 } else {
-                    p2.messages.push("self: got hit -- windup failed");
-                    p1.messages.push("opp: got hit -- windup failed");
+                    // p2.messages.push("self: got hit -- windup failed");
+                    // p1.messages.push("opp: got hit -- windup failed");
                 }
                 if (p1.overpowered && p2.overpowered) {
                     this.phase_complete();
@@ -736,6 +813,7 @@ class Game {
 
         if (player_what) {
             this[player_what].timer_started = null;
+
             if (!this.game.shared_phase) {
                 this[player_what].time++;
 
@@ -799,6 +877,8 @@ class Game {
             if (!this.game.shared_phase_complete) {
                 this.global_log("phase complete.");
                 this.share_dialogue('fight adjourned');
+                this.player1.messages.push("phase complete -- pick next location!");
+                this.player2.messages.push("phase complete -- pick next location!");
             }
 
             this.game.shared_time = this.game.turns_this_phase;
@@ -808,9 +888,6 @@ class Game {
             this.player1.phase_complete = true;
             this.player2.time = this.game.turns_this_phase;
             this.player2.phase_complete = true;
-
-            this.player1.messages.push("phase complete -- pick next location!");
-            this.player2.messages.push("phase complete -- pick next location!");
         } else if (player_what) {
             this[player_what].time = this.game.turns_this_phase;
             this[player_what].phase_complete = true;
@@ -825,8 +902,6 @@ class Game {
 
         this.player1.time = 0;
         this.player2.time = 0;
-        this.player1.messages = [];
-        this.player2.messages = [];
 
         this.player1.windup = 0;
         this.player2.windup = 0;
@@ -868,6 +943,8 @@ class Game {
             this.game.shared_encounters++;
         }
 
+        this.update_npcs();
+
         this.update();
     }
 
@@ -881,7 +958,7 @@ class Game {
         }
 
         if (player.job == "spy") {
-            if (player.info >= 3) return true;
+            if (player.info_delivered) return true;
 
             return false;
         }
@@ -896,12 +973,12 @@ class Game {
         this.global_log(this[this.game.winner].character + " wins.");
         
         if (this.game.shared_phase) {
-            let line = this.dialogue(this[this.game.winner], 'fight adjourned');
+            let line = this.dialogue(this.game.winner, 'fight adjourned');
             let opponent_what = this.game.winner == 'player1' ? 'player2' : 'player1';
             this[this.game.winner].messages.push("self: " + line);
             this[opponent_what].messages.push("opp: " + line);
         } else {
-            this.monologue(this[this.game.winner], 'fight adjourned');
+            this.monologue(this.game.winner, 'fight adjourned');
         }
     }
 }
