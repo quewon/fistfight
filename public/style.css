@@ -139,6 +139,9 @@ em {
     display: flex;
     width: max-content;
 }
+.input-wrapper input {
+    z-index: -1;
+}
 .input-wrapper input,
 .imagebutton canvas,
 .imagebutton button {

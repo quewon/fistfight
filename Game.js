@@ -803,7 +803,7 @@ class Game {
         this[player_what].health -= amount;
         if (this[player_what].health <= 0) {
             this[player_what].health = 0;
-            this[player_what].overpowered = true;
+            this[player_what].overpowered_this_turn = true;
             this[player_what].messages.push("OVERPOWERED");
 
             var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
@@ -829,6 +829,7 @@ class Game {
     }
 
     recover_player(player_what) {
+        if (this[player_what].dead) return;
         this[player_what].overpowered = false;
         this[player_what].health = 1;
         this[player_what].windup = 0;
@@ -1037,15 +1038,17 @@ class Game {
 
             if (c1 == 'struggle') {
                 this.process_command('player2');
-                if (this.struggle_success('player1')) {
-                    this.recover_player('player1');
-                    p1.messages.push("ESCAPED HOLD");
-                    p2.messages.push("OPPONENT ESCAPES HOLD");
-                    this.log('player1', "self", null, "<em>" + p1.character + "</em> struggles free.");
-                    this.log('player2',  "opp", null, "<em>" + p1.character + "</em> struggles free.");
-                } else {
-                    this.log('player1', "self", null, "<em>" + p1.character + "</em> struggles.");
-                    this.log('player2',  "opp", null, "<em>" + p1.character + "</em> struggles.");
+                if (!p1.dead) {
+                    if (this.struggle_success('player1')) {
+                        this.recover_player('player1');
+                        p1.messages.push("ESCAPED HOLD");
+                        p2.messages.push("OPPONENT ESCAPES HOLD");
+                        this.log('player1', "self", null, "<em>" + p1.character + "</em> struggles free.");
+                        this.log('player2',  "opp", null, "<em>" + p1.character + "</em> struggles free.");
+                    } else {
+                        this.log('player1', "self", null, "<em>" + p1.character + "</em> struggles.");
+                        this.log('player2',  "opp", null, "<em>" + p1.character + "</em> struggles.");
+                    }
                 }
                 this.next_turn();
                 return;
@@ -1053,21 +1056,23 @@ class Game {
 
             if (c2 == 'struggle') {
                 this.process_command('player1');
-                if (this.struggle_success('player2')) {
-                    this.recover_player('player2');
-                    p2.messages.push("ESCAPED HOLD");
-                    p1.messages.push("OPPONENT ESCAPES HOLD");
-                    this.log('player2', "self", null, "<em>" + p2.character + "</em> struggles free.");
-                    this.log('player1',  "opp", null, "<em>" + p2.character + "</em> struggles free.");
-                } else {
-                    this.log('player2', "self", null, "<em>" + p2.character + "</em> struggles.");
-                    this.log('player1',  "opp", null, "<em>" + p2.character + "</em> struggles.");
+                if (!p2.dead) {
+                    if (this.struggle_success('player2')) {
+                        this.recover_player('player2');
+                        p2.messages.push("ESCAPED HOLD");
+                        p1.messages.push("OPPONENT ESCAPES HOLD");
+                        this.log('player2', "self", null, "<em>" + p2.character + "</em> struggles free.");
+                        this.log('player1',  "opp", null, "<em>" + p2.character + "</em> struggles free.");
+                    } else {
+                        this.log('player2', "self", null, "<em>" + p2.character + "</em> struggles.");
+                        this.log('player1',  "opp", null, "<em>" + p2.character + "</em> struggles.");
+                    }
                 }
                 this.next_turn();
                 return;
             }
         }
-        
+
         this.process_command('player1');
         this.process_command('player2', { no_timestamping: true });
         this.next_turn();
@@ -1097,6 +1102,16 @@ class Game {
             this.player2.time = this.game.shared_time;
             this.player1.timer_started = null;
             this.player2.timer_started = null;
+
+            if (this.player1.overpowered_this_turn) {
+                this.player1.overpowered = true;
+                this.player1.overpowered_this_turn = false;
+            }
+            if (this.player2.overpowered_this_turn) {
+                this.player2.overpowered = true;
+                this.player2.overpowered_this_turn = false;
+            }
+
             if (this.game.shared_time >= this.game.turns_this_phase) {
                 this.phase_complete();
             }
@@ -1244,6 +1259,9 @@ class Game {
         } else {
             this.monologue(this.game.winner, 'win');
         }
+
+        this.player1.messages.push("GAME OVER, GO HOME EVERYBODY!!");
+        this.player2.messages.push("GAME OVER, GO HOME EVERYBODY!!");
     }
 }
 
