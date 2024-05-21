@@ -149,6 +149,7 @@ io.on('connection', (socket) => {
         var game = games[gameId];
 
         if (!game) return;
+        if (game.game.over) return;
         
         var player_what = players[socket.id].player_what;
 
@@ -190,6 +191,8 @@ io.on('connection', (socket) => {
         var game = games[gameId];
 
         if (game) {
+            if (game.game.over) return;
+
             var player_what = players[socket.id].player_what;
             var player = game[player_what];
 
@@ -208,6 +211,8 @@ io.on('connection', (socket) => {
         var game = games[gameId];
 
         if (game) {
+            if (game.game.over) return;
+            
             var player_what = players[socket.id].player_what;
             var player = game[player_what];
             player.timer_started = date;

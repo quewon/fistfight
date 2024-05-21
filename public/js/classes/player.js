@@ -4,7 +4,7 @@ class Player extends Thing {
 
         this.statsElement = document.createElement("div");
         this.statsElement.className = "stats";
-        this.imageButton.element.appendChild(this.statsElement);
+        this.imageButton.overheadElement.appendChild(this.statsElement);
         this.imageButton.element.classList.add("character");
 
         this.stats = {
@@ -49,7 +49,7 @@ class Player extends Thing {
         if (this.stats[statName].max) {
             for (let i=0; i<this.stats[statName].max; i++) {
                 let icon = document.createElement("img");
-                icon.src = "res/images/stats/"+statName+"/"+(i % this.stats[statName].icons_count + 1)+".png";
+                icon.src = "res/images/icons/"+statName+"/"+(i % this.stats[statName].icons_count + 1)+".png";
                 element.appendChild(icon);
                 if (i >= count) {
                     icon.classList.add("empty");
@@ -58,7 +58,7 @@ class Player extends Thing {
         } else {
             for (let i=0; i<count; i++) {
                 let icon = document.createElement("img");
-                icon.src = "res/images/stats/"+statName+"/"+(i % this.stats[statName].icons_count + 1)+".png";
+                icon.src = "res/images/icons/"+statName+"/"+(i % this.stats[statName].icons_count + 1)+".png";
                 element.appendChild(icon);
             }
         }
@@ -155,7 +155,7 @@ class Player extends Thing {
             let icon = document.createElement("img");
 
             let i = this.stats[statName].count % this.stats[statName].icons_count + 1;
-            icon.src = "res/images/stats/"+statName+"/"+i+".png";
+            icon.src = "res/images/icons/"+statName+"/"+i+".png";
 
             this.stats[statName].element.appendChild(icon);
             this.stats[statName].count++;
@@ -210,6 +210,7 @@ class You extends Player {
 
         super(data);
 
+        this.pocketButton = this.imageButton.actionsMenu.firstElementChild;
         this.mapButton = this.imageButton.actionsMenu.lastElementChild;
 
         attach_label(this.stats.strength.element, "STRENGTH: "+data.strength);
@@ -271,6 +272,9 @@ class Opponent extends Player {
         this.playerOverpoweredActions = playerOverpoweredActions;
         this.opponentOverpoweredActions = opponentOverpoweredActions;
         
-        attach_label(this.stats.strength.element, "STRENGTH: "+data.strength+"\nratio: "+(game.data.player.strength / (game.data.player.strength + data.strength)));
+        // let ratio = (game.data.player.strength / (game.data.player.strength + data.strength));
+        let ratio = game.data.player.strength + "/" + (game.data.player.strength + data.strength);
+
+        attach_label(this.stats.strength.element, "STRENGTH: "+data.strength+"\nratio: "+ratio);
     }
 }

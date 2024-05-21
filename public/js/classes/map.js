@@ -319,13 +319,19 @@ function toggle_map() {
             game.map = new Map(game.data);
             game.location.add_thing(game.map);
             if (game.player) {
-                game.player.mapButton.classList.add("gone");
+                // game.player.mapButton.classList.add("gone");
+                let label = game.player.mapButton.getElementsByClassName("label")[0];
+                game.player.mapButton.innerHTML = "close <em>m</em>ap";
+                game.player.mapButton.appendChild(label);
             }
         } else {
             game.location.remove_thing(game.map);
             game.map = null;
             if (game.player) {
-                game.player.mapButton.classList.remove("gone");
+                // game.player.mapButton.classList.remove("gone");
+                let label = game.player.mapButton.getElementsByClassName("label")[0];
+                game.player.mapButton.innerHTML = "open <em>m</em>ap";
+                game.player.mapButton.appendChild(label);
             }
         }
     }

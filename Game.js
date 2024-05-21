@@ -5,7 +5,10 @@ class Game {
         this.server = server;
         this.thing_count = 0;
 
-        this.npcs = [];
+        this.npcs = [
+            this.create_npc("chef"),
+            this.create_npc("librarian")
+        ];
         this.locations = {
             "character selection": [
                 this.create_thing("character selection title")
@@ -16,13 +19,23 @@ class Game {
                 this.create_thing("no fighting sign"),
                 // this.create_thing("lounge chair 1"),
                 // this.create_thing("lounge chair 2"),
+            ],
+
+            "library": [
+                this.create_thing("laptop"),
+                this.create_thing("generic book"),
+                this.create_thing("generic open book")
+            ],
+
+            "diner": [
+                this.create_thing("knife"),
+                this.create_thing("water and breadsticks"),
             ]
         }
         this.game = {
             id: id,
             is_custom: isCustom || false,
             phases: ["morning", "afternoon", "evening"],
-            map: ['lounge'],
             characters: ['bill', 'jim beans'],
             phase: 0,
             shared_phase: false,
@@ -38,10 +51,17 @@ class Game {
         this.player1 = this.create_player();
         this.player2 = this.create_player();
 
+        //
+
+        this.game.map = Object.keys(this.locations);
+        this.game.map.splice(this.game.map.indexOf('character selection'), 1);
+
         // generic locations
 
+        var homes_needed = 2 + this.npcs.length + Math.random() * 10;
         var available_generic_locations = [];
-        for (let i=1; i<=10; i++) {
+        
+        for (let i=1; i<=homes_needed; i++) {
             let name = "apt #" + i;
             available_generic_locations.push(name);
             this.locations[name] = [];
@@ -50,6 +70,15 @@ class Game {
 
         this.player1.assigned_generic_location = available_generic_locations.splice(Math.random() * available_generic_locations.length | 0, 1)[0];
         this.player2.assigned_generic_location = available_generic_locations.splice(Math.random() * available_generic_locations.length | 0, 1)[0];
+
+        for (let npc of this.npcs) {
+            var assigned_generic_location = available_generic_locations.splice(Math.random() * available_generic_locations.length | 0, 1)[0];
+            for (let i=0; i<npc.schedule.length; i++) {
+                if (npc.schedule[i] == "home") {
+                    npc.schedule[i] = assigned_generic_location;
+                }
+            }
+        }
 
         var generic_npcs = ['dude', 'guy', 'old man', 'girl', 'old woman'];
         for (let location_name of available_generic_locations) {
@@ -77,9 +106,10 @@ class Game {
             log: [],
             messages: [],
             things: [],
+            effects: [],
 
             info: 0,
-            info_delivered: false,
+            info_delivered: 0,
             opponent_dead: false,
 
             windup: 0,
@@ -106,6 +136,28 @@ class Game {
         for (let npc of this.npcs) {
             npc.location = npc.schedule[phase % npc.schedule.length];
         }
+    }
+
+    update_player_effects(player_what) {
+        var player = this[player_what];
+        for (let i=player.effects.length-1; i>=0; i--) {
+            var effect = player.effects[i];
+            effect.elapsed_turns++;
+            if (effect.duration_unit == 'phase') {
+                if (this.game.phase - effect.created_phase >= effect.duration) {
+                    player.effects.splice(i, 1);
+                }
+            } else if (effect.duration_unit == 'turn') {
+                if (effect.elapsed_turns >= effect.duration) {
+                    player.effects.splice(i, 1);
+                }
+            }   
+        }
+    }
+
+    update_players() {
+        this.update_player_effects('player1');
+        this.update_player_effects('player2');
     }
 
     get_npcs_in_location(location) {
@@ -173,12 +225,8 @@ class Game {
     }
 
     opponent_data(player_what) {
-        var data;
-        if (player_what == 'player1') {
-            data = this.player2;
-        } else if (player_what == 'player2') {
-            data = this.player1;
-        }
+        var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
+        var data = this.player_data(opponent_what);
         
         if (this.game.shared_phase) {
             return {
@@ -205,10 +253,17 @@ class Game {
     }
 
     player_data(player_what) {
+        var player = this[player_what];
         var data = {};
-        for (let p in this[player_what]) {
-            data[p] = this[player_what][p];
+
+        for (let p in player) {
+            data[p] = player[p];
         }
+
+        for (let effect of player.effects) {
+            data.strength += effect.added_strength;
+        }
+
         return data;
     }
 
@@ -343,15 +398,86 @@ class Game {
             if (npc.id == npc_id) {
                 let dialogue = npc.dialogue.shift();
                 npc.dialogue.push(dialogue);
-                player.messages.push(npc_id + ": " + dialogue);
+
+                if (this.game.shared_phase) {
+                    let message = npc_id + ": <i>(to <em>" + player.character + "</em>)</i> " + dialogue;
+
+                    let opponent_what = player_what == 'player1' ? 'player2' : 'player1';
+                    this[opponent_what].messages.push(message);
+                    player.messages.push(message);
+                } else {
+                    player.messages.push(npc_id + ": " + dialogue);
+                }
+
                 return npc;
             }
         }
         return false;
     }
 
+    check_thing_in_reach(player_what, thing_id) {
+        var player = this[player_what];
+
+        for (let pt of player.things) {
+            if (pt.id == thing_id) {
+                return pt;
+            }
+        }
+
+        for (let lt of this.locations[player.location]) {
+            if (lt.id == thing_id) {
+                return lt;
+            }
+        }
+
+        return false;
+    }
+
+    has_murder_weapon(player_what) {
+        for (let thing of this[player_what].things) {
+            if (thing.tags.includes("weapon")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    consume_thing(player_what, thing_id) {
+        var player = this[player_what];
+
+        for (let i=0; i<player.things.length; i++) {
+            if (player.things[i].id == thing_id) {
+                var thing = player.things[i];
+                player.things.splice(i, 1);
+                return thing;
+            }
+        }
+
+        var location = this.locations[player.location];
+        
+        for (let i=0; i<location.length; i++) {
+            if (location[i].id == thing_id) {
+                var thing = location[i];
+                location.splice(i, 1);
+                return thing;
+            }
+        }
+        
+        return null;
+    }
+
+    create_effect(player_what, effect) {
+        effect.creation_phase = this.game.phase;
+        effect.elapsed_turns = 0;
+
+        this[player_what].effects.push(effect);
+        this[player_what].messages.push("<em>" + effect.name + "</em> in effect for " + effect.duration + " " + effect.duration_unit + "(s)");
+        return effect;
+    }
+
     process_command(player_what, conditions) {
         if (this.game.over) return;
+        if (this.dead) return;
 
         conditions = conditions || {};
 
@@ -386,6 +512,108 @@ class Game {
             this.next_turn(player_what);
             return;
         }
+
+        // opponent
+
+        if (thing == 'opponent') {
+            if (!player.overpowered) {
+                if (opponent.overpowered) {
+                    if (command == 'question') {
+                        player.info++;
+                        this.log(player_what, "self", turn, "<em>" + player.character + "</em> questions <em>" + opponent.character + "</em>.");
+                        this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> questions <em>" + opponent.character + "</em>.");
+                        this.next_turn(player_what);
+                        return;
+                    }
+
+                    if (command == 'kill') {
+                        if (this.has_murder_weapon(player_what)) {
+                            this.log(player_what,  "self", turn, "<em>" + player.character + "</em> kills <em>" + opponent.character + "</em>.");
+                            this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> kills <em>" + opponent.character + "</em>.");
+                            opponent.dead = true;
+                        } else {
+                            this.log(player_what,  "self", turn, "<em>" + player.character + "</em> lusts for <em>" + opponent.character + "</em>'s blood.");
+                            this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> lusts for <em>" + opponent.character + "</em>'s blood.");
+                        }
+                        this.next_turn(player_what);
+                        return;
+                    }
+
+                    return;
+                }
+
+                if (command == 'punch') {
+                    if (opponent.health <= 0) {
+                        player.messages.push("opponent already overpowered");
+                        this.log(player_what, "self", turn, "<em>" + player.character + "</em> attempts to punch <em>" + opponent.character + "</em>.");
+                        this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> attempts to punch <em>" + opponent.character + "</em>.");
+                    } else {
+                        let pp = this.punch_power(player_what);
+                        this.damage_player(opponent_what, pp);
+                        // if (opponent.windup > 0) {
+                        //     opponent.messages.push("self: got hit -- windups lost");
+                        // }
+                        opponent.windup = 0;
+                        player.windup = 0;
+                        if (!conditions.no_logging) {
+                            this.log(player_what, "self", turn, "<em>" + player.character + "</em> hits <em>" + opponent.character + "</em> for " + pp + " damage.");
+                            this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> hits <em>" + opponent.character + "</em> for " + pp + " damage.");
+                        }
+                    }
+                    this.next_turn(player_what);
+                    return;
+                }
+    
+                if (command == 'windup') {
+                    player.windup++;
+                    if (player.windup > player.max_windup) {
+                        player.windup = player.max_windup;
+                        player.messages.push("overwound");
+                    }
+                    this.log(player_what, "self", turn, "<em>" + player.character + "</em> winds up.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> winds up.");
+                    this.next_turn(player_what);
+                    return;
+                }
+    
+                if (command == 'block') {
+                    // player.windup = 1;
+                    player.messages.push("blocked air -- no windup");
+                    this.log(player_what, "self", turn, "<em>" + player.character + "</em> blocks nothing.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> blocks nothing.");
+                    this.next_turn(player_what);
+                    return;
+                }
+    
+                if (command == 'dodge') {
+                    player.dodge_successful = true;
+                    player.messages.push("dodged air");
+                    this.log(player_what, "self", turn, "<em>" + player.character + "</em> dodges nothing.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> dodges nothing.");
+                    this.next_turn(player_what);
+                    return;
+                }
+            }
+
+            if (player.overpowered) {
+                if (command == 'struggle') {
+                    if (this.struggle_success(player_what)) {
+                        this.recover_player(player_what);
+                        player.messages.push("ESCAPED HOLD");
+                        opponent.messages.push("OPPONENT ESCAPES HOLD");
+                        this.log(player_what, "self", turn, "<em>" + player.character + "</em> struggles free.");
+                        this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> struggles free.");
+                    } else {
+                        this.log(player_what, "self", turn, "<em>" + player.character + "</em> struggles.");
+                        this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> struggles.");
+                    }
+                    this.next_turn(player_what);
+                    return;
+                }
+            }
+        }
+
+        if (player.overpowered) return;
 
         // things
 
@@ -457,6 +685,86 @@ class Game {
             return;
         }
 
+        if (command == 'transmit') {
+            var thing_used = this.check_thing_in_reach(player_what, thing);
+            if (thing_used && !thing_used.tags.includes("internet-connected")) thing_used = null;
+
+            if (thing_used) {
+                if (player.job == "spy") {
+                    if (player.info == 0) {
+                        player.messages.push(thing + ": this office does not take social calls.");
+                        if (this.game.shared_phase) {
+                            this.log(player_what,  "self", turn, "<em>" + player.character + "</em> tries to transmit info, but has none.");
+                            this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> tries to transmit info, but has none.");
+                        } else {
+                            this.log(player_what, "self", turn, "tried to transmit info you don't have.");
+                        }
+                    } else {
+                        player.info_delivered += player.info;
+                        player.info = 0;
+
+                        player.messages.push(thing + ": good work!");
+
+                        if (this.game.shared_phase) {
+                            this.log(player_what,  "self", turn, "<em>" + player.character + "</em> transmits info.");
+                            this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> transmits info.");
+                        } else {
+                            this.log(player_what, "self", turn, "info transmitted.");
+                        }
+                    }
+                } else {
+                    player.messages.push(thing + ": stick to your mission.");
+                    if (this.game.shared_phase) {
+                        this.log(player_what,  "self", turn, "<em>" + player.character + "</em> fails to transmit info -- not a spy.");
+                        this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> fails to transmit info -- not a spy.");
+                    } else {
+                        this.log(player_what, "self", turn, "failed to transmit info -- not a spy.");
+                    }
+                }
+            } else {
+                if (this.game.shared_phase) {
+                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> fails to transmit info -- no device found.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> fails to transmit info -- no device found.");
+                } else {
+                    this.log(player_what, "self", turn, "failed to transmit info -- device not found.");
+                }
+            }
+ 
+            this.next_turn(player_what);
+            return;
+        }
+
+        if (command == 'eat') {
+            var thing_eaten = this.check_thing_in_reach(player_what, thing);
+            if (thing_eaten && !thing_eaten.tags.includes("food")) thing_eaten = null;
+
+            if (thing_eaten) {
+                this.consume_thing(player_what, thing);
+                this.create_effect(player_what, {
+                    name: thing_eaten.name,
+                    duration_unit: 'phase',
+                    duration: 3,
+                    added_strength: 1
+                });
+                if (this.game.shared_phase) {
+                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> eats <em>" + thing_eaten.name + "</em>.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> eats <em>" + thing_eaten.name + "</em>.");
+                } else {
+                    this.log(player_what, "self", turn, "ate <em>" + thing_eaten.name + "</em>.");
+                }
+            } else {
+                if (this.game.shared_phase) {
+                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> must be hungry.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> must be hungry.");
+                } else {
+                    this.log(player_what, "self", turn, "dreamed up some food.");
+                }
+            }
+
+            this.next_turn(player_what);
+            return;
+        }
+
         // npcs
 
         if (command == 'talk') {
@@ -479,94 +787,10 @@ class Game {
             this.next_turn(player_what);
             return;
         }
-
-        // opponent
-
-        if (thing == 'opponent') {
-            if (!player.overpowered) {
-                if (command == 'question') {
-                    player.info++;
-                    this.log(player_what, "self", turn, "<em>" + player.character + "</em> questions <em>" + opponent.character + "</em>.");
-                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> questions <em>" + opponent.character + "</em>.");
-                    this.next_turn(player_what);
-                    return;
-                }
-
-                if (command == 'punch') {
-                    if (opponent.health <= 0) {
-                        player.messages.push("opponent already overpowered");
-                        this.log(player_what, "self", turn, "<em>" + player.character + "</em> attempts to punch <em>" + opponent.character + "</em>.");
-                        this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> attempts to punch <em>" + opponent.character + "</em>.");
-                    } else {
-                        let pp = this.punch_power(player_what);
-                        this.damage_player(opponent_what, pp);
-                        // if (opponent.windup > 0) {
-                        //     opponent.messages.push("self: got hit -- windups lost");
-                        // }
-                        opponent.windup = 0;
-                        player.windup = 0;
-                        if (!conditions.no_logging) {
-                            this.log(player_what, "self", turn, "<em>" + player.character + "</em> hits <em>" + opponent.character + "</em> for " + pp + " damage.");
-                            this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> hits <em>" + opponent.character + "</em> for " + pp + " damage.");
-                        }
-                    }
-                    this.next_turn(player_what);
-                    return;
-                }
-    
-                if (command == 'windup') {
-                    player.windup++;
-                    if (player.windup > player.max_windup) {
-                        player.windup = player.max_windup;
-                        player.messages.push("overwound");
-                    }
-                    this.log(player_what, "self", turn, "<em>" + player.character + "</em> winds up.");
-                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> winds up.");
-                    this.next_turn(player_what);
-                    return;
-                }
-    
-                if (command == 'block') {
-                    // player.windup = 1;
-                    player.messages.push("blocked air -- no windup");
-                    this.log(player_what, "self", turn, "<em>" + player.character + "</em> blocks nothing.");
-                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> blocks nothing.");
-                    this.next_turn(player_what);
-                    return;
-                }
-    
-                if (command == 'dodge') {
-                    player.dodge_successful = true;
-                    player.messages.push("dodged air");
-                    this.log(player_what, "self", turn, "<em>" + player.character + "</em> dodges nothing.");
-                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> dodges nothing.");
-                    this.next_turn(player_what);
-                    return;
-                }
-            }
-
-            if (player.overpowered) {
-                if (command == 'struggle') {
-                    if (this.struggle_success(player_what)) {
-                        player.overpowered = false;
-                        player.health = 1;
-                        player.messages.push("ESCAPED HOLD");
-                        opponent.messages.push("OPPONENT ESCAPES HOLD");
-                        this.log(player_what, "self", turn, "<em>" + player.character + "</em> struggles free.");
-                        this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> struggles free.");
-                    } else {
-                        this.log(player_what, "self", turn, "<em>" + player.character + "</em> struggles.");
-                        this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> struggles.");
-                    }
-                    this.next_turn(player_what);
-                    return;
-                }
-            }
-        }
     }
 
     punch_power(player_what) {
-        var p = this[player_what];
+        var p = this.player_data(player_what);
         return p.strength + p.windup;
     }
 
@@ -579,12 +803,10 @@ class Game {
         this[player_what].health -= amount;
         if (this[player_what].health <= 0) {
             this[player_what].health = 0;
-            this[player_what].windup = 0;
             this[player_what].overpowered = true;
             this[player_what].messages.push("OVERPOWERED");
 
             var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
-
             this[opponent_what].messages.push("OPPONENT DOWN");
 
             this.log(player_what, "self",  null, "<em>" + this[player_what].character + "</em> is <em>overpowered</em>.");
@@ -604,6 +826,12 @@ class Game {
         let strengthSum = player.strength + opponent.strength;
         let escapeChance = player.strength / strengthSum;
         return Math.random() <= escapeChance;
+    }
+
+    recover_player(player_what) {
+        this[player_what].overpowered = false;
+        this[player_what].health = 1;
+        this[player_what].windup = 0;
     }
     
     process_simul_commands() {
@@ -632,10 +860,13 @@ class Game {
             return;
         }
 
-        if (c1 == 'take' && c2 == 'take' && p1.command.thing == p2.command.thing) {
+        // commands that use a portable thing
+        var incompatible_commands = ['eat', 'take', 'transmit'];
+
+        if (incompatible_commands.includes(c1) && incompatible_commands.includes(c2) &&
+            p1.command.thing == p2.command.thing) {
             var thing = this.get_thing_by_id(this.locations[p1.location], p1.command.thing);
-            let thing_name;
-            if (thing) thing_name = thing.name;
+            var thing_name = thing ? thing.name : "?";
             this.log('player1', "self", turn_string, "<em>" + p1.character + "</em> reaches for <em>" + thing_name + "</em>...");
             this.log('player2',  "opp", turn_string, "<em>" + p1.character + "</em> reaches for <em>" + thing_name + "</em>...");
             this.log('player1',  "opp", null, "... and so does <em>" + p1.character + "</em>. meet cute :)");
@@ -801,6 +1032,40 @@ class Game {
                 this.next_turn();
                 return;
             }
+
+            // struggle v anything
+
+            if (c1 == 'struggle') {
+                this.process_command('player2');
+                if (this.struggle_success('player1')) {
+                    this.recover_player('player1');
+                    p1.messages.push("ESCAPED HOLD");
+                    p2.messages.push("OPPONENT ESCAPES HOLD");
+                    this.log('player1', "self", null, "<em>" + p1.character + "</em> struggles free.");
+                    this.log('player2',  "opp", null, "<em>" + p1.character + "</em> struggles free.");
+                } else {
+                    this.log('player1', "self", null, "<em>" + p1.character + "</em> struggles.");
+                    this.log('player2',  "opp", null, "<em>" + p1.character + "</em> struggles.");
+                }
+                this.next_turn();
+                return;
+            }
+
+            if (c2 == 'struggle') {
+                this.process_command('player1');
+                if (this.struggle_success('player2')) {
+                    this.recover_player('player2');
+                    p2.messages.push("ESCAPED HOLD");
+                    p1.messages.push("OPPONENT ESCAPES HOLD");
+                    this.log('player2', "self", null, "<em>" + p2.character + "</em> struggles free.");
+                    this.log('player1',  "opp", null, "<em>" + p2.character + "</em> struggles free.");
+                } else {
+                    this.log('player2', "self", null, "<em>" + p2.character + "</em> struggles.");
+                    this.log('player1',  "opp", null, "<em>" + p2.character + "</em> struggles.");
+                }
+                this.next_turn();
+                return;
+            }
         }
         
         this.process_command('player1');
@@ -820,11 +1085,11 @@ class Game {
                 if (this[player_what].time >= this.game.turns_this_phase) {
                     this.phase_complete(player_what);
                 }
+            }
 
-                if (this.check_win(player_what)) {
-                    this.game.winner = player_what;
-                    this.end_game();
-                }
+            if (this.check_win(player_what)) {
+                this.game.winner = player_what;
+                this.end_game();
             }
         } else if (this.game.shared_phase) {
             this.game.shared_time++;
@@ -897,6 +1162,9 @@ class Game {
     }
 
     next_phase() {
+        this.player1.messages = [];
+        this.player2.messages = [];
+
         this.log('player1', "self", null, "selected location <em>" + this.player1.next_location + "</em>.");
         this.log('player2', "self", null, "selected location <em>" + this.player2.next_location + "</em>.");
 
@@ -918,14 +1186,11 @@ class Game {
         this.game.shared_phase_complete = false;
         this.game.turns_this_phase = this.game.shared_phase ? this.game.shared_phase_turns : this.game.solo_phase_turns;
 
-        // escaped hold
         if (this.player1.overpowered) {
-            this.player1.overpowered = false;
-            this.player1.health = 1;
+            this.recover_player('player1');
         }
         if (this.player2.overpowered) {
-            this.player2.overpowered = false;
-            this.player2.health = 1;
+            this.recover_player('player2');
         }
 
         this.game.phase++;
@@ -944,23 +1209,22 @@ class Game {
         }
 
         this.update_npcs();
+        this.update_players();
 
         this.update();
     }
 
     check_win(player_what) {
         var player = this[player_what];
+        var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
+        var opponent = this[opponent_what];
 
         if (player.job == "killer") {
-            if (player.opponent_dead) return true;
-
-            return false;
+            return opponent.dead;
         }
 
         if (player.job == "spy") {
-            if (player.info_delivered) return true;
-
-            return false;
+            return player.info_delivered >= player.info_goal;
         }
 
         return false;
@@ -973,12 +1237,12 @@ class Game {
         this.global_log(this[this.game.winner].character + " wins.");
         
         if (this.game.shared_phase) {
-            let line = this.dialogue(this.game.winner, 'fight adjourned');
+            let line = this.dialogue(this.game.winner, 'win');
             let opponent_what = this.game.winner == 'player1' ? 'player2' : 'player1';
             this[this.game.winner].messages.push("self: " + line);
             this[opponent_what].messages.push("opp: " + line);
         } else {
-            this.monologue(this.game.winner, 'fight adjourned');
+            this.monologue(this.game.winner, 'win');
         }
     }
 }

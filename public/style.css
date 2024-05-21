@@ -109,10 +109,9 @@ button.locked {
     background: var(--wait);
 }
 
-/*  */
-
-#things {
-    overflow: hidden;
+em {
+    font-style: inherit;
+    font-weight: bold;
 }
 
 /* imagebutton */
@@ -177,23 +176,28 @@ body.phase-ended .imagebutton canvas {
 }
 
 .imagebutton.no-actions input,
-body.phase-ended .imagebutton input {
+body.phase-ended .imagebutton input,
+body.overpowered .imagebutton:not(.character) input {
     cursor: grab;
 }
 
-body.phase-ended .actions-menu {
+body.phase-ended .actions-menu,
+body.overpowered .imagebutton:not(.character) .actions-menu {
     display: none;
 }
 
-body:not(.phase-ended) .imagebutton:not(.no-actions) input:focus,
+body:not(.phase-ended):not(.overpowered) .imagebutton:not(.no-actions) input:focus,
+body.overpowered .imagebutton.character:not(.no-actions) input:focus,
 .imagebutton input:hover,
 .imagebutton canvas:hover {
     border-color: var(--ink);
 }
 
-body:not(.phase-ended) .imagebutton.selected input,
-body:not(.phase-ended) .imagebutton:has(button.locked) input,
-body:not(.phase-ended) .imagebutton canvas.selected {
+body:not(.phase-ended):not(.overpowered) .imagebutton.selected input,
+body:not(.phase-ended):not(.overpowered) .imagebutton:has(button.locked) input,
+body:not(.phase-ended):not(.overpowered) .imagebutton canvas.selected,
+body.overpowered .imagebutton.character.selected input,
+body.overpowered .imagebutton.character:has(button.locked) input {
     border: 1px solid var(--ink);
 }
 
@@ -225,7 +229,7 @@ body:not(.phase-ended) .imagebutton canvas.selected {
     color: var(--lightgray);
     margin: .5em;
     padding: .5em;
-    z-index: 11;
+    z-index: 20;
     pointer-events: none;
     text-align: left;
     white-space: pre;
@@ -241,6 +245,9 @@ body:not(.phase-ended) .imagebutton canvas.selected {
     border: 1px solid var(--ink);
     border-radius: 2px;
     padding: .2em .5em;
+    background: var(--bg);
+    font-style: italic;
+    white-space: pre;
 }
 
 .actions-menu {
@@ -259,17 +266,18 @@ body:not(.phase-ended) .imagebutton canvas.selected {
 .actions-menu button.matchmaking {
     background: var(--opp);
 }
-.actions-menu em {
-    font-style: normal;
-    font-weight: bold;
-}
 
-.stats {
+.overhead {
     position: absolute;
-    top: -.25em;
+    top: 0;
     left: 0;
     translate: 0 -100%;
     pointer-events: none;
+}
+
+.stats {
+    pointer-events: none;
+    padding-bottom: .25em;
 }
 .stats > div {
     display: flex;
@@ -421,6 +429,11 @@ body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
     padding: 0 .5em;
 }
 
+#ui-container em {
+    font-weight: normal;
+    font-style: italic;
+}
+
 #gamedata {
     /* background: transparent;
     color: var(--ink); */
@@ -537,10 +550,6 @@ body.phase-ended .ui-blink {
 
     box-sizing: border-box;
     overflow: auto;
-}
-#game-log em {
-    font-style: normal;
-    font-weight: bold;
 }
 #game-log > div {
     margin-bottom: 5px;

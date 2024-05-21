@@ -67,6 +67,10 @@ class ImageButton {
         this.element.style.left = p.position.x;
         this.element.style.top = p.position.y;
 
+        this.overheadElement = document.createElement("div");
+        this.overheadElement.className = "overhead";
+        this.element.appendChild(this.overheadElement);
+
         if (p.tags) {
             this.tagsContainer = document.createElement("div");
             this.tagsContainer.className = "tags-container";
@@ -76,7 +80,7 @@ class ImageButton {
                 tagElement.className = tag+" tag";
                 this.tagsContainer.appendChild(tagElement);
             }
-            this.element.appendChild(this.tagsContainer);
+            this.overheadElement.appendChild(this.tagsContainer);
         }
 
         this.buttonWrapper = document.createElement("div");

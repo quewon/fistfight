@@ -7,6 +7,26 @@ class Thing {
         let p = data;
 
         this.base_actions = p.actions || {};
+
+        if (p.tags) {
+            for (let tag of p.tags) {
+                const id = this.id;
+
+                if (tag == 'internet-connected') {
+                    this.base_actions["transmit info"] = function() { game_command(id, 'transmit', this) }
+                    continue;
+                }
+
+                if (tag == 'food') {
+                    this.base_actions["eat"] = {
+                        description: "+1 STRENGTH for a day",
+                        function: function() { game_command(id, 'eat', this) }
+                    }
+                    continue;
+                }
+            }
+        }
+
         this.imageButton = new ImageButton({
             position: p.position || { x: random(20, 80)+"%", y: random(20, 80)+"%" },
             image: p.image,
@@ -18,13 +38,7 @@ class Thing {
         });
 
         if (p.portable) {
-            if (p.in_opponent_pockets) {
-                this.pocket('opp');
-            } else if (p.in_pockets) {
-                this.pocket('self');
-            } else {
-                this.unpocket();
-            }
+            this.unpocket();
         }
     }
 

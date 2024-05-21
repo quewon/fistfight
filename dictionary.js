@@ -47,6 +47,7 @@ const dictionary = {
                 "professional sneaker"
             ],
             job: "spy",
+            info_goal: 3,
             health: 7,
             strength: 1,
             max_windup: 3,
@@ -119,7 +120,7 @@ const dictionary = {
             dialogue: [
                 "hi",
                 "hullo",
-                "just chillin"
+                "i'm just chillin"
             ]
         },
 
@@ -132,6 +133,30 @@ const dictionary = {
                 "i probably believe in god"
             ]
         },
+
+        //
+
+        "chef": {
+            name: "chef",
+            image: "npcs/chef.png",
+            dialogue: [
+                "enjoying the food?",
+                "welcome to this lovely dinery",
+                "compliments to the chef ? that's me!"
+            ],
+            schedule: ["home", "diner", "diner"]
+        },
+
+        "librarian": {
+            name: "librarian",
+            image: "npcs/librarian.png",
+            dialogue: [
+                "i'm really into books",
+                "looking for something?",
+                "you're looking for ... a book? buddy..."
+            ],
+            schedule: ["library", "library", "home"]
+        }
     },
 
     things: {
@@ -197,6 +222,42 @@ const dictionary = {
             position: { x: "0%", y: "0%" },
             image: "things/gentlepeoples lounge sign.png"
         },
+
+        //
+
+        "laptop": {
+            class: "Thing",
+
+            image: "things/laptop.png",
+            tags: ["internet-connected"],
+            portable: true
+        },
+
+        "generic book": {
+            class: "Thing",
+            image: "things/book.png",
+            portable: true
+        },
+
+        "generic open book": {
+            class: "Thing",
+            image: "things/open book.png",
+            portable: true
+        },
+
+        "knife": {
+            class: "Thing",
+            image: "things/knife.png",
+            tags: ["weapon"],
+            portable: true
+        },
+
+        "water and breadsticks": {
+            class: "Thing",
+            image: "things/breadsticks.png",
+            tags: ["food"],
+            portable: true
+        }
     }
 }
 
