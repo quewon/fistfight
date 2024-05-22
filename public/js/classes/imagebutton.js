@@ -13,6 +13,11 @@ function close_action_menu() {
 document.addEventListener("mousemove", function(e) {
     mouse.x = e.pageX;
     mouse.y = e.pageY;
+
+    if (!ui.tooltip.classList.contains("gone")) {
+        ui.tooltip.style.left = mouse.x+"px";
+        ui.tooltip.style.top = mouse.y+"px";
+    }
     
     if (draggingElement) {
         let x = e.pageX;
@@ -124,8 +129,7 @@ class ImageButton {
         }.bind(this));
 
         if (p.label) {
-            var label = attach_label(this.buttonElement, p.label);
-            label.style.whiteSpace = "nowrap";
+            attach_tooltip(this.buttonElement, p.label);
         }
 
         this.setActions(p.actions);
@@ -233,7 +237,7 @@ class ImageButton {
                 this.actionsMenu.appendChild(actionButton);
 
                 if (actionDescription) {
-                    attach_label(actionButton, actionDescription);
+                    attach_tooltip(actionButton, actionDescription);
                 }
             }
         } else {
@@ -245,51 +249,40 @@ class ImageButton {
     // onready() { }
 }
 
-function attach_label(element, text, container) {
-    const label = document.createElement("div");
-    label.innerHTML = text;
-    label.className = "label gone";
+function tooltip(text) {
+    if (text) {
+        ui.tooltip.classList.remove("gone");
+        ui.tooltip.innerHTML = text;
+    } else {
+        ui.tooltip.classList.add("gone");
+    }
+}
+
+function attach_tooltip(element, text, class_name) {
+    var tooltip_data = {
+        text: text,
+        className: class_name
+    };
 
     element.addEventListener("mouseenter", function() {
-        this.classList.remove("gone");
-    }.bind(label));
-
-    element.addEventListener("mouseleave", function() {
-        this.classList.add("gone");
-    }.bind(label));
-
-    element.addEventListener("mousemove", function(e) {
-        let rect = container.getBoundingClientRect();
-        let x = e.pageX - (rect.left + window.scrollX);
-        let y = e.pageY - (rect.top + window.scrollY);
-        this.style.left = x+"px";
-        this.style.top = y+"px";
-    }.bind(label));
+        tooltip(this.text);
+        ui.tooltip.className = this.className || "";
+    }.bind(tooltip_data));
 
     element.addEventListener("focus", function() {
-        if (this.classList.contains("gone")) {
-            if (this.tabIndex != -1) {
-                let x = container.clientWidth;
-                let y = 0;
-                this.style.left = x+"px";
-                this.style.top = y+"px";
-            }
-            this.classList.remove("gone");
-        }
-    }.bind(label));
+        ui.tooltip.style.left = mouse.x+"px";
+        ui.tooltip.style.top = mouse.y+"px";
+        tooltip(this.text);
+        ui.tooltip.className = this.className || "";
+    }.bind(tooltip_data));
+
+    element.addEventListener("mouseleave", function() {
+        tooltip();
+    });
 
     element.addEventListener("blur", function(e) {
-        this.classList.add("gone");
-    }.bind(label));
+        tooltip();
+    });
 
-    if (!container) {
-        container = element;
-        while (container.tagName == 'INPUT') {
-            container = container.parentElement;
-        }
-    }
-
-    container.appendChild(label);
-
-    return label;
+    return tooltip_data;
 }

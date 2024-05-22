@@ -116,6 +116,10 @@ em {
 
 /* imagebutton */
 
+#things {
+    overflow: hidden;
+}
+
 .imagebutton {
     position: absolute;
     display: flex;
@@ -184,20 +188,18 @@ body.phase-ended .imagebutton canvas {
 body.actions-disabled .imagebutton input,
 body.actions-disabled .imagebutton canvas,
 .imagebutton.no-actions input,
-.imagebutton.dead input,
 body.phase-ended .imagebutton input,
 body.overpowered .imagebutton:not(.character) input {
     cursor: grab;
 }
 
 body.phase-ended .actions-menu,
-body.overpowered .imagebutton:not(.character) .actions-menu,
-.imagebutton.dead .actions-menu {
+body.overpowered .imagebutton:not(.character) .actions-menu {
     display: none;
 }
 
-body:not(.phase-ended):not(.overpowered) .imagebutton:not(.no-actions):not(.dead) input:focus,
-body.overpowered .imagebutton.character:not(.no-actions):not(.dead) input:focus,
+body:not(.phase-ended):not(.overpowered) .imagebutton:not(.no-actions) input:focus,
+body.overpowered .imagebutton.character:not(.no-actions) input:focus,
 .imagebutton input:hover,
 .imagebutton canvas:hover {
     border-color: var(--ink);
@@ -233,13 +235,13 @@ body.overpowered .imagebutton.character:has(button.locked) input {
     display: none;
 }
 
-.label {
+#tooltip {
     position: absolute;
     background: var(--ink);
     color: var(--lightgray);
     margin: .5em;
     padding: .5em;
-    z-index: 20;
+    z-index: 200;
     pointer-events: none;
     text-align: left;
     white-space: pre;
@@ -345,6 +347,12 @@ body.solo-phase .imagebutton.selected .stats {
     padding: .5em;
     position: absolute;
     cursor: default;
+    pointer-events: none;
+}
+
+.dialogue:not(.arrow-left):not(.arrow-right) {
+    font-family: monospace;
+    background-color: var(--self);
 }
 
 .dialogue.arrow-left {
@@ -459,9 +467,6 @@ body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
 #gamedata > div {
     pointer-events: auto;
     white-space: pre;
-}
-#gamedata .label {
-    translate: 1em 0;
 }
 
 /* map */
@@ -594,7 +599,7 @@ body.phase-ended .ui-blink {
 /* pockets */
 
 #pockets {
-    z-index: 1000;
+    z-index: 100;
     position: absolute;
     width: 100%;
     height: 100%;

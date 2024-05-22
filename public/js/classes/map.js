@@ -114,7 +114,7 @@ class Map extends Thing {
         });
         this.goButton.addEventListener("mouseup", function(e) { e.stopPropagation() });
         this.canvasContainer.appendChild(this.goButton);
-        attach_label(this.goButton, "will end this phase");
+        attach_tooltip(this.goButton, "will end this phase");
         this.goButton.remove();
 
         this.endPhaseButton = document.createElement("button");
@@ -132,26 +132,6 @@ class Map extends Thing {
     updateData(data) {
         for (let location in this.map) {
             this.map[location].is_current_location = location == data.player.location;
-        }
-    }
-
-    disable(message) {
-        for (let location in this.map) {
-            var l = this.map[location];
-
-            l.element.setAttribute("disabled", true);
-            l.element.tabIndex = -1;
-        }
-        this.disabledLabel = attach_label(this.canvasContainer, message);
-    }
-
-    enable() {
-        if (this.disabledLabel) this.disabledLabel.remove();
-        for (let location in this.map) {
-            var l = this.map[location];
-
-            l.element.removeAttribute("disabled");
-            l.element.tabIndex = 0;
         }
     }
 
@@ -319,19 +299,13 @@ function toggle_map() {
             game.map = new Map(game.data);
             game.location.add_thing(game.map);
             if (game.player) {
-                // game.player.mapButton.classList.add("gone");
-                let label = game.player.mapButton.getElementsByClassName("label")[0];
                 game.player.mapButton.innerHTML = "close <em>m</em>ap";
-                game.player.mapButton.appendChild(label);
             }
         } else {
             game.location.remove_thing(game.map);
             game.map = null;
             if (game.player) {
-                // game.player.mapButton.classList.remove("gone");
-                let label = game.player.mapButton.getElementsByClassName("label")[0];
                 game.player.mapButton.innerHTML = "open <em>m</em>ap";
-                game.player.mapButton.appendChild(label);
             }
         }
     }

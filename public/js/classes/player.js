@@ -27,6 +27,8 @@ class Player extends Thing {
         }
 
         this.stats.windup.max = data.max_windup;
+        this.strengthTooltip = attach_tooltip(this.stats.strength.element, "STRENGTH: ?");
+
         this.updateStats(data);
     }
 
@@ -105,7 +107,13 @@ class Player extends Thing {
             this.imageButton.element.classList.remove("ghost");
         }
 
+        this.updateStrengthTooltip(data);
+
         this.previousStats = data;
+    }
+
+    updateStrengthTooltip(data) {
+        this.strengthTooltip.text = "STRENGTH: "+data.strength;
     }
 
     decrementStat(statName) {
@@ -189,8 +197,6 @@ class PlayerSelector extends Player {
             }.bind(this),
             select: function() { game_command(name, 'select character', this) }
         });
-
-        attach_label(this.stats.strength.element, "STRENGTH: "+data.strength);
     }
 }
 
@@ -218,8 +224,6 @@ class You extends Player {
 
         this.pocketButton = this.imageButton.actionsMenu.firstElementChild;
         this.mapButton = this.imageButton.actionsMenu.lastElementChild;
-
-        attach_label(this.stats.strength.element, "STRENGTH: "+data.strength);
     }
 }
 
@@ -271,16 +275,16 @@ class Opponent extends Player {
         data.position = { x: "80%", y: "60%" };
         data.label = "opponent";
         data.text = data.character;
-        data.actions = fightActions;
+        data.actions = data.dead ? null : fightActions;
         super(data);
 
         this.fightActions = fightActions;
         this.playerOverpoweredActions = playerOverpoweredActions;
         this.opponentOverpoweredActions = opponentOverpoweredActions;
-        
-        // let ratio = (game.data.player.strength / (game.data.player.strength + data.strength));
-        let ratio = game.data.player.strength + "/" + (game.data.player.strength + data.strength);
+    }
 
-        attach_label(this.stats.strength.element, "STRENGTH: "+data.strength+"\nratio: "+ratio);
+    updateStrengthTooltip(data) {
+        let ratio = game.data.player.strength + "/" + (game.data.player.strength + data.strength);
+        this.strengthTooltip.text = "STRENGTH: "+data.strength+"\nratio: "+ratio;
     }
 }

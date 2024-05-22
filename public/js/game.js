@@ -36,6 +36,66 @@ socket.on('player offline', () => {
 
 socket.on('game update', update_game);
 
+//
+
+ui.lobby.joinForm.querySelector("input").addEventListener("keypress", function(e) {
+    if (e.code == 'Enter') {
+        ui.lobby.joinForm.querySelector("button").click();
+    }
+});
+
+ui.lobby.hostForm.querySelector("input").addEventListener("keypress", function(e) {
+    if (e.code == 'Enter') {
+        ui.lobby.hostForm.querySelector("button").click();
+        this.value = "";
+    }
+});
+
+
+document.addEventListener("keydown", async function(e) {
+    if (!ui.game.pockets.classList.contains("gone")) {
+        if (e.code == 'Escape') {
+            close_pockets();
+
+            e.stopPropagation();
+            e.preventDefault();
+            return false;
+        }
+    }
+})
+
+document.addEventListener("keypress", async function(e) {
+    if (e.code == 'KeyL') {
+        toggle_log();
+        return;
+    }
+    
+    if (game.disable_actions) return;
+
+    if (e.code == 'KeyP') {
+        if (ui.game.pockets.classList.contains("gone")) {
+            look_in_pockets('self');
+        } else {
+            close_pockets();
+        }
+        return;
+    }
+
+    if (e.code == 'KeyM') {
+        toggle_map();
+        return;
+    }
+})
+
+ui.game.pockets.addEventListener("click", close_pockets);
+
+function toggle_log() {
+    ui.game.log.classList.toggle('gone');
+    ui.game.logButton.textContent = ui.game.log.classList.contains('gone') ? 'log' : 'x';
+}
+
+//
+
 game.start = async function(data) {
     console.log("game start!");
 
@@ -62,6 +122,7 @@ game.start = async function(data) {
     ui.game.time.classList.add("ui-blink");
     ui.game.log.classList.remove("gone");
     ui.game.logButton.classList.remove("gone");
+    ui.game.timeTooltip = attach_tooltip(ui.game.time.parentElement, "", "monospace");
 
     game.data = data;
 
@@ -93,7 +154,11 @@ function init_pockets(data) {
 }
 
 async function init_location(data) {
+    if (game.location) await game.location.exit();
+
     console.log("initializing location.");
+
+    game.item_capacity = data.player.item_capacity || "?";
     
     var locationThings = [];
 
@@ -138,8 +203,6 @@ async function init_location(data) {
 
     if (game.location_name) {
         ui.game.data.classList.remove("gone");
-        ui.game.timeLabel = attach_label(ui.game.time.parentElement, "");
-        ui.game.timeLabel.classList.add("monospace");
     } else {
         ui.game.data.classList.add("gone");
         document.body.classList.remove("solo-phase");
@@ -195,7 +258,6 @@ async function update_game(data) {
 
     if (game.player && data.player) {
         game.player.updateStats(data.player);
-
         let past = prev.player;
         let curr = data.player;
 
@@ -218,21 +280,23 @@ async function update_game(data) {
     if (game.opponent && data.opponent) {
         game.opponent.updateStats(data.opponent);
 
-        if (data.player.overpowered) {
-            game.opponent.setActions(game.opponent.playerOverpoweredActions);
-        } else if (data.opponent.overpowered) {
-            game.opponent.setActions(game.opponent.opponentOverpoweredActions);
-        } else {
-            game.opponent.setActions(game.opponent.fightActions);
-        }
-
-        let curr = data.opponent;
-
-        if (data.opponent.command) {
-            let c = data.opponent.command.command;
-            if (c == 'dodge' && curr.dodge_successful) {
-                sfx("dodge");
-                await wait(300);
+        if (!data.opponent.dead) {
+            if (data.player.overpowered) {
+                game.opponent.setActions(game.opponent.playerOverpoweredActions);
+            } else if (data.opponent.overpowered) {
+                game.opponent.setActions(game.opponent.opponentOverpoweredActions);
+            } else {
+                game.opponent.setActions(game.opponent.fightActions);
+            }
+    
+            let curr = data.opponent;
+    
+            if (data.opponent.command) {
+                let c = data.opponent.command.command;
+                if (c == 'dodge' && curr.dodge_successful) {
+                    sfx("dodge");
+                    await wait(300);
+                }
             }
         }
     }
@@ -254,47 +318,21 @@ async function update_game(data) {
             update_log(data.player.log.slice(0, -1));
         }
 
-        if (ui.game.timeLabel) {
-            ui.game.timeLabel.textContent = "time passes...";
-            for (let time=prev.player.time+1; time<prev.game.turns_this_phase; time++) {
-                ui.game.time.textContent = turn_to_time(prev.game.phase, time, prev.game.turns_this_phase);
-                ui.game.time.classList.remove("ui-blink");
-                ui.game.time.offsetWidth;
-                ui.game.time.classList.add("ui-blink");
+        ui.game.timeTooltip.text = "time passes...";
+        for (let time=prev.player.time+1; time<prev.game.turns_this_phase; time++) {
+            ui.game.time.textContent = turn_to_time(prev.game.phase, time, prev.game.turns_this_phase);
+            ui.game.time.classList.remove("ui-blink");
+            ui.game.time.offsetWidth;
+            ui.game.time.classList.add("ui-blink");
 
-                if (prev.game.turns_this_phase == 8 || prev.game.turns_this_phase == 16 && time%2==0) sfx("ticking");
-                if (prev.game.turns_this_phase == 8) {
-                    await wait(500);
-                } else if (prev.game.turns_this_phase == 16) {
-                    await wait(250);
-                }
-            }   
+            if (prev.game.turns_this_phase == 8 || prev.game.turns_this_phase == 16 && time%2==0) sfx("ticking");
+            if (prev.game.turns_this_phase == 8) {
+                await wait(500);
+            } else if (prev.game.turns_this_phase == 16) {
+                await wait(250);
+            }
         }
 
-        // if (data.player.location != game.data.player.location) {
-        //     if (game.location) await game.location.exit();
-    
-        //     ui.game.phase.textContent = ["morning", "afternoon", "night"][data.game.phase] + ", ";
-        //     ui.game.location.textContent = data.player.location;
-        //     ui.game.time.textContent = (data.game.phase * 8 + data.player.time) + ":00";
-    
-        //     await init_location(data);
-        // } else {
-        //     ui.game.phase.textContent = ["morning", "afternoon", "night"][data.game.phase] + ", ";
-    
-        //     if (data.game.shared_phase) {
-        //         game.opponent = new Opponent(data.opponent);
-        //         game.location.things.push(game.opponent);
-        //         await game.location.enter();
-        //     } else if (game.opponent) {
-        //         game.location.things.splice(game.location.things.indexOf(game.opponent), 1);
-        //         game.opponent.remove();
-        //         game.opponent = null;
-        //     }
-        // }
-
-        if (game.location) await game.location.exit();
-    
         update_turn_info(data);
         sfx("ticking");
 
@@ -306,24 +344,20 @@ async function update_game(data) {
     } else {
         play_messages(data.player.messages);
 
-        if (ui.game.timeLabel) {
-            ui.game.timeLabel.textContent = "time passes...";
-            for (let time=prev.player.time+1; time<=data.player.time; time++) {
-                sfx("ticking");
-                // ui.game.time.textContent = (game.data.game.phase * 8 + time) + ":00";
-                ui.game.time.textContent = turn_to_time(prev.game.phase, time, prev.game.turns_this_phase);
-                ui.game.time.classList.remove("ui-blink");
-                ui.game.time.offsetWidth;
-                ui.game.time.classList.add("ui-blink");
-                await wait(500);
-            }
+        ui.game.timeTooltip.text = "time passes...";
+        for (let time=prev.player.time+1; time<=data.player.time; time++) {
+            sfx("ticking");
+            // ui.game.time.textContent = (game.data.game.phase * 8 + time) + ":00";
+            ui.game.time.textContent = turn_to_time(prev.game.phase, time, prev.game.turns_this_phase);
+            ui.game.time.classList.remove("ui-blink");
+            ui.game.time.offsetWidth;
+            ui.game.time.classList.add("ui-blink");
+            await wait(500);
         }
 
         // for now, only applies at the beginning of the game
         // with the character selection location, you know
         if (prev.player.location != data.player.location) {
-            if (game.location) await game.location.exit();
-
             sfx("ticking");
 
             await init_location(data);
@@ -334,7 +368,7 @@ async function update_game(data) {
         update_log(data.player.log);
     }
 
-    if (!data.game.over && data.game.shared_phase && !data.game.shared_phase_complete && data.game.shared_phase_timer != -1 && !data.opponent.dead) {
+    if (!data.game.over && data.game.shared_phase && !data.game.shared_phase_complete && data.game.shared_phase_timer != -1 && !(data.opponent.dead || data.player.dead)) {
         let timer_duration = data.game.shared_phase_timer * 1000;
         let remaining_time = timer_duration;
         if (data.player.timer_started) {
@@ -507,6 +541,7 @@ function play_messages(messages) {
 }
 
 async function play_mouse_messages(mouse_messages) {
+    var y = 0;
     for (let message of mouse_messages) {
         if (message == "overwound") {
             var lines = [
@@ -517,7 +552,9 @@ async function play_mouse_messages(mouse_messages) {
             message = lines[Math.random() * lines.length | 0];
         }
 
-        await say(message);
+        var dialogue = await say(message, mouse.x, mouse.y + y);
+
+        y += dialogue.height;
     }
 }
 
@@ -559,7 +596,7 @@ function update_turn_info(data) {
     ui.game.phase.textContent = data.game.phases[data.game.phase] + ", ";
     ui.game.location.textContent = data.player.location;
     ui.game.time.textContent = turn_to_time(data.game.phase, data.player.time, data.game.turns_this_phase);
-    if (ui.game.timeLabel) ui.game.timeLabel.textContent = (data.game.turns_this_phase - data.player.time) + "/" + data.game.turns_this_phase + " turns left this phase";
+    ui.game.timeTooltip.text = (data.game.turns_this_phase - data.player.time) + "/" + data.game.turns_this_phase + " turns left this phase";
 }
 
 function update_log(log) {
@@ -624,8 +661,6 @@ function start_waiting_for_response(button) {
 }
 
 function look_in_pockets(subject) {
-    if (game.disable_actions) return;
-
     if (subject == 'self') {
         if (!game.data.player) return;
         if (game.data.player.overpowered) return;
@@ -714,18 +749,4 @@ function get_added(prev, curr) {
     }
 
     return added;
-}
-
-function check_weapon(data) {
-    for (let thing of data.player.things) {
-        if (thing.tags && thing.tags.includes("weapon")) {
-            return true;
-        }
-    }
-    // for (let thing of data.location) {
-    //     if (thing.tags.includes("weapon")) {
-    //         return true;
-    //     }
-    // }
-    return false;
 }

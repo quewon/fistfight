@@ -1,9 +1,12 @@
-async function say(text) {
+async function say(text, x, y) {
     var dialogue = new Dialogue({
         text: text,
-        mute: true
+        mute: true,
+        x: x,
+        y: y
     });
     await wait(dialogue.get_total_duration());
+    return dialogue;
 }
 
 class Dialogue {
@@ -19,10 +22,6 @@ class Dialogue {
 
         this.element = document.createElement("div");
         this.element.className = "dialogue";
-        this.element.onclick = function(e) {
-            this.destroy();
-            e.stopPropagation();
-        }.bind(this);
 
         // calculate width
         this.elementContainer.appendChild(this.element);
@@ -35,8 +34,9 @@ class Dialogue {
             p.thing.imageButton.element.appendChild(this.elementContainer);
             this.position_in_imagebutton(p.thing.imageButton);
             p.thing.imageButton.dialogue = this;
+            this.imageButton = p.thing.imageButton;
         } else {
-            this.setPosition(mouse.x, mouse.y);
+            this.setPosition(p.x || mouse.x, p.y || mouse.y);
         }
 
         // break down text
@@ -101,6 +101,9 @@ class Dialogue {
 
     update() {
         this.syllableIndex++;
+        if (this.imageButton && draggingElement != this.imageButton.element) {
+            this.imageButton.container.appendChild(this.imageButton.element);
+        }
 
         if (this.syllableIndex < this.syllables.length) {
             let string = "";

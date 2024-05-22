@@ -94,6 +94,16 @@ class Game {
 
         this.global_log("game created with key <em>" + this.game.id + "</em>.");
         this.global_log("<span class='phase-starter'><em>character selection</em> phase begins.</span>");
+
+        // debug scenario
+        // this.set_character('player1', 'jim beans');
+        // this.set_character('player2', 'bill');
+        // this.player1.location = 'diner';
+        // this.player2.location = 'diner';
+        // this.player2.health = 0;
+        // this.player2.overpowered = true;
+        // this.player1.info = 3;
+        // this.game.shared_phase = true;
     }
 
     create_player() {
@@ -178,8 +188,14 @@ class Game {
     }
 
     log(player_what, class_name, turn, message) {
+        if (this[player_what].dead) return;
+
+        let opponent_what = player_what == 'player1' ? 'player2' : 'player1';
+        let opp = this[opponent_what];
+        
         if (turn) {
             this[player_what].log.push("<span class='has-turn-info "+class_name+"'><span>[turn " + turn + "]</span><span>" + message + "</span>");
+            if (opp.dead) opp.log.push("<span class='has-turn-info opp "+class_name+"'><span>[turn " + turn + "]</span><span>" + message + "</span>");
         } else if (class_name == "self" || class_name == "opp") {
             let whitespaces = this.game.turns_this_phase.toString().length + 1 + (turn ? turn.toString().length : (this[player_what].time + 1).toString().length);
             turn = "";
@@ -187,9 +203,20 @@ class Game {
                 turn += " ";
             }
             this[player_what].log.push("<span class='has-turn-info "+class_name+"'><span>      " + turn + " </span><span>" + message + "</span>");
+            if (opp.dead) opp.log.push("<span class='has-turn-info opp "+class_name+"'><span>      " + turn + " </span><span>" + message + "</span>");
         } else {
             this[player_what].log.push("<span class='"+class_name+"'>" + message + "</span>");
+            if (opp.dead) opp.log.push("<span class='opp "+class_name+"'>" + message + "</span>");
         }
+    }
+
+    msg(player_what, message) {
+        if (this[player_what].dead) return;
+
+        this[player_what].messages.push(message);
+        let opponent_what = player_what == 'player1' ? 'player2' : 'player1';
+        let opp = this[opponent_what];
+        if (opp.dead) opp.messages.push(message);
     }
 
     add_player(playerId) {
@@ -262,7 +289,9 @@ class Game {
         }
 
         for (let effect of player.effects) {
-            data.strength += effect.added_strength;
+            for (let modifier of effect.modifiers) {
+                data[modifier.property] += modifier.value;
+            }
         }
 
         return data;
@@ -402,10 +431,10 @@ class Game {
                     let message = npc_id + ": <i>(to <em>" + player.character + "</em>)</i> " + dialogue;
 
                     let opponent_what = player_what == 'player1' ? 'player2' : 'player1';
-                    this[opponent_what].messages.push(message);
-                    player.messages.push(message);
+                    this.msg(opponent_what, message);
+                    this.msg(player_what, message);
                 } else {
-                    player.messages.push(npc_id + ": " + dialogue);
+                    this.msg(player_what, npc_id + ": " + dialogue);
                 }
 
                 return npc;
@@ -414,33 +443,46 @@ class Game {
         return false;
     }
 
-    check_thing_in_reach(player_what, thing_id) {
-        var player = this[player_what];
-
-        for (let pt of player.things) {
-            if (pt.id == thing_id) {
-                return pt;
+    check_tag_in_vicinity(player_what, tag) {
+        for (let thing of this[player_what].things) {
+            if (thing.tags && thing.tags.includes(tag)) {
+                return true;
             }
         }
-
-        for (let lt of this.locations[player.location]) {
-            if (lt.id == thing_id) {
-                return lt;
+        for (let thing of this.locations[this[player_what].location]) {
+            if (thing.tags && thing.tags.includes(tag)) {
+                return true;
             }
         }
-
         return false;
     }
 
-    has_murder_weapon(player_what) {
+    check_tag_reachable(player_what, tag) {
         for (let thing of this[player_what].things) {
-            if (thing.tags.includes("weapon")) {
+            if (thing.tags && thing.tags.includes(tag)) {
                 return true;
             }
         }
-        for (let thing of this.locations(this[player_what].location)) {
-            if (thing.tags.includes("weapon")) {
-                return true;
+        for (let location in this.locations) {
+            for (let thing of this.locations[location]) {
+                if (thing.tags && thing.tags.includes(tag)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    check_thing_in_vicinity(player_what, thing_id) {
+        var player = this[player_what];
+        for (let thing of player.things) {
+            if (thing.id == thing_id) {
+                return thing;
+            }
+        }
+        for (let thing of this.locations[player.location]) {
+            if (thing.id == thing_id) {
+                return thing;
             }
         }
         return false;
@@ -473,9 +515,10 @@ class Game {
     create_effect(player_what, effect) {
         effect.creation_phase = this.game.phase;
         effect.elapsed_turns = 0;
+        effect.modifiers = effect.modifiers || [];
 
         this[player_what].effects.push(effect);
-        this[player_what].messages.push("<em>" + effect.name + "</em> in effect for " + effect.duration + " " + effect.duration_unit + "(s)");
+        this.msg(player_what, "<em>" + effect.name + "</em> in effect for " + effect.duration + " " + effect.duration_unit + "(s)");
         return effect;
     }
 
@@ -492,9 +535,9 @@ class Game {
         var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
         var opponent = this[opponent_what];
 
-        if (this.dead) {
-            player.next_location = opponent.location;
-            this.next_turn(player_what);
+        if (player.dead) {
+            player.location = opponent.location;
+            player.next_location = opponent.next_location;
             return;
         }
 
@@ -549,7 +592,7 @@ class Game {
 
                 if (command == 'punch') {
                     if (opponent.health <= 0) {
-                        player.messages.push("opponent already overpowered");
+                        this.msg(player_what, "opponent already overpowered");
                         this.log(player_what, "self", turn, "<em>" + player.character + "</em> attempts to punch <em>" + opponent.character + "</em>.");
                         this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> attempts to punch <em>" + opponent.character + "</em>.");
                     } else {
@@ -573,7 +616,7 @@ class Game {
                     player.windup++;
                     if (player.windup > player.max_windup) {
                         player.windup = player.max_windup;
-                        player.messages.push("overwound");
+                        this.msg(player_what, "overwound");
                     }
                     this.log(player_what, "self", turn, "<em>" + player.character + "</em> winds up.");
                     this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> winds up.");
@@ -583,7 +626,7 @@ class Game {
     
                 if (command == 'block') {
                     // player.windup = 1;
-                    player.messages.push("blocked air -- no windup");
+                    this.msg(player_what, "blocked air -- no windup");
                     this.log(player_what, "self", turn, "<em>" + player.character + "</em> blocks nothing.");
                     this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> blocks nothing.");
                     this.next_turn(player_what);
@@ -592,7 +635,7 @@ class Game {
     
                 if (command == 'dodge') {
                     player.dodge_successful = true;
-                    player.messages.push("dodged air");
+                    this.msg(player_what, "dodged air");
                     this.log(player_what, "self", turn, "<em>" + player.character + "</em> dodges nothing.");
                     this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> dodges nothing.");
                     this.next_turn(player_what);
@@ -604,8 +647,8 @@ class Game {
                 if (command == 'struggle') {
                     if (this.struggle_success(player_what)) {
                         this.recover_player(player_what);
-                        player.messages.push("ESCAPED HOLD");
-                        opponent.messages.push("OPPONENT ESCAPES HOLD");
+                        this.msg(player_what, "ESCAPED HOLD");
+                        this.msg(opponent_what, "OPPONENT ESCAPES HOLD");
                         this.log(player_what, "self", turn, "<em>" + player.character + "</em> struggles free.");
                         this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> struggles free.");
                     } else {
@@ -660,7 +703,7 @@ class Game {
             if (taken_thing) {
                 this.log(player_what,  "self", turn, "<em>" + player.character + "</em> steals <em>" + taken_thing.name + "</em> from <em>" + opponent.character + "</em>.");
                 this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> steals <em>" + taken_thing.name + "</em> from <em>" + opponent.character + "</em>.");
-                opponent.messages.push("<em>" + taken_thing.name + "</em> got stolen!");
+                this.msg(opponent_what, "<em>" + taken_thing.name + "</em> got stolen!");
             } else {
                 this.log(player_what,  "self", turn, "<em>" + player.character + "</em> tried to steal something that isn't there.");
                 this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> tried to steal something that isn't there.");
@@ -691,13 +734,13 @@ class Game {
         }
 
         if (command == 'transmit') {
-            var thing_used = this.check_thing_in_reach(player_what, thing);
-            if (thing_used && !thing_used.tags.includes("internet-connected")) thing_used = null;
+            var thing_used = this.check_thing_in_vicinity(player_what, thing);
+            if (thing_used && (!thing_used.tags || !thing_used.tags.includes("internet-connected"))) thing_used = null;
 
             if (thing_used) {
                 if (player.job == "spy") {
                     if (player.info == 0) {
-                        player.messages.push(thing + ": this office does not take social calls.");
+                        this.msg(player_what, thing + ": this office does not take social calls.");
                         if (this.game.shared_phase) {
                             this.log(player_what,  "self", turn, "<em>" + player.character + "</em> tries to transmit info, but has none.");
                             this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> tries to transmit info, but has none.");
@@ -708,7 +751,7 @@ class Game {
                         player.info_delivered += player.info;
                         player.info = 0;
 
-                        player.messages.push(thing + ": good work!");
+                        this.msg(player_what, thing + ": good work!");
 
                         if (this.game.shared_phase) {
                             this.log(player_what,  "self", turn, "<em>" + player.character + "</em> transmits info.");
@@ -718,7 +761,7 @@ class Game {
                         }
                     }
                 } else {
-                    player.messages.push(thing + ": stick to your mission.");
+                    this.msg(player_what, thing + ": stick to your mission.");
                     if (this.game.shared_phase) {
                         this.log(player_what,  "self", turn, "<em>" + player.character + "</em> fails to transmit info -- not a spy.");
                         this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> fails to transmit info -- not a spy.");
@@ -740,7 +783,7 @@ class Game {
         }
 
         if (command == 'eat') {
-            var thing_eaten = this.check_thing_in_reach(player_what, thing);
+            var thing_eaten = this.check_thing_in_vicinity(player_what, thing);
             if (thing_eaten && !thing_eaten.tags.includes("food")) thing_eaten = null;
 
             if (thing_eaten) {
@@ -749,7 +792,10 @@ class Game {
                     name: thing_eaten.name,
                     duration_unit: 'phase',
                     duration: 3,
-                    added_strength: 1
+                    modifiers: [{
+                        property: 'strength',
+                        value: 1
+                    }]
                 });
                 if (this.game.shared_phase) {
                     this.log(player_what,  "self", turn, "<em>" + player.character + "</em> eats <em>" + thing_eaten.name + "</em>.");
@@ -771,9 +817,7 @@ class Game {
         }
 
         if (command == 'kill') {
-            console.log('kill command from ' + player_what);
-
-            var weapon = this.check_thing_in_reach(player_what, thing);
+            var weapon = this.check_thing_in_vicinity(player_what, thing);
 
             if (weapon) {
                 if (!this.game.shared_phase) {
@@ -840,10 +884,10 @@ class Game {
         if (this[player_what].health <= 0) {
             this[player_what].health = 0;
             this[player_what].overpowered_this_turn = true;
-            this[player_what].messages.push("OVERPOWERED");
+            this.msg(player_what, "OVERPOWERED");
 
             var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
-            this[opponent_what].messages.push("OPPONENT DOWN");
+            this.msg(opponent_what, "OPPONENT DOWN");
 
             this.log(player_what, "self",  null, "<em>" + this[player_what].character + "</em> is <em>overpowered</em>.");
             this.log(opponent_what, "opp", null, "<em>" + this[player_what].character + "</em> is <em>overpowered</em>.");
@@ -876,6 +920,21 @@ class Game {
 
         this.player1.messages = [];
         this.player2.messages = [];
+
+        if (this.player1.dead || this.player2.dead) {
+            this.player1.command = this.player1.command || {
+                command: 'spectate',
+                thing: null
+            }
+            this.player2.command = this.player2.command || {
+                command: 'spectate',
+                thing: null
+            }
+            this.process_command('player1');
+            this.process_command('player2');
+            this.next_turn();
+            return;
+        }
 
         let c1 = this.player1.command.command;
         let c2 = this.player2.command.command;
@@ -995,7 +1054,7 @@ class Game {
                 this.damage_player('player2', reduced);
                 p1.windup = 0;
                 p2.windup = 1;
-                p2.messages.push("block successful -- damage halved");
+                this.msg('player2', "block successful -- damage halved");
                 // p1.messages.push("opp: blocked punch");
 
                 this.next_turn();
@@ -1012,7 +1071,7 @@ class Game {
                 this.damage_player('player1', reduced);
                 this.player1.windup = 1;
                 this.player2.windup = 0;
-                this.player1.messages.push("block successful -- damage halved");
+                this.msg('player1', "block successful -- damage halved");
                 // this.player2.messages.push("opp: blocked punch");
 
                 this.next_turn();
@@ -1030,7 +1089,7 @@ class Game {
                     this.log('player2', "opp",  null, "--<em>" + p1.character + "</em> misses.");
                     
                     p2.dodge_successful = true;
-                    this.player2.messages.push("dodge success!");
+                    this.msg('player2', "dodge success!");
                     // this.player1.messages.push("opp: punch dodged");
                 } else {
                     this.log('player1', "self", null, "--only to be hit by <em>" + p1.character + "</em> for " + this.punch_power('player1') + " damage.");
@@ -1039,7 +1098,7 @@ class Game {
                     p2.dodge_successful = false;
                     this.process_command('player1', { no_logging: true });
 
-                    this.player2.messages.push("dodge failed");
+                    this.msg('player2', "dodge failed");
                     // this.player1.messages.push("opp: dodge failed");
                 }
                 this.player1.windup = 0;
@@ -1056,7 +1115,7 @@ class Game {
                     this.log('player1', "opp",  null, "--<em>" + p2.character + "</em> misses.");
 
                     p1.dodge_successful = true;
-                    this.player1.messages.push("dodge success!");
+                    this.msg('player1', "dodge success!");
                     // this.player2.messages.push("opp: punch dodged");
                 } else {
                     this.log('player2', "self", null, "--only to be hit by <em>" + p2.character + "</em> for " + this.punch_power('player2') + " damage.");
@@ -1065,7 +1124,7 @@ class Game {
                     p1.dodge_successful = false;
                     this.process_command('player2', { no_logging: true });
 
-                    this.player1.messages.push("dodge failed");
+                    this.msg('player1', "dodge failed");
                     // this.player1.messages.push("opp: tried to dodge");
                 }
                 this.player2.windup = 0;
@@ -1081,8 +1140,8 @@ class Game {
             if (!p1.dead) {
                 if (this.struggle_success('player1')) {
                     this.recover_player('player1');
-                    p1.messages.push("ESCAPED HOLD");
-                    p2.messages.push("OPPONENT ESCAPES HOLD");
+                    this.msg('player1', "ESCAPED HOLD");
+                    this.msg('player2', "OPPONENT ESCAPED HOLD");
                     this.log('player1', "self", null, "<em>" + p1.character + "</em> struggles free.");
                     this.log('player2',  "opp", null, "<em>" + p1.character + "</em> struggles free.");
                 } else {
@@ -1099,8 +1158,8 @@ class Game {
             if (!p2.dead) {
                 if (this.struggle_success('player2')) {
                     this.recover_player('player2');
-                    p2.messages.push("ESCAPED HOLD");
-                    p1.messages.push("OPPONENT ESCAPES HOLD");
+                    this.msg('player2', "ESCAPED HOLD");
+                    this.msg('player1', "OPPONENT ESCAPED HOLD");
                     this.log('player2', "self", null, "<em>" + p2.character + "</em> struggles free.");
                     this.log('player1',  "opp", null, "<em>" + p2.character + "</em> struggles free.");
                 } else {
@@ -1145,12 +1204,10 @@ class Game {
             if (this.player1.overpowered_this_turn) {
                 this.player1.overpowered = true;
                 this.player1.overpowered_this_turn = false;
-                console.log('player 1 overpowered true');
             }
             if (this.player2.overpowered_this_turn) {
                 this.player2.overpowered = true;
                 this.player2.overpowered_this_turn = false;
-                console.log('player 2 overpowered true');
             }
 
             if (this.game.shared_time >= this.game.turns_this_phase) {
@@ -1182,29 +1239,13 @@ class Game {
                 ) {
                     let living_what = this.player1.dead ? 'player2' : 'player1';
                     var living_player = this[living_what];
-                    // first case is unnecessary, but added for understanding
-                    if (living_player.job == 'spy' && living_player.info > 0) {
-                        let could_find_device = false;
-                        search: {
-                            for (let thing of living_player.things) {
-                                if (thing.tags.includes("internet-connected")) {
-                                    could_find_device = true;
-                                    break search;
-                                }
-                            }
-                            for (let location of this.locations) {
-                                for (let thing of location) {
-                                    if (thing.tags.includes("internet-connected")) {
-                                        could_find_device = true;
-                                        break search;
-                                    }
-                                }
-                            }
-                        }
-                        if (!could_find_device) {
-                            this.end_game();
-                            return;
-                        }
+                    
+                    if (
+                        living_player.job == 'spy' && living_player.info > 0 && 
+                        living_player.info + living_player.info_delivered >= living_player.info_goal &&
+                        this.check_tag_reachable(living_what, "internet-connected")
+                    ) {
+                        // player could win
                     } else {
                         this.end_game();
                         return;
@@ -1222,17 +1263,19 @@ class Game {
     }
 
     share_dialogue(key) {
+        if (this.player1.dead || this.player2.dead) return;
+
         let d1 = this.dialogue('player1', key);
         let d2 = this.dialogue('player2', key);
 
-        this.player1.messages.push("self: " + d1);
-        this.player1.messages.push( "opp: " + d2);
-        this.player2.messages.push( "opp: " + d1);
-        this.player2.messages.push("self: " + d2);
+        this.msg('player1', "self: " + d1);
+        this.msg('player1',  "opp: " + d2);
+        this.msg('player2',  "opp: " + d1);
+        this.msg('player2', "self: " + d2);
     }
 
     monologue(player_what, key) {
-        this[player_what].messages.push("self: " + this.dialogue(player_what, key));
+        this.msg(player_what, "self: " + this.dialogue(player_what, key));
     }
 
     phase_complete(player_what) {
@@ -1243,10 +1286,10 @@ class Game {
 
                 this.global_log("fight adjourned.");
                 this.share_dialogue('fight adjourned');
-                this.player1.messages.push("FIGHT ADJOURNED");
-                this.player2.messages.push("FIGHT ADJOURNED");
-                this.player1.messages.push("pick next location!");
-                this.player2.messages.push("pick next location!");
+                this.msg('player1', "FIGHT ADJOURNED");
+                this.msg('player2', "FIGHT ADJOURNED");
+                this.msg('player1', "pick next location!");
+                this.msg('player2', "pick next location!");
             }
 
             this.game.shared_time = this.game.turns_this_phase;
@@ -1260,8 +1303,8 @@ class Game {
             this[player_what].time = this.game.turns_this_phase;
             this[player_what].phase_complete = true;
             this.log(player_what, null, null, "phase complete.");
-            this[player_what].messages.push("PHASE COMPLETE");
-            this[player_what].messages.push("pick next location!");
+            this.msg(player_what, "PHASE COMPLETE");
+            this.msg(player_what, "pick next location!");
         }
     }
 
@@ -1351,17 +1394,17 @@ class Game {
             if (this.game.winner) {
                 let line = this.dialogue(this.game.winner, 'win');
                 let opponent_what = this.game.winner == 'player1' ? 'player2' : 'player1';
-                this[this.game.winner].messages.push("self: " + line);
-                this[opponent_what].messages.push("opp: " + line);   
+                this.msg(this.game.winner, "self: " + line);
+                this.msg(opponent_what, "opp: " + line);  
             }
             
             if (this.game.winners_tied) {
                 let l1 = this.dialogue('player1', 'win');
                 let l2 = this.dialogue('player2', 'win');
-                this.player1.messages.push("self: " + l1);
-                this.player2.messages.push( "opp: " + l1);
-                this.player1.messages.push( "opp: " + l2);
-                this.player2.messages.push("self: " + l2);
+                this.msg('player1', "self: " + l1);
+                this.msg('player2',  "opp: " + l1);
+                this.msg('player1',  "opp: " + l2);
+                this.msg('player2', "self: " + l2);
             }
         } else {
             if (this.game.winner) {
@@ -1374,8 +1417,8 @@ class Game {
             }
         }
 
-        this.player1.messages.push("GAME OVER, GO HOME EVERYBODY!!");
-        this.player2.messages.push("GAME OVER, GO HOME EVERYBODY!!");
+        this.msg('player1', "GAME OVER, GO HOME EVERYBODY!!");
+        this.msg('player2', "GAME OVER, GO HOME EVERYBODY!!");
     }
 }
 
