@@ -624,7 +624,7 @@ function start_waiting_for_response(button) {
 }
 
 function look_in_pockets(subject) {
-    if (game.data.phase_complete) return;
+    if (game.disable_actions) return;
 
     if (subject == 'self') {
         if (!game.data.player) return;

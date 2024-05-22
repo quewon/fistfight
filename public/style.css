@@ -601,6 +601,13 @@ body.phase-ended .ui-blink {
     top: 0;
     left: 0;
     background: color-mix(in srgb, transparent 30%, var(--bg) 70%);
+
+    -webkit-backface-visibility: hidden;
+    -webkit-transform: translate3d(0,0,0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    transform: translate3d(0,0,0);
+    transform: translateZ(0);
     backdrop-filter: blur(3px);
 }
 #pockets.opponent {
@@ -613,10 +620,6 @@ body.phase-ended .ui-blink {
     width: 100%;
     text-align: center;
     margin-top: 1em;
-}
-
-body.phase-ended #pockets {
-    display: none;
 }
 
 /* global */
