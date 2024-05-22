@@ -82,6 +82,12 @@ io.on('connection', (socket) => {
     socket.on('confirm match', () => {
         var matchId = players[socket.id].match;
 
+        if (!players[matchId]) {
+            players[socket.id].match = null;
+            socket.emit('match cancelled');
+            return;
+        }
+
         players[socket.id].match_confirmed = true;
         if (players[matchId].match == socket.id && players[matchId].match_confirmed) {
             var gameId = unique_game_id(socket.id, matchId);
