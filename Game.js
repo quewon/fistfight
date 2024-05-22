@@ -481,7 +481,9 @@ class Game {
     process_command(player_what, conditions) {
         if (this.game.over) return;
 
-        this[player_what].messages = [];
+        if (!this.game.shared_phase) {
+            this[player_what].messages = [];
+        }
 
         conditions = conditions || {};
 
