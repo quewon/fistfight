@@ -184,18 +184,20 @@ body.phase-ended .imagebutton canvas {
 body.actions-disabled .imagebutton input,
 body.actions-disabled .imagebutton canvas,
 .imagebutton.no-actions input,
+.imagebutton.dead input,
 body.phase-ended .imagebutton input,
 body.overpowered .imagebutton:not(.character) input {
     cursor: grab;
 }
 
 body.phase-ended .actions-menu,
-body.overpowered .imagebutton:not(.character) .actions-menu {
+body.overpowered .imagebutton:not(.character) .actions-menu,
+.imagebutton.dead .actions-menu {
     display: none;
 }
 
-body:not(.phase-ended):not(.overpowered) .imagebutton:not(.no-actions) input:focus,
-body.overpowered .imagebutton.character:not(.no-actions) input:focus,
+body:not(.phase-ended):not(.overpowered) .imagebutton:not(.no-actions):not(.dead) input:focus,
+body.overpowered .imagebutton.character:not(.no-actions):not(.dead) input:focus,
 .imagebutton input:hover,
 .imagebutton canvas:hover {
     border-color: var(--ink);
@@ -308,7 +310,7 @@ body.overpowered .imagebutton.character:has(button.locked) input {
     0% { }
 }
 
-.overpowered .stats {
+.imagebutton.overpowered .stats {
     display: none;
 }
 

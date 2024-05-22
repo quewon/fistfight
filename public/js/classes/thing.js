@@ -59,10 +59,11 @@ class Thing {
     }
 
     pocket(subject) {
-        var actions = this.copy_actions(this.base_actions);
+        var actions = {};
         
         const id = this.id;
         if (subject == 'self') {
+            actions = this.copy_actions(this.base_actions);
             actions["drop"] = function() { game_command(id, 'drop', this) }
             if (game.pockets) game.pockets.add_thing(this);
         } else if (subject == 'opp') {

@@ -532,9 +532,14 @@ class Game {
             if (!player.overpowered) {
                 if (opponent.overpowered) {
                     if (command == 'question') {
-                        player.info++;
-                        this.log(player_what, "self", turn, "<em>" + player.character + "</em> questions <em>" + opponent.character + "</em>.");
-                        this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> questions <em>" + opponent.character + "</em>.");
+                        if (opponent.dead) {
+                            this.log(player_what, "self", turn, "<em>" + player.character + "</em> tries to question <em>" + opponent.character + "</em>'s corpse.");
+                            this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> tries to question <em>" + opponent.character + "</em>'s corpse.");
+                        } else {
+                            player.info++;
+                            this.log(player_what, "self", turn, "<em>" + player.character + "</em> questions <em>" + opponent.character + "</em>.");
+                            this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> questions <em>" + opponent.character + "</em>.");
+                        }
                         this.next_turn(player_what);
                         return;
                     }
@@ -1196,11 +1201,13 @@ class Game {
                                 }
                             }
                         }
-
                         if (!could_find_device) {
                             this.end_game();
                             return;
                         }
+                    } else {
+                        this.end_game();
+                        return;
                     }
                 }
             }
