@@ -342,7 +342,7 @@ async function update_game(data) {
         update_log(data.player.log);
     }
 
-    if (data.game.shared_phase && !data.game.shared_phase_complete && data.game.shared_phase_timer != -1) {
+    if (!data.game.over && data.game.shared_phase && !data.game.shared_phase_complete && data.game.shared_phase_timer != -1) {
         let timer_duration = data.game.shared_phase_timer * 1000;
         let remaining_time = timer_duration;
         if (data.player.timer_started) {

@@ -114,7 +114,7 @@ class Dialogue {
             let duration = currentSyllable.length * 40;
 
             if (this.syllableIndex == this.syllables.length - 1) {
-                duration += 1000;
+                duration += 3000;
             } else if (currentSyllable == " ") {
                 duration = 100;
             }

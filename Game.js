@@ -289,11 +289,9 @@ class Game {
     update(player_what) {
         if (this.player1.id && (!player_what || player_what == 'player1')) {
             this.server.to(this.player1.id).emit('game update', this.dumb_data('player1'));
-            this.player1.messages = [];
         }
         if (this.player2.id && (!player_what || player_what == 'player2')) {
             this.server.to(this.player2.id).emit('game update', this.dumb_data('player2'));
-            this.player2.messages = [];
         }
     }
 
@@ -477,6 +475,9 @@ class Game {
 
     process_command(player_what, conditions) {
         if (this.game.over) return;
+
+        this[player_what].messages = [];
+
         if (this.dead) return;
 
         conditions = conditions || {};
@@ -838,6 +839,9 @@ class Game {
     process_simul_commands() {
         if (this.game.over) return;
 
+        this.player1.messages = [];
+        this.player2.messages = [];
+
         let c1 = this.player1.command.command;
         let c2 = this.player2.command.command;
         let p1 = this.player1;
@@ -892,7 +896,7 @@ class Game {
                 p1.windup = 0;
                 p2.windup = 0;
 
-                if (p1.overpowered && p2.overpowered) {
+                if (p1.overpowered_this_turn && p2.overpowered_this_turn) {
                     this.phase_complete();
                 }
                 this.next_turn();
@@ -1155,10 +1159,15 @@ class Game {
     phase_complete(player_what) {
         if (this.game.shared_phase) {
             if (!this.game.shared_phase_complete) {
-                this.global_log("phase complete.");
+                this.player1.messages = [];
+                this.player2.messages = [];
+
+                this.global_log("fight adjourned.");
                 this.share_dialogue('fight adjourned');
-                this.player1.messages.push("phase complete -- pick next location!");
-                this.player2.messages.push("phase complete -- pick next location!");
+                this.player1.messages.push("FIGHT ADJOURNED");
+                this.player2.messages.push("FIGHT ADJOURNED");
+                this.player1.messages.push("pick next location!");
+                this.player2.messages.push("pick next location!");
             }
 
             this.game.shared_time = this.game.turns_this_phase;
@@ -1172,7 +1181,8 @@ class Game {
             this[player_what].time = this.game.turns_this_phase;
             this[player_what].phase_complete = true;
             this.log(player_what, null, null, "phase complete.");
-            this[player_what].messages.push("phase complete -- pick next location!");
+            this[player_what].messages.push("PHASE COMPLETE");
+            this[player_what].messages.push("pick next location!");
         }
     }
 

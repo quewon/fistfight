@@ -169,15 +169,12 @@ input[type="image"] {
     cursor: pointer;
 }
 
-body.actions-disabled .imagebutton input,
-body.actions-disabled .imagebutton canvas {
-    cursor: default;
-}
-
 body.phase-ended .imagebutton canvas {
     border: 1px solid var(--wait);
 }
 
+body.actions-disabled .imagebutton input,
+body.actions-disabled .imagebutton canvas,
 .imagebutton.no-actions input,
 body.phase-ended .imagebutton input,
 body.overpowered .imagebutton:not(.character) input {
