@@ -24,6 +24,14 @@ class Thing {
                     }
                     continue;
                 }
+
+                if (tag == 'weapon') {
+                    this.base_actions["use"] = {
+                        description: "kills an overpowered opponent",
+                        function: function() { game_command(id, 'kill', this) }
+                    }
+                    continue;
+                }
             }
         }
 

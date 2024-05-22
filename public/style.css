@@ -133,6 +133,11 @@ em {
                                     supported by Chrome, Edge, Opera and Firefox */
 }
 
+.imagebutton.ghost {
+    filter: grayscale(100%);
+    opacity: .5;
+}
+
 .input-wrapper {
     position: relative;
     pointer-events: none;
@@ -163,10 +168,13 @@ input[type="image"] {
     color: var(--ink);
 }
 
+.imagebutton input {
+    cursor: pointer;
+}
+
 .imagebutton input,
 .imagebutton canvas {
     border: 1px dotted transparent;
-    cursor: pointer;
 }
 
 body.phase-ended .imagebutton canvas {

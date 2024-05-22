@@ -437,6 +437,11 @@ class Game {
                 return true;
             }
         }
+        for (let thing of this.locations(this[player_what].location)) {
+            if (thing.tags.includes("weapon")) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -478,11 +483,17 @@ class Game {
 
         this[player_what].messages = [];
 
-        if (this.dead) return;
-
         conditions = conditions || {};
 
         var player = this[player_what];
+        var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
+        var opponent = this[opponent_what];
+
+        if (this.dead) {
+            player.next_location = opponent.location;
+            this.next_turn(player_what);
+            return;
+        }
 
         var thing = player.command.thing;
         var command = player.command.command;
@@ -503,8 +514,6 @@ class Game {
             return;
         }
 
-        var opponent_what = player_what == 'player1' ? 'player2' : 'player1';
-        var opponent = this[opponent_what];
         var turn = conditions.no_timestamping ? null : (player.time + 1) + "/" + this.game.turns_this_phase;
 
         if (command == 'timed out') {
@@ -523,19 +532,6 @@ class Game {
                         player.info++;
                         this.log(player_what, "self", turn, "<em>" + player.character + "</em> questions <em>" + opponent.character + "</em>.");
                         this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> questions <em>" + opponent.character + "</em>.");
-                        this.next_turn(player_what);
-                        return;
-                    }
-
-                    if (command == 'kill') {
-                        if (this.has_murder_weapon(player_what)) {
-                            this.log(player_what,  "self", turn, "<em>" + player.character + "</em> kills <em>" + opponent.character + "</em>.");
-                            this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> kills <em>" + opponent.character + "</em>.");
-                            opponent.dead = true;
-                        } else {
-                            this.log(player_what,  "self", turn, "<em>" + player.character + "</em> lusts for <em>" + opponent.character + "</em>'s blood.");
-                            this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> lusts for <em>" + opponent.character + "</em>'s blood.");
-                        }
                         this.next_turn(player_what);
                         return;
                     }
@@ -766,6 +762,35 @@ class Game {
             return;
         }
 
+        if (command == 'kill') {
+            var weapon = this.check_thing_in_reach(player_what, thing);
+
+            if (weapon) {
+                if (!this.game.shared_phase) {
+                    this.log(player_what,  "self", turn, "tested the feel of <em>" + weapon.name + "</em>.");
+                } else if (!opponent.overpowered) {
+                    this.log(player_what,  "self", turn, "tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> isn't overpowered.");
+                    this.log(opponent_what, "opp", turn, "tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> isn't overpowered.");
+                } else if (opponent.dead) {
+                    this.log(player_what,  "self", turn, "tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> is already dead.");
+                    this.log(opponent_what, "opp", turn, "tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> is already dead.");
+                } else {
+                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> kills <em>" + opponent.character + "</em>.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> kills <em>" + opponent.character + "</em>.");
+                    opponent.dead = true;
+                }
+            } else {
+                if (this.game.shared_phase) {
+                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> lusts for <em>" + opponent.character + "</em>'s blood.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> lusts for <em>" + opponent.character + "</em>'s blood.");
+                } else {
+                    this.log(player_what,  "self", turn, "</em> lusted for <em>" + opponent.character + "</em>'s blood.");
+                }
+            }
+            this.next_turn(player_what);
+            return;
+        }
+
         // npcs
 
         if (command == 'talk') {
@@ -866,7 +891,7 @@ class Game {
         }
 
         // commands that use a portable thing
-        var incompatible_commands = ['eat', 'take', 'transmit'];
+        var incompatible_commands = ['eat', 'take', 'transmit', 'kill'];
 
         if (incompatible_commands.includes(c1) && incompatible_commands.includes(c2) &&
             p1.command.thing == p2.command.thing) {
@@ -1131,6 +1156,46 @@ class Game {
                     this.game.winner = p1wins ? 'player1' : 'player2';
                 }
                 this.end_game();
+            } else {
+                // both are dead, none have won
+                if (this.player1.dead && this.player2.dead) {
+                    this.end_game();
+                    return;
+                }
+                
+                // one is dead
+                if (
+                    this.player1.dead && !this.player2.dead ||
+                    this.player2.dead && !this.player1.dead
+                ) {
+                    let living_what = this.player1.dead ? 'player2' : 'player1';
+                    var living_player = this[living_what];
+                    // first case is unnecessary, but added for understanding
+                    if (living_player.job == 'spy' && living_player.info > 0) {
+                        let could_find_device = false;
+                        search: {
+                            for (let thing of living_player.things) {
+                                if (thing.tags.includes("internet-connected")) {
+                                    could_find_device = true;
+                                    break search;
+                                }
+                            }
+                            for (let location of this.locations) {
+                                for (let thing of location) {
+                                    if (thing.tags.includes("internet-connected")) {
+                                        could_find_device = true;
+                                        break search;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!could_find_device) {
+                            this.end_game();
+                            return;
+                        }
+                    }
+                }
             }
         }
     }
@@ -1153,7 +1218,7 @@ class Game {
     }
 
     monologue(player_what, key) {
-        this[player_what].messages.push(this.dialogue(player_what, key));
+        this[player_what].messages.push("self: " + this.dialogue(player_what, key));
     }
 
     phase_complete(player_what) {
@@ -1259,15 +1324,40 @@ class Game {
         this.game.over = true;
 
         this.global_log("<span class='phase-starter'>game ended.</span>");
-        this.global_log(this[this.game.winner].character + " wins.");
+
+        if (this.game.winner) {
+            this.global_log(this[this.game.winner].character + " wins.");
+        } else if (this.game.winners_tied) {
+            this.global_log("both players win.");
+        } else {
+            this.global_log("no winners.");
+        }
         
         if (this.game.shared_phase) {
-            let line = this.dialogue(this.game.winner, 'win');
-            let opponent_what = this.game.winner == 'player1' ? 'player2' : 'player1';
-            this[this.game.winner].messages.push("self: " + line);
-            this[opponent_what].messages.push("opp: " + line);
+            if (this.game.winner) {
+                let line = this.dialogue(this.game.winner, 'win');
+                let opponent_what = this.game.winner == 'player1' ? 'player2' : 'player1';
+                this[this.game.winner].messages.push("self: " + line);
+                this[opponent_what].messages.push("opp: " + line);   
+            }
+            
+            if (this.game.winners_tied) {
+                let l1 = this.dialogue('player1', 'win');
+                let l2 = this.dialogue('player2', 'win');
+                this.player1.messages.push("self: " + l1);
+                this.player2.messages.push( "opp: " + l1);
+                this.player1.messages.push( "opp: " + l2);
+                this.player2.messages.push("self: " + l2);
+            }
         } else {
-            this.monologue(this.game.winner, 'win');
+            if (this.game.winner) {
+                this.monologue(this.game.winner, 'win');
+            }
+
+            if (this.game.winners_tied) {
+                this.monologue('player1', 'win');
+                this.monologue('player2', 'win');
+            }
         }
 
         this.player1.messages.push("GAME OVER, GO HOME EVERYBODY!!");

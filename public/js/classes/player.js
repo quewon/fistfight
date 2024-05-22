@@ -28,6 +28,10 @@ class Player extends Thing {
 
         this.stats.windup.max = data.max_windup;
         this.updateStats(data);
+
+        if (data.dead) {
+            this.imageButton.element.classList.add("ghost");
+        }
     }
 
     createStatElement(className) {

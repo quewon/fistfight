@@ -161,7 +161,7 @@ io.on('connection', (socket) => {
         player.command = data;
 
         if (game.game.shared_phase) {
-            if (player.command && opponent.command) {
+            if ((player.command || player.dead) && (opponent.command || opponent.dead)) {
                 game.process_simul_commands();
                 
                 if (game.player1.next_location && game.player2.next_location) {
