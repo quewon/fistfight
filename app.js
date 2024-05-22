@@ -49,6 +49,13 @@ io.on('connection', (socket) => {
 
         leave_game(socket.id);
 
+        let matchId = players[socket.id].matchId;
+        if (matchId) {
+            players[matchId].match = null;
+            players[matchId].match_confirmed = false;
+            io.to(matchId).emit('match cancelled');
+        }
+
         delete players[socket.id];
     })
 
@@ -81,12 +88,6 @@ io.on('connection', (socket) => {
 
     socket.on('confirm match', () => {
         var matchId = players[socket.id].match;
-
-        if (!players[matchId]) {
-            players[socket.id].match = null;
-            socket.emit('match cancelled');
-            return;
-        }
 
         players[socket.id].match_confirmed = true;
         if (players[matchId].match == socket.id && players[matchId].match_confirmed) {
