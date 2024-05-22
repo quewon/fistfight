@@ -242,7 +242,8 @@ class Game {
                 things: data.things,
 
                 overpowered: data.overpowered,
-                dodge_successful: data.dodge_successful
+                dodge_successful: data.dodge_successful,
+                dead: data.dead
             }
         } else {
             return {
@@ -765,6 +766,8 @@ class Game {
         }
 
         if (command == 'kill') {
+            console.log('kill command from ' + player_what);
+
             var weapon = this.check_thing_in_reach(player_what, thing);
 
             if (weapon) {
@@ -948,7 +951,7 @@ class Game {
                     // p2.messages.push("self: got hit -- windup failed");
                     // p1.messages.push("opp: got hit -- windup failed");
                 }
-                if (p1.overpowered && p2.overpowered) {
+                if (p1.overpowered_this_turn && p2.overpowered_this_turn) {
                     this.phase_complete();
                 }
                 this.next_turn();
@@ -1064,44 +1067,44 @@ class Game {
                 this.next_turn();
                 return;
             }
+        }
 
-            // struggle v anything
+        // struggle v anything
 
-            if (c1 == 'struggle') {
-                this.process_command('player2');
-                if (!p1.dead) {
-                    if (this.struggle_success('player1')) {
-                        this.recover_player('player1');
-                        p1.messages.push("ESCAPED HOLD");
-                        p2.messages.push("OPPONENT ESCAPES HOLD");
-                        this.log('player1', "self", null, "<em>" + p1.character + "</em> struggles free.");
-                        this.log('player2',  "opp", null, "<em>" + p1.character + "</em> struggles free.");
-                    } else {
-                        this.log('player1', "self", null, "<em>" + p1.character + "</em> struggles.");
-                        this.log('player2',  "opp", null, "<em>" + p1.character + "</em> struggles.");
-                    }
+        if (p1.overpowered && c1 == 'struggle') {
+            this.process_command('player2');
+            if (!p1.dead) {
+                if (this.struggle_success('player1')) {
+                    this.recover_player('player1');
+                    p1.messages.push("ESCAPED HOLD");
+                    p2.messages.push("OPPONENT ESCAPES HOLD");
+                    this.log('player1', "self", null, "<em>" + p1.character + "</em> struggles free.");
+                    this.log('player2',  "opp", null, "<em>" + p1.character + "</em> struggles free.");
+                } else {
+                    this.log('player1', "self", null, "<em>" + p1.character + "</em> struggles.");
+                    this.log('player2',  "opp", null, "<em>" + p1.character + "</em> struggles.");
                 }
-                this.next_turn();
-                return;
             }
+            this.next_turn();
+            return;
+        }
 
-            if (c2 == 'struggle') {
-                this.process_command('player1');
-                if (!p2.dead) {
-                    if (this.struggle_success('player2')) {
-                        this.recover_player('player2');
-                        p2.messages.push("ESCAPED HOLD");
-                        p1.messages.push("OPPONENT ESCAPES HOLD");
-                        this.log('player2', "self", null, "<em>" + p2.character + "</em> struggles free.");
-                        this.log('player1',  "opp", null, "<em>" + p2.character + "</em> struggles free.");
-                    } else {
-                        this.log('player2', "self", null, "<em>" + p2.character + "</em> struggles.");
-                        this.log('player1',  "opp", null, "<em>" + p2.character + "</em> struggles.");
-                    }
+        if (p2.overpowered && c2 == 'struggle') {
+            this.process_command('player1');
+            if (!p2.dead) {
+                if (this.struggle_success('player2')) {
+                    this.recover_player('player2');
+                    p2.messages.push("ESCAPED HOLD");
+                    p1.messages.push("OPPONENT ESCAPES HOLD");
+                    this.log('player2', "self", null, "<em>" + p2.character + "</em> struggles free.");
+                    this.log('player1',  "opp", null, "<em>" + p2.character + "</em> struggles free.");
+                } else {
+                    this.log('player2', "self", null, "<em>" + p2.character + "</em> struggles.");
+                    this.log('player1',  "opp", null, "<em>" + p2.character + "</em> struggles.");
                 }
-                this.next_turn();
-                return;
             }
+            this.next_turn();
+            return;
         }
 
         this.process_command('player1');
@@ -1137,10 +1140,12 @@ class Game {
             if (this.player1.overpowered_this_turn) {
                 this.player1.overpowered = true;
                 this.player1.overpowered_this_turn = false;
+                console.log('player 1 overpowered true');
             }
             if (this.player2.overpowered_this_turn) {
                 this.player2.overpowered = true;
                 this.player2.overpowered_this_turn = false;
+                console.log('player 2 overpowered true');
             }
 
             if (this.game.shared_time >= this.game.turns_this_phase) {
