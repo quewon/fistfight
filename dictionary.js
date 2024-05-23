@@ -164,8 +164,9 @@ const dictionary = {
             class: "Thing",
             
             position: { x: "30%", y: "20%" },
-            image: "things/character select.png",
-            alt: "select your character",
+            // image: "things/character select.png",
+            // alt: "select your character",
+            text: "SELECT YOUR CHARACTER",
             keep_in_back: true
         },
 

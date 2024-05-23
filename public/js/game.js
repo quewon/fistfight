@@ -122,7 +122,7 @@ game.start = async function(data) {
     ui.game.time.classList.add("ui-blink");
     ui.game.log.classList.remove("gone");
     ui.game.logButton.classList.remove("gone");
-    ui.game.timeTooltip = attach_tooltip(ui.game.time.parentElement, "", "monospace");
+    ui.game.timeTooltip = attach_tooltip(ui.game.time.parentElement, "", "monospace bottom-of-screen");
 
     game.data = data;
 
@@ -132,8 +132,8 @@ game.start = async function(data) {
 
     //
 
-    await init_location(data);
     init_pockets(data);
+    await init_location(data);
 
     update_log(data.player.log);
 }
@@ -683,7 +683,9 @@ function look_in_pockets(subject) {
     ui.game.pockets.classList.remove("gone");
 }
 
-function close_pockets() {
+function close_pockets(e) {
+    if (e && e.target != ui.game.pockets) return;
+
     ui.game.pockets.classList.add("gone");
     close_action_menu();
 }

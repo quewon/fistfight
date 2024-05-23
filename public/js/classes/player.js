@@ -103,8 +103,10 @@ class Player extends Thing {
 
         if (data.dead) {
             this.imageButton.element.classList.add("ghost");
+            this.imageButton.tooltip.className = "ghost";
         } else {
             this.imageButton.element.classList.remove("ghost");
+            this.imageButton.tooltip.className = null;
         }
 
         this.updateStrengthTooltip(data);

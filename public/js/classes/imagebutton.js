@@ -28,9 +28,9 @@ document.addEventListener("mousemove", function(e) {
             let sqrMoveDistance = (s.x - x) * (s.x - x) + (s.y - y) * (s.y - y);
             if (sqrMoveDistance > 1) {
                 draggingElement.clickOnDrop = false;
+                draggingElement.element.classList.remove("might-click");
+                document.body.classList.add("dragging");
             }
-            draggingElement.element.classList.remove("might-click");
-            document.body.classList.add("dragging");
         }
 
         let o = draggingElement.dragOffset;
@@ -49,7 +49,7 @@ document.addEventListener("mousemove", function(e) {
     }
 });
 
-document.addEventListener("mouseup", function(e) {
+document.addEventListener("mouseup", function() {
     if (draggingElement) {
         draggingElement.drop();
         return;
@@ -95,7 +95,6 @@ class ImageButton {
         this.element.appendChild(this.buttonWrapper);
         if (p.image) {
             this.buttonElement.type = "image";
-            this.buttonElement.src = "res/images/"+p.image;
 
             if (p.text) {
                 let textElement = document.createElement("span");
@@ -107,29 +106,40 @@ class ImageButton {
                 this.buttonElement.alt = p.alt;
             }
 
-            // this.image_ready = false;
             this.buttonElement.onload = function() {
+                document.body.appendChild(this.element);
+                
                 this.width = this.buttonElement.clientWidth + 2;
                 this.height = this.buttonElement.clientHeight + 2;
-                // this.image_ready = true;
-                // this.onready();
 
                 this.element.style.width = this.width+"px";
                 this.element.style.height = this.height+"px";
+                this.element.remove();
+
+                if (this.onsized) this.onsized();
             }.bind(this);
+
+            this.buttonElement.src = "res/images/"+p.image;
         } else if (p.text) {
             // this.image_ready = true;
             this.buttonElement.type = "button";
             this.buttonElement.value = p.text;
         }
         this.buttonElement.draggable = false;
-        this.buttonElement.addEventListener("click", this.click.bind(this));
+        this.buttonElement.addEventListener("click", function(e) {
+            this.click(e);
+        }.bind(this));
         this.buttonElement.addEventListener("mousedown", function(e) {
             this.drag(e);
         }.bind(this));
 
+        this.buttonElement.addEventListener("mouseup", function(e) {
+            this.drop();
+            e.stopPropagation();
+        }.bind(this));
+
         if (p.label) {
-            attach_tooltip(this.buttonElement, p.label);
+            this.tooltip = attach_tooltip(this.buttonElement, p.label);
         }
 
         this.setActions(p.actions);
@@ -169,8 +179,9 @@ class ImageButton {
         document.body.classList.remove("dragging");
     }
 
-    click() {
+    click(e) {
         if (game.disable_actions) return;
+        if (e && (e.clientX != 0 || e.clientY != 0)) return;
 
         if (selectedElement && selectedElement != this) {
             close_action_menu();

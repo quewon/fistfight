@@ -74,7 +74,7 @@ button {
     border: 1px dotted var(--ink);
     border-radius: 0;
     margin: 0;
-    padding: .5em;
+    padding: 5px 10px;
     position: relative;
 
     cursor: pointer;
@@ -124,8 +124,16 @@ em {
     position: absolute;
     display: flex;
     flex-direction: column;
-    gap: .5em;
+    gap: 5px;
     pointer-events: none;
+
+    -webkit-backface-visibility: hidden;
+    -webkit-transform: translate3d(0,0,0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    transform: translate3d(0,0,0);
+    transform: translateZ(0);
+
     translate: -50% -50%;
 
     -webkit-touch-callout: none; /* iOS Safari */
@@ -135,6 +143,11 @@ em {
           -ms-user-select: none; /* Internet Explorer/Edge */
               user-select: none; /* Non-prefixed version, currently
                                     supported by Chrome, Edge, Opera and Firefox */
+}
+
+.imagebutton > span {
+    font-style: italic;
+    white-space: pre;
 }
 
 .imagebutton.ghost {
@@ -186,7 +199,7 @@ body.phase-ended .imagebutton canvas {
 }
 
 body.actions-disabled .imagebutton input,
-body.actions-disabled .imagebutton canvas,
+.imagebutton canvas,
 .imagebutton.no-actions input,
 body.phase-ended .imagebutton input,
 body.overpowered .imagebutton:not(.character) input {
@@ -217,7 +230,6 @@ body.overpowered .imagebutton.character:has(button.locked) input {
     border: 1px solid var(--overpowered) !important;
 }
 
-.imagebutton .tags-container,
 .imagebutton .actions-menu {
     display: none;
     pointer-events: none;
@@ -240,35 +252,49 @@ body.overpowered .imagebutton.character:has(button.locked) input {
     background: var(--ink);
     color: var(--lightgray);
     margin: .5em;
-    padding: .5em;
+    padding: 5px 10px;
     z-index: 200;
     pointer-events: none;
     text-align: left;
     white-space: pre;
 }
+#tooltip.ghost {
+    background: color-mix(in srgb, var(--bg) 80%, var(--ink) 20%);
+    color: var(--bg);
+}
+#tooltip.bottom-of-screen {
+    translate: 0 -100%;
+}
 
 .tags-container {
     display: flex;
     gap: .5em;
-    margin-bottom: .5em;
 }
 .tags-container .tag {
     display: inline-block;
-    border: 1px solid var(--ink);
+    /* border: 1px solid var(--ink);
     border-radius: 2px;
     padding: .2em .5em;
-    background: var(--bg);
-    font-style: italic;
+    background: var(--bg); */
+    /* font-style: italic; */
     white-space: pre;
+    font-family: sans-serif;
+    font-size: .85em;
 }
 
 .actions-menu {
-    position: absolute;
-    top: 100%;
-    margin-top: .5em;
+    height: 0;
+    overflow: visible;
+    /* position: absolute; */
+    /* top: 100%; */
+    /* margin-top: 5px; */
+    gap: 5px;
     display: flex;
     flex-direction: column;
-    gap: .5em;
+}
+.actions-menu em {
+    font-weight: normal;
+    text-decoration: underline;
 }
 .actions-menu button {
     width: fit-content;
@@ -280,20 +306,20 @@ body.overpowered .imagebutton.character:has(button.locked) input {
 }
 
 .overhead {
-    position: absolute;
-    top: 0;
-    left: 0;
-    translate: 0 -100%;
+    /* position: absolute; */
+    /* top: 0; */
+    /* left: 0; */
+    /* translate: 0 -100%; */
     pointer-events: none;
 }
 
 .stats {
+    width: max-content;
     pointer-events: none;
-    padding-bottom: .25em;
+    padding-bottom: 5px;
 }
 .stats > div {
     display: flex;
-    margin-bottom: .25em;
 }
 .stats img {
     width: 1em;
@@ -312,24 +338,22 @@ body.overpowered .imagebutton.character:has(button.locked) input {
     0% { }
 }
 
-.imagebutton.overpowered .stats {
-    display: none;
-}
-
 .stats .strength,
 .stats .windup {
-    display: inline-block;
+    display: inline-flex;
     width: fit-content;
 }
 .stats .strength {
     pointer-events: auto;
 }
 
+.imagebutton.overpowered .stats,
 body.solo-phase .stats {
-    display: none;
+    visibility: hidden;
 }
-body.solo-phase .imagebutton.selected .stats {
-    display: block;
+
+.imagebutton.selected .stats {
+    visibility: visible;
 }
 
 /* dialogue */
@@ -444,7 +468,7 @@ body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
     border-color: var(--lightgray);
     color: var(--bg);
     vertical-align: middle;
-    padding: 0 .5em;
+    padding: 0 10px;
 }
 
 #ui-container em {
@@ -494,8 +518,8 @@ canvas.pointing {
     position: absolute;
     translate: -50% -50%;
     pointer-events: none;
-    font-family: monospace;
-    font-size: .9em;
+    font-family: sans-serif;
+    font-size: .85em;
     white-space: pre;
 }
 
@@ -607,12 +631,12 @@ body.phase-ended .ui-blink {
     left: 0;
     background: color-mix(in srgb, transparent 30%, var(--bg) 70%);
 
-    -webkit-backface-visibility: hidden;
+    /* -webkit-backface-visibility: hidden;
     -webkit-transform: translate3d(0,0,0);
     -webkit-transform: translateZ(0);
     backface-visibility: hidden;
     transform: translate3d(0,0,0);
-    transform: translateZ(0);
+    transform: translateZ(0); */
     backdrop-filter: blur(3px);
 }
 #pockets.opponent {
@@ -625,6 +649,7 @@ body.phase-ended .ui-blink {
     width: 100%;
     text-align: center;
     margin-top: 1em;
+    pointer-events: none;
 }
 
 /* global */

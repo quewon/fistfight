@@ -823,11 +823,11 @@ class Game {
                 if (!this.game.shared_phase) {
                     this.log(player_what,  "self", turn, "tested the feel of <em>" + weapon.name + "</em>.");
                 } else if (!opponent.overpowered) {
-                    this.log(player_what,  "self", turn, "tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> isn't overpowered.");
-                    this.log(opponent_what, "opp", turn, "tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> isn't overpowered.");
+                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> isn't overpowered.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> isn't overpowered.");
                 } else if (opponent.dead) {
-                    this.log(player_what,  "self", turn, "tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> is already dead.");
-                    this.log(opponent_what, "opp", turn, "tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> is already dead.");
+                    this.log(player_what,  "self", turn, "<em>" + player.character + "</em> tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> is already dead.");
+                    this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> tries to use <em>" + weapon.name + "</em>, but <em>" + opponent.character + "</em> is already dead.");
                 } else {
                     this.log(player_what,  "self", turn, "<em>" + player.character + "</em> kills <em>" + opponent.character + "</em>.");
                     this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> kills <em>" + opponent.character + "</em>.");

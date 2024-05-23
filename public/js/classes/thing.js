@@ -136,11 +136,11 @@ class MissionPrompt extends Thing {
 
         let el = document.createElement("div");
         el.style.position = "absolute";
-        
-        this.imageButton.buttonElement.addEventListener("load", function() {
-            el.style.width = this.imageButton.buttonElement.clientWidth+"px";
-            el.style.height = this.imageButton.buttonElement.clientHeight+"px";
-        }.bind(this));
+
+        this.imageButton.onsized = function() {
+            el.style.width = this.width+"px";
+            el.style.height = this.height+"px";
+        };
         this.imageButton.buttonWrapper.appendChild(el);
 
         let to = document.createElement("div");
