@@ -96,14 +96,16 @@ class Game {
         this.global_log("<span class='phase-starter'><em>character selection</em> phase begins.</span>");
 
         // debug scenario
-        // this.set_character('player1', 'jim beans');
-        // this.set_character('player2', 'bill');
-        // this.player1.location = 'diner';
-        // this.player2.location = 'diner';
-        // this.player2.health = 0;
-        // this.player2.overpowered = true;
-        // this.player1.info = 3;
-        // this.game.shared_phase = true;
+        if (this.game.id == "test") {
+            this.set_character('player1', 'jim beans');
+            this.set_character('player2', 'bill');
+            this.player1.location = 'diner';
+            this.player2.location = 'diner';
+            this.player2.health = 0;
+            this.player2.overpowered = true;
+            this.player1.info = 3;
+            this.game.shared_phase = true;
+        }
     }
 
     create_player() {
@@ -1241,9 +1243,9 @@ class Game {
                     var living_player = this[living_what];
                     
                     if (
-                        living_player.job == 'spy' && living_player.info > 0 && 
-                        living_player.info + living_player.info_delivered >= living_player.info_goal &&
-                        this.check_tag_reachable(living_what, "internet-connected")
+                        living_player.job == 'spy' && living_player.info > 0
+                        && living_player.info + living_player.info_delivered >= living_player.info_goal
+                        // && this.check_tag_reachable(living_what, "internet-connected")
                     ) {
                         // player could win
                     } else {

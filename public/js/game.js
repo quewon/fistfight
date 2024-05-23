@@ -298,6 +298,10 @@ async function update_game(data) {
                     await wait(300);
                 }
             }
+        } else {
+            game.opponent.setActions({
+                pickpocket: game.opponent.opponentOverpoweredActions.pickpocket
+            });
         }
     }
 
@@ -398,6 +402,12 @@ async function update_game(data) {
     if (!data.player.dead && !data.game.over) {
         game.disable_actions = false;
         document.body.classList.remove("actions-disabled");
+    }
+
+    if (data.player.dead) {
+        document.body.classList.add("dead");
+    } else {
+        document.body.classList.remove("dead");
     }
 
     game.data = data;

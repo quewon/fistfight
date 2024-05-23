@@ -15,6 +15,10 @@
     <div style="display: flex; top: 0; left: 0; right: 0; bottom: 0; position: absolute; overflow: hidden;">
         <div id="things" style="width: 100%; position: relative">
             <div id="ui-container">
+                <div id="spectating">
+                    killed -- you are now <em>spectating</em> your opponent.
+                </div>
+                
                 <div id="no-opponent" class="gone">
                     <em>waiting for opponent...</em>
                     the room key is <button onclick="navigator.clipboard.writeText(this.textContent); say('copied to clipboard', event.pageX, event.pageY)" id="room-key"></button>.<span id="invite-prompt">

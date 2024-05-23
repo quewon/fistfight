@@ -97,9 +97,9 @@ class ImageButton {
             this.buttonElement.type = "image";
 
             if (p.text) {
-                let textElement = document.createElement("span");
-                textElement.textContent = p.text;
-                this.element.appendChild(textElement);
+                this.nameElement = document.createElement("span");
+                this.nameElement.textContent = p.text;
+                this.element.appendChild(this.nameElement);
             }
 
             if (p.alt) {
@@ -107,6 +107,10 @@ class ImageButton {
             }
 
             this.buttonElement.onload = function() {
+                this.buttonElement.onload = null;
+
+                let parent = this.element.parentElement;
+
                 document.body.appendChild(this.element);
                 
                 this.width = this.buttonElement.clientWidth + 2;
@@ -114,7 +118,12 @@ class ImageButton {
 
                 this.element.style.width = this.width+"px";
                 this.element.style.height = this.height+"px";
-                this.element.remove();
+
+                if (parent) {
+                    parent.appendChild(this.element);
+                } else {
+                    this.element.remove();
+                }
 
                 if (this.onsized) this.onsized();
             }.bind(this);

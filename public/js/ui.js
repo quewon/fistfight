@@ -13,12 +13,13 @@ var ui = {
 
     game: {
         uiContainer: document.getElementById("ui-container"),
+        noOpponent: document.getElementById("no-opponent"),
+        roomKey: document.getElementById("room-key"),
+
         timer: document.getElementById("timer-background"),
         container: document.getElementById("things"),
         pockets: document.getElementById("pockets"),
 
-        noOpponent: document.getElementById("no-opponent"),
-        roomKey: document.getElementById("room-key"),
         invitePrompt: document.getElementById("invite-prompt"),
 
         log: document.getElementById("game-log"),

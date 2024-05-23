@@ -150,9 +150,13 @@ em {
     white-space: pre;
 }
 
-.imagebutton.ghost {
+.imagebutton.ghost input {
     filter: grayscale(100%);
     opacity: .2;
+}
+
+.imagebutton.ghost .overhead {
+    visibility: hidden;
 }
 
 .input-wrapper {
@@ -226,7 +230,7 @@ body.overpowered .imagebutton.character:has(button.locked) input {
     border: 1px solid var(--ink);
 }
 
-.imagebutton.overpowered input {
+.imagebutton.overpowered:not(.ghost) input {
     border: 1px solid var(--overpowered) !important;
 }
 
@@ -347,13 +351,14 @@ body.overpowered .imagebutton.character:has(button.locked) input {
     pointer-events: auto;
 }
 
-.imagebutton.overpowered .stats,
-body.solo-phase .stats {
-    visibility: hidden;
-}
-
 .imagebutton.selected .stats {
     visibility: visible;
+}
+
+.imagebutton.overpowered .stats,
+body.solo-phase .stats,
+.imagebutton.ghost .stats {
+    visibility: hidden;
 }
 
 /* dialogue */
@@ -440,16 +445,6 @@ body.solo-phase .stats {
     translate: -50% -50%;
 }
 
-#waiting-for-response {
-    display: none;
-}
-body.waiting #waiting-for-response {
-    display: block;
-}
-body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
-    display: none;
-}
-
 /* ui */
 
 #ui-container {
@@ -474,6 +469,26 @@ body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
 #ui-container em {
     font-weight: normal;
     font-style: italic;
+}
+
+#waiting-for-response {
+    display: none;
+}
+body.waiting #waiting-for-response {
+    display: block;
+}
+body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
+    display: none;
+}
+
+#ui-container > #spectating {
+    background: var(--opp);
+    color: var(--ink);
+    display: none;
+}
+
+body.dead #ui-container > #spectating {
+    display: block;
 }
 
 #gamedata {
