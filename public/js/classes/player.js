@@ -103,13 +103,21 @@ class Player extends Thing {
 
         if (data.dead) {
             this.imageButton.element.classList.add("ghost");
-            // this.imageButton.tooltip.className = "ghost";
-            this.imageButton.nameElement.textContent = data.character + " (dead)";
+            this.imageButton.tooltip.className = "ghost";
+            this.imageButton.nameElement.textContent = data.character + " (ghost)";
         } else if (this.imageButton.element.classList.contains("ghost")) {
             this.imageButton.element.classList.remove("ghost");
-            // this.imageButton.tooltip.className = null;
+            this.imageButton.tooltip.className = null;
             this.imageButton.nameElement.textContent = data.character;
         }
+
+        // if (data.dead) {
+        //     this.imageButton.element.classList.add("dead");
+        //     this.imageButton.nameElement.textContent = data.character + " (dead)";
+        // } else if (this.imageButton.element.classList.contains("dead")) {
+        //     this.imageButton.element.classList.remove("dead");
+        //     this.imageButton.nameElement.textContent = data.character;
+        // }
 
         this.updateStrengthTooltip(data);
 
@@ -188,11 +196,11 @@ class Player extends Thing {
 class PlayerSelector extends Player {
     constructor(name, data) {
         data.name = name;
-        data.position = { x: random(10, 90) + "%", y: random(45, 80)+"%" };
         data.text = data.name;
         data.image = data.image;
         data.label = data.job;
         data.windup = 0;
+        data.position = { x: random(10, 90), y: random(30, 70) };
         super(data);
 
         this.imageButton.setActions({
@@ -207,7 +215,7 @@ class PlayerSelector extends Player {
 class You extends Player {
     constructor(data) {
         data.name = "you";
-        data.position = { x: "20%", y: "30%" };
+        data.position = { x: 15, y: 30 };
         data.label = "you";
         data.text = data.character;
         data.actions = {
@@ -276,7 +284,7 @@ class Opponent extends Player {
         }
 
         data.name = "opponent";
-        data.position = { x: "80%", y: "60%" };
+        data.position = { x: 85, y: 60 };
         data.label = "opponent";
         data.text = data.character;
         data.actions = data.dead ? null : fightActions;
@@ -290,5 +298,35 @@ class Opponent extends Player {
     updateStrengthTooltip(data) {
         let ratio = game.data.player.strength + "/" + (game.data.player.strength + data.strength);
         this.strengthTooltip.text = "STRENGTH: "+data.strength+"\nratio: "+ratio;
+    }
+}
+
+class DeadPlayer extends Player {
+    constructor(data) {
+        data.actions = {
+            pickpocket: {
+                description: "steal something\nor steal a glance <i>for free</i>",
+                function: function() { look_in_pockets('opp'); close_action_menu() }
+            }
+        };
+        data.text = data.name;
+        data.label = "corpse";
+
+        var player_thing;
+        if (game.player && game.player.id == data.player) {
+            player_thing = game.player;
+        } else if (game.opponent) {
+            player_thing = game.opponent;
+        }
+
+        if (player_thing) {
+            data.position = player_thing.get_position();
+            player_thing.set_position({
+                x: data.position.x - 10,
+                y: data.position.y - 10
+            });
+        }
+
+        super(data);
     }
 }

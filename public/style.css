@@ -17,6 +17,7 @@ html, body {
 body {
     background: var(--bg);
     color: var(--ink);
+    overflow: hidden;
 }
 
 body.dragging, body.dragging * {
@@ -150,7 +151,7 @@ em {
     white-space: pre;
 }
 
-.imagebutton.ghost input {
+.imagebutton.ghost {
     filter: grayscale(100%);
     opacity: .2;
 }
@@ -382,6 +383,11 @@ body.solo-phase .stats,
 .dialogue:not(.arrow-left):not(.arrow-right) {
     font-family: monospace;
     background-color: var(--self);
+}
+
+.dialogue.arrow-left,
+.dialogue.arrow-right {
+    border-radius: .5em;
 }
 
 .dialogue.arrow-left {

@@ -95,8 +95,7 @@ class Game {
         this.global_log("game created with key <em>" + this.game.id + "</em>.");
         this.global_log("<span class='phase-starter'><em>character selection</em> phase begins.</span>");
 
-        // debug scenario
-        if (this.game.id == "test") {
+        if (this.game.id == "debug") {
             this.set_character('player1', 'jim beans');
             this.set_character('player2', 'bill');
             this.player1.location = 'diner';
@@ -259,6 +258,7 @@ class Game {
         
         if (this.game.shared_phase) {
             return {
+                id: data.id,
                 character: data.character,
                 image: data.image,
                 
@@ -346,6 +346,19 @@ class Game {
 
         player.home = location_name;
         player.location = location_name;
+    }
+
+    kill_player(player_what) {
+        let player = this[player_what];
+        player.dead = true;
+        let location = this[player_what].location;
+        this.locations[location].push({
+            class: "DeadPlayer",
+            name: player.character + " (dead)",
+            id: ++this.thing_count,
+            image: player.image,
+            player: player.id
+        });
     }
 
     get_thing_by_id(from, thing_id) {
@@ -520,7 +533,7 @@ class Game {
         effect.modifiers = effect.modifiers || [];
 
         this[player_what].effects.push(effect);
-        this.msg(player_what, "<em>" + effect.name + "</em> in effect for " + effect.duration + " " + effect.duration_unit + "(s)");
+        this.msg(player_what, "<em>" + effect.name + "</em> in effect for <em>" + effect.duration + "</em> " + effect.duration_unit + "(s)");
         return effect;
     }
 
@@ -833,7 +846,7 @@ class Game {
                 } else {
                     this.log(player_what,  "self", turn, "<em>" + player.character + "</em> kills <em>" + opponent.character + "</em>.");
                     this.log(opponent_what, "opp", turn, "<em>" + player.character + "</em> kills <em>" + opponent.character + "</em>.");
-                    opponent.dead = true;
+                    this.kill_player(opponent_what);
                 }
             } else {
                 if (this.game.shared_phase) {

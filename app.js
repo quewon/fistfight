@@ -29,7 +29,7 @@ const Game = require('./Game')
 
 const players = {}
 const games = {
-    test: new Game(io, "test", true)
+    debug: new Game(io, "debug", true)
 }
 
 io.on('connection', (socket) => {
@@ -239,7 +239,7 @@ function leave_game(id) {
         var opponentId = games[gameId][players[id].player_what].opponent;
 
         if (!opponentId) {
-            if (gameId != "test") {
+            if (gameId != "debug") {
                 delete games[gameId];
                 console.log("game ended : " + gameId);
             } else {

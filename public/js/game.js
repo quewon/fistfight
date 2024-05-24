@@ -2,7 +2,8 @@ const socket = io();
 
 const classLookup = {
     "Thing": Thing,
-    "MissionPrompt": MissionPrompt
+    "MissionPrompt": MissionPrompt,
+    "DeadPlayer": DeadPlayer
 }
 
 var game = {
@@ -162,23 +163,6 @@ async function init_location(data) {
     
     var locationThings = [];
 
-    for (let thing_data of data.location) {
-        var thing = new classLookup[thing_data.class](thing_data);
-        locationThings.push(thing);
-    }
-
-    for (let npc_data of data.npcs) {
-        var npc = new NPC(npc_data);
-        locationThings.push(npc);
-    }
-    
-    // character select
-    if (data.characters) {
-        for (let character_name of data.game.characters) {
-            locationThings.push(new PlayerSelector(character_name, data.characters[character_name]));
-        }
-    }
-
     if (data.game.shared_phase) {
         document.body.classList.remove("solo-phase");
         document.body.classList.add("shared-phase");
@@ -195,6 +179,23 @@ async function init_location(data) {
         locationThings.push(game.player);
     } else {
         game.player = null;
+    }
+
+    for (let thing_data of data.location) {
+        var thing = new classLookup[thing_data.class](thing_data);
+        locationThings.push(thing);
+    }
+
+    for (let npc_data of data.npcs) {
+        var npc = new NPC(npc_data);
+        locationThings.push(npc);
+    }
+    
+    // character select
+    if (data.characters) {
+        for (let character_name of data.game.characters) {
+            locationThings.push(new PlayerSelector(character_name, data.characters[character_name]));
+        }
     }
 
     game.location_name = data.player.location;
@@ -299,9 +300,7 @@ async function update_game(data) {
                 }
             }
         } else {
-            game.opponent.setActions({
-                pickpocket: game.opponent.opponentOverpoweredActions.pickpocket
-            });
+            game.opponent.setActions();
         }
     }
 
@@ -642,9 +641,7 @@ function game_command(thing, command, button) {
 
     game.made_command = true;
     
-    if (game.data.game.shared_phase || command == 'select location') {
-        start_waiting_for_response(button);
-    }
+    start_waiting_for_response(button);
 }
 
 function stop_waiting_for_response() {
@@ -761,4 +758,16 @@ function get_added(prev, curr) {
     }
 
     return added;
+}
+
+function aabb(x1, y1, w1, h1, x2, y2, w2, h2) {
+    if (
+        x1 < x2 + w2 &&
+        x1 + w1 > x2 &&
+        y1 < y2 + h2 &&
+        y1 + h1 > y2
+    ) {
+        return true;
+    }
+    return false;
 }

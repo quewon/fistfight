@@ -6,12 +6,20 @@ class Location {
         if (p.onenter) this.onenter = p.onenter;
         if (p.onexit) this.onexit = p.onexit;
         this.container = p.container || ui.game.container;
+
+        this.space_out_things();
     }
 
     // add something after location has been created
     add_thing(thing) {
         this.things.push(thing);
         this.enter_thing(thing);
+
+        this.space_out_things();
+    }
+
+    space_out_things() {
+        
     }
 
     remove_thing(thing) {
@@ -45,14 +53,22 @@ class Location {
 
         thing.imageButton.deselect();
         thing.imageButton.container = this.container;
-        
-        setTimeout(function() {
-            if (this.keep_in_back) {
-                this.container.prepend(this.element);
+
+        if (duration) {
+            setTimeout(function() {
+                if (this.keep_in_back) {
+                    this.container.prepend(this.element);
+                } else {
+                    this.container.appendChild(this.element);
+                }
+            }.bind(thing.imageButton), duration);
+        } else {
+            if (thing.imageButton.keep_in_back) {
+                thing.imageButton.container.prepend(thing.imageButton.element);
             } else {
-                this.container.appendChild(this.element);
+                thing.imageButton.container.appendChild(thing.imageButton.element);
             }
-        }.bind(thing.imageButton), duration);
+        }
     }
 
     async enter(conditions) {

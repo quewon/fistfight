@@ -163,7 +163,7 @@ const dictionary = {
         "character selection title": {
             class: "Thing",
             
-            position: { x: "30%", y: "20%" },
+            position: { x: 30, y: 20 },
             // image: "things/character select.png",
             // alt: "select your character",
             text: "SELECT YOUR CHARACTER",
@@ -195,7 +195,7 @@ const dictionary = {
         "gentlepeople's lounge title": {
             class: "Thing",
 
-            position: { x: "50%", y: "17%" },
+            position: { x: 50, y: 17 },
             image: "things/gentlepeoples lounge.png",
             alt: "gentlepeople's lounge",
             keep_in_back: true
@@ -204,7 +204,7 @@ const dictionary = {
         "no fighting sign": {
             class: "Thing",
 
-            position: { x: "65%", y: "20%" },
+            position: { x: 65, y: 20 },
             image: "things/no fighting.png",
             alt: "no fighting!",
             portable: true
@@ -212,15 +212,11 @@ const dictionary = {
 
         "lounge chair 1": {
             class: "Thing",
-
-            position: { x: "0%", y: "0%" },
             image: "things/gentlepeoples lounge sign.png"
         },
 
         "lounge chair 2": {
             class: "Thing",
-
-            position: { x: "0%", y: "0%" },
             image: "things/gentlepeoples lounge sign.png"
         },
 

@@ -1,7 +1,7 @@
 class Map extends Thing {
     constructor(data) {
         data.name = "map";
-        data.position = { x: "50%", y: "50%" };
+        data.position = { x: 50, y: 50 };
         super(data);
 
         this.createCanvas();

@@ -32,7 +32,9 @@ class Dialogue {
 
         if (p.thing) {
             p.thing.imageButton.element.appendChild(this.elementContainer);
-            this.position_in_imagebutton(p.thing.imageButton);
+            setTimeout(function() {
+                this.position_in_imagebutton(p.thing.imageButton);
+            }.bind(this), 1);
             p.thing.imageButton.dialogue = this;
             this.imageButton = p.thing.imageButton;
         } else {

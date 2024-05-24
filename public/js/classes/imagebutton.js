@@ -37,11 +37,7 @@ document.addEventListener("mousemove", function(e) {
         x = (x - o.x) / draggingElement.container.clientWidth * 100;
         y = (y - o.y) / draggingElement.container.clientHeight * 100;
 
-        x = Math.max(0, Math.min(100, x));
-        y = Math.max(0, Math.min(100, y));
-
-        draggingElement.element.style.left = x+"%";
-        draggingElement.element.style.top = y+"%";
+        draggingElement.set_position({ x:x, y:y });
 
         if (draggingElement.dialogue) {
             draggingElement.dialogue.position_in_imagebutton(draggingElement);
@@ -69,8 +65,7 @@ class ImageButton {
 
         this.element = document.createElement("div");
         this.element.className = "imagebutton";
-        this.element.style.left = p.position.x;
-        this.element.style.top = p.position.y;
+        this.set_position(p.position || { x: random(20, 60), y: random(20, 60) } );
 
         this.overheadElement = document.createElement("div");
         this.overheadElement.className = "overhead";
@@ -106,6 +101,8 @@ class ImageButton {
                 this.buttonElement.alt = p.alt;
             }
 
+            this.element.style.width = "0";
+            this.element.style.height = "0";
             this.buttonElement.onload = function() {
                 this.buttonElement.onload = null;
 
@@ -152,6 +149,25 @@ class ImageButton {
         }
 
         this.setActions(p.actions);
+    }
+
+    set_position(p) {
+        p.x = Math.max(0, Math.min(100, p.x));
+        p.y = Math.max(0, Math.min(100, p.y));
+        this.element.style.left = p.x+"%";
+        this.element.style.top = p.y+"%";
+        this.position = { x: p.x, y: p.y };
+    }
+
+    get_style_position() {
+        return {
+            x: this.imageButton.element.style.left,
+            y: this.imageButton.element.style.top
+        }
+    }
+
+    get_position() {
+        return { x: this.position.x, y: this.position.y };
     }
 
     drag(e) {

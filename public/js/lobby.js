@@ -8,9 +8,6 @@ function reset_lobby() {
     ui.lobby.matchText.classList.remove("gone");
     ui.lobby.matchConfirmButton.disabled = false;
     ui.lobby.matchConfirmButton.textContent = "play";
-
-    ui.game.log.classList.add("gone");
-    ui.game.logButton.classList.add("gone");
 }
 
 // find match
@@ -43,7 +40,7 @@ function stop_matchmaking() {
 
 var matchmakingButton = new Thing({
     label: "find match",
-    position: { x: "40%", y: "30%" },
+    position: { x: 40, y: 30 },
     image: "lobby/clock.png",
     actions: {
         "find match": function() {
@@ -144,7 +141,7 @@ socket.on('match cancelled', () => {
 
 var hostButton = new Thing({
     label: "host game",
-    position: { x: "60%", y: "55%" },
+    position: { x: 60, y: 55 },
     image: "lobby/computer.png",
     actions: {
         "host game": function(e) {
@@ -162,7 +159,7 @@ var hostButton = new Thing({
 
 var joinButton = new Thing({
     label: "join game",
-    position: { x: "40%", y: "70%" },
+    position: { x: 40, y: 70 },
     image: "lobby/telephone.png",
     actions: {
         "join game": function(e) {
@@ -207,7 +204,7 @@ game.lobby = new Location({
         joinButton,
         new Thing({
             text: ":-)",
-            position: { x: "60%", y: "38%" },
+            position: { x: 60, y: 38 },
             actions: {
                 "talk": function() {
                     game.lobby.things[3].say("hello welcome to the prototype !!!");

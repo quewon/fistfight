@@ -36,7 +36,7 @@ class Thing {
         }
 
         this.imageButton = new ImageButton({
-            position: p.position || { x: random(20, 80)+"%", y: random(20, 80)+"%" },
+            position: p.position,
             image: p.image,
             text: p.text,
             label: p.label,
@@ -94,15 +94,11 @@ class Thing {
     }
     
     get_position() {
-        return {
-            x: this.imageButton.element.style.left,
-            y: this.imageButton.element.style.top
-        }
+        return this.imageButton.get_position();
     }
 
-    set_position(p) {
-        this.imageButton.element.style.left = p.x;
-        this.imageButton.element.style.top = p.y;
+    set_position(x, y) {
+        this.imageButton.set_position(x, y);
     }
 
     async say(message) {
@@ -130,8 +126,8 @@ class Thing {
 
 class MissionPrompt extends Thing {
     constructor(data) {
-        data.position = data.position || { x: "50%", y: "50%" };
         data.image = "things/mission prompt.png";
+        data.position = { x:50, y:50 };
         super(data);
 
         let el = document.createElement("div");
