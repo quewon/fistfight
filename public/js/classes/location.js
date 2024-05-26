@@ -14,10 +14,12 @@ class Location {
         this.things.push(thing);
         this.enter_thing(thing);
 
-        if (!this.ignore_spacing) this.space_out_things();
+        if (!thing.ignore_spacing) this.space_out_things();
     }
 
     space_out_things() {
+        if (this.ignore_spacing) return;
+
         const WIDTH = this.container.clientWidth;
         const HEIGHT = this.container.clientHeight;
         const CENTER = { x: WIDTH/2, y: HEIGHT/2 };
@@ -25,6 +27,12 @@ class Location {
         var rects = [];
         for (let thing of this.things) {
             let center = thing.get_position();
+            if (!center.x || !center.y) {
+                const p = thing.imageButton.get_style_position();
+                center.x = parseFloat(p.x);
+                center.y = parseFloat(p.y);
+            }
+
             let width = thing.imageButton.element.clientWidth;
             let height = thing.imageButton.element.clientHeight;
 
@@ -38,8 +46,8 @@ class Location {
                 thing: thing,
                 x: WIDTH * center.x / 100,
                 y: HEIGHT * center.y / 100,
-                w: width + 5,
-                h: height + 5
+                w: width + 2.5,
+                h: height + 2.5
             })
         }
 
@@ -55,6 +63,7 @@ class Location {
             for (let i=0; i<rects.length; i++) {
                 if (rects[i].thing.ignore_spacing) continue;
                 if (rects[i].thing.spacing_priority) continue;
+
                 for (let j=0; j<rects.length; j++) {
                     if (i==j) continue;
                     if (rects[j].thing.ignore_spacing) continue;
@@ -83,8 +92,8 @@ class Location {
 
                         d = normalize_vector(d);
 
-                        r1.x = clamp(r1.x + d.x, 0, WIDTH);
-                        r1.y = clamp(r1.y + d.y, 0, HEIGHT);
+                        r1.x = clamp(r1.x + d.x * l/100, 0, WIDTH);
+                        r1.y = clamp(r1.y + d.y * l/100, 0, HEIGHT);
                     }
                 }
             }
@@ -140,12 +149,14 @@ class Location {
                     this.container.appendChild(this.element);
                 }
             }.bind(thing.imageButton), duration);
+            setTimeout(this.space_out_things.bind(this), duration);
         } else {
             if (thing.imageButton.keep_in_back) {
                 thing.imageButton.container.prepend(thing.imageButton.element);
             } else {
                 thing.imageButton.container.appendChild(thing.imageButton.element);
             }
+            this.space_out_things();
         }
     }
 
@@ -159,7 +170,6 @@ class Location {
         }
         if (!conditions.immediate) await wait(maxDuration);
         this.onenter();
-        if (!this.ignore_spacing) this.space_out_things();
     }
 
     async exit(conditions) {

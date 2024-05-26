@@ -48,8 +48,8 @@ class Game {
             shared_phase_timer: 60, //seconds
             // shared_phase_timer: -1
         }
-        this.player1 = this.create_player();
-        this.player2 = this.create_player();
+        this.player1 = this.create_player('player1');
+        this.player2 = this.create_player('player2');
 
         //
 
@@ -107,8 +107,9 @@ class Game {
         }
     }
 
-    create_player() {
+    create_player(player_what) {
         return {
+            player_what: player_what,
             opponent: null,
             id: null,
             location: null,
@@ -258,6 +259,7 @@ class Game {
         
         if (this.game.shared_phase) {
             return {
+                player_what: data.player_what,
                 id: data.id,
                 character: data.character,
                 image: data.image,
@@ -357,7 +359,7 @@ class Game {
             name: player.character + " (dead)",
             id: ++this.thing_count,
             image: player.image,
-            player: player.id
+            player: player_what
         });
     }
 

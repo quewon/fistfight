@@ -39,7 +39,7 @@ class Thing {
         this.ignore_spacing = p.ignore_spacing;
 
         this.imageButton = new ImageButton({
-            position: p.position,
+            position: p.position || { x: random(35, 65), y: random(35, 65) } ,
             image: p.image,
             text: p.text,
             label: p.label,

@@ -200,6 +200,7 @@ class PlayerSelector extends Player {
         data.image = data.image;
         data.label = data.job;
         data.windup = 0;
+        data.position = { x: random(20, 80), y: random(30, 60) }
         super(data);
 
         this.imageButton.setActions({
@@ -315,21 +316,23 @@ class DeadPlayer extends Player {
         data.text = data.name;
         data.label = "corpse";
 
+        super(data);
+        
         var player_thing;
-        if (game.player && game.player.id == data.player) {
+
+        if (game.player && game.data.player.player_what == data.player) {
             player_thing = game.player;
-        } else if (game.opponent) {
+        } else if (game.opponent && game.data.opponent.player_what == data.player) {
             player_thing = game.opponent;
         }
 
         if (player_thing) {
-            data.position = player_thing.get_position();
+            const position = player_thing.get_position();
+            this.set_position(position);
             player_thing.set_position({
-                x: data.position.x - 10,
-                y: data.position.y - 10
+                x: position.x > 50 ? position.x - 5 : position.x + 5,
+                y: position.y > 50 ? position.y - 5 : position.y + 5
             });
         }
-
-        super(data);
     }
 }

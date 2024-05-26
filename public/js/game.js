@@ -669,6 +669,8 @@ function start_waiting_for_response(button) {
 }
 
 function look_in_pockets(subject) {
+    ui.game.pockets.classList.remove("gone");
+    
     if (subject == 'self') {
         if (!game.data.player) return;
         if (game.data.player.overpowered) return;
@@ -687,8 +689,6 @@ function look_in_pockets(subject) {
         game.pockets.exit({ immediate: true });
         game.opponent_pockets.enter({ immediate: true });
     }
-    
-    ui.game.pockets.classList.remove("gone");
 }
 
 function close_pockets(e) {
