@@ -94,7 +94,7 @@ socket.on('potential matches', (players) => {
         }, 500);
     } else {
         socket.emit('match found', matchId);
-        sfx("hit");
+        sfx("hit 0");
     }
 })
 

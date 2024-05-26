@@ -57,6 +57,7 @@ document.addEventListener("keydown", async function(e) {
     if (!ui.game.pockets.classList.contains("gone")) {
         if (e.code == 'Escape') {
             close_pockets();
+            sfx("deselect");
 
             e.stopPropagation();
             e.preventDefault();
@@ -76,8 +77,10 @@ document.addEventListener("keypress", async function(e) {
     if (e.code == 'KeyP') {
         if (ui.game.pockets.classList.contains("gone")) {
             look_in_pockets('self');
+            sfx("select");
         } else {
             close_pockets();
+            sfx("deselect");
         }
         return;
     }
@@ -88,7 +91,10 @@ document.addEventListener("keypress", async function(e) {
     }
 })
 
-ui.game.pockets.addEventListener("click", close_pockets);
+ui.game.pockets.addEventListener("click", function() {
+    close_pockets();
+    sfx("deselect");
+});
 
 function toggle_log() {
     ui.game.log.classList.toggle('gone');
@@ -127,7 +133,7 @@ game.start = async function(data) {
 
     game.data = data;
 
-    if (data.player.command || data.player.next_location) {
+    if ((data.player.command && data.player.command.command != 'timed out') || data.player.next_location) {
         socket.emit('cancel game command');
     }
 
@@ -228,6 +234,7 @@ async function update_game(data) {
     const prev = game.data;
 
     console.log("game updated.");
+    game.made_command = false;
 
     clearTimeout(game.turn_timer);
     document.body.classList.remove("timer-active");
@@ -250,59 +257,95 @@ async function update_game(data) {
     
     //
 
-    if (data.player.overpowered) {
-        document.body.classList.add("overpowered");
+    if (data.game.shared_phase && prev && data.player.last_command && data.opponent.last_command) {
+        const self_command = data.player.last_command.command;
+        const opp_command = data.opponent.last_command.command;
+
+        const self_lost_health = data.player.health < prev.player.health;
+        const opp_lost_health = data.opponent.health < prev.opponent.health;
+
+        const self_element = game.player.imageButton.element;
+        const opp_element = game.opponent.imageButton.element;
+        
+        if (self_command == 'punch') {
+            if (opp_lost_health) {
+                let windups = data.player.prev_windup;
+                opp_element.classList.add("hit");
+                sfx("hit "+windups);
+                await wait(400 * (windups + 1));
+                opp_element.classList.remove("hit");
+            } else if (opp_command == 'dodge') {
+                sfx("dodge");
+                await wait(300);
+            } else if (opp_command == 'block') {
+                sfx("hit 0");
+                await wait(200);
+            }
+        }
+
+        if (game.opponent && data.opponent) {
+            game.opponent.updateStats(data.opponent);
+    
+            if (!data.opponent.dead) {
+                if (data.player.overpowered) {
+                    game.opponent.setActions(game.opponent.playerOverpoweredActions);
+                } else if (data.opponent.overpowered) {
+                    game.opponent.setActions(game.opponent.opponentOverpoweredActions);
+                } else {
+                    game.opponent.setActions(game.opponent.fightActions);
+                }
+            } else {
+                game.opponent.setActions();
+            }
+        }
+        
+        if (opp_command == 'punch') {
+            if (self_lost_health) {
+                let windups = data.opponent.prev_windup;
+                self_element.classList.add("hit");
+                sfx("hit "+windups);
+                await wait(400 * (windups + 1));
+                self_element.classList.remove("hit");
+            } else if (self_command == 'dodge') {
+                sfx("dodge");
+                await wait(300);
+            } else if (self_command == 'block') {
+                sfx("hit 0");
+                await wait(200);
+            }
+        }
+
+        if (game.player && data.player) {
+            game.player.updateStats(data.player);
+        }
     } else {
-        document.body.classList.remove("overpowered");
+        if (game.player && data.player) {
+            game.player.updateStats(data.player);
+        }
+    
+        if (game.opponent && data.opponent) {
+            game.opponent.updateStats(data.opponent);
+    
+            if (!data.opponent.dead) {
+                if (data.player.overpowered) {
+                    game.opponent.setActions(game.opponent.playerOverpoweredActions);
+                } else if (data.opponent.overpowered) {
+                    game.opponent.setActions(game.opponent.opponentOverpoweredActions);
+                } else {
+                    game.opponent.setActions(game.opponent.fightActions);
+                }
+            } else {
+                game.opponent.setActions();
+            }
+        }
     }
 
     update_moved_things(prev, data);
 
-    if (game.player && data.player) {
-        game.player.updateStats(data.player);
-        let past = prev.player;
-        let curr = data.player;
-
-        if (curr.health < past.health) {
-            document.body.classList.add("hit");
-            sfx("hit");
-            await wait(300);
-            document.body.classList.remove("hit");
-        }
-
-        if (data.player.command) {
-            let c = data.player.command.command;
-            if (c == 'dodge' && curr.dodge_successful) {
-                sfx("dodge");
-                await wait(300);
-            }
-        }
-    }
-
-    if (game.opponent && data.opponent) {
-        game.opponent.updateStats(data.opponent);
-
-        if (!data.opponent.dead) {
-            if (data.player.overpowered) {
-                game.opponent.setActions(game.opponent.playerOverpoweredActions);
-            } else if (data.opponent.overpowered) {
-                game.opponent.setActions(game.opponent.opponentOverpoweredActions);
-            } else {
-                game.opponent.setActions(game.opponent.fightActions);
-            }
-    
-            let curr = data.opponent;
-    
-            if (data.opponent.command) {
-                let c = data.opponent.command.command;
-                if (c == 'dodge' && curr.dodge_successful) {
-                    sfx("dodge");
-                    await wait(300);
-                }
-            }
-        } else {
-            game.opponent.setActions();
-        }
+    if (data.player.overpowered) {
+        document.body.classList.add("overpowered");
+    } else {
+        document.body.classList.remove("overpowered");
     }
 
     //
@@ -381,7 +424,6 @@ async function update_game(data) {
             socket.emit('timer started', new Date().getTime());
         }
 
-        game.made_command = false;
         document.body.classList.add("timer-active");
         game.timer_active = true;
 
@@ -630,6 +672,11 @@ function update_log(log) {
     ui.game.log.scrollTop = ui.game.log.scrollHeight;
 }
 
+function cancel_command() {
+    socket.emit('cancel game command');
+    sfx("deselect");
+}
+
 function game_command(thing, command, button) {
     if (game.disable_actions) return;
 
@@ -639,6 +686,7 @@ function game_command(thing, command, button) {
         thing: thing,
         command: command
     });
+    sfx("select");
 
     game.made_command = true;
     
@@ -647,7 +695,7 @@ function game_command(thing, command, button) {
 
 function stop_waiting_for_response() {
     if (game.waiting_for_response) {
-        socket.emit('cancel game command');
+        if (game.made_command) cancel_command();
         game.made_command = false;
         document.body.classList.remove("waiting");
         if (lockedButton) {

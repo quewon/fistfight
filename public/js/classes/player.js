@@ -222,7 +222,7 @@ class You extends Player {
         data.actions = {
             "look in <em>p</em>ockets": {
                 description: "<i>(free action)</i>",
-                function: function() { look_in_pockets('self'); close_action_menu() }
+                function: function() { look_in_pockets('self'); sfx("select"); close_action_menu() }
             },
             "open <em>m</em>ap": {
                 description: "end the phase early\n<i>(free action)</i>",
@@ -282,7 +282,7 @@ class Opponent extends Player {
 
             pickpocket: {
                 description: "steal something\nor steal a glance <i>for free</i>",
-                function: function() { look_in_pockets('opp'); close_action_menu() }
+                function: function() { look_in_pockets('opp'); sfx("select"); close_action_menu() }
             }
         }
 

@@ -146,6 +146,10 @@ em {
                                     supported by Chrome, Edge, Opera and Firefox */
 }
 
+.imagebutton.character.hit .input-wrapper input {
+    border: 1px solid red;
+}
+
 .imagebutton > span {
     font-style: italic;
     white-space: pre;
@@ -452,6 +456,7 @@ body.solo-phase .stats,
 #ui-container {
     position: relative;
     font-family: monospace;
+    z-index: 10;
 }
 
 #ui-container > div {
@@ -648,12 +653,12 @@ body.phase-ended .ui-blink {
     left: 0;
     background: color-mix(in srgb, transparent 30%, var(--bg) 70%);
 
-    /* -webkit-backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
     -webkit-transform: translate3d(0,0,0);
     -webkit-transform: translateZ(0);
     backface-visibility: hidden;
     transform: translate3d(0,0,0);
-    transform: translateZ(0); */
+    transform: translateZ(0);
     backdrop-filter: blur(3px);
 }
 #pockets.opponent {

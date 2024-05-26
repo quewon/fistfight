@@ -124,6 +124,7 @@ class Game {
             info_delivered: 0,
             opponent_dead: false,
 
+            prev_windup: 0,
             windup: 0,
             health: 0,
             strength: 0
@@ -268,8 +269,9 @@ class Game {
                 strength: data.strength,
                 health: data.health,
                 windup: data.windup,
+                prev_windup: data.prev_windup,
                 max_windup: data.max_windup,
-                command: data.command,
+                last_command: data.last_command,
                 things: data.things,
 
                 overpowered: data.overpowered,
@@ -544,6 +546,7 @@ class Game {
 
         if (!this.game.shared_phase) {
             this[player_what].messages = [];
+            this[player_what].last_command = this[player_what].command;
         }
 
         conditions = conditions || {};
@@ -618,6 +621,8 @@ class Game {
                         // if (opponent.windup > 0) {
                         //     opponent.messages.push("self: got hit -- windups lost");
                         // }
+                        player.prev_windup = player.windup;
+                        opponent.prev_windup = opponent.windup;
                         opponent.windup = 0;
                         player.windup = 0;
                         if (!conditions.no_logging) {
@@ -929,6 +934,7 @@ class Game {
         if (this[player_what].dead) return;
         this[player_what].overpowered = false;
         this[player_what].health = 1;
+        this[player_what].prev_windup = this[player_what].windup;
         this[player_what].windup = 0;
     }
     
@@ -937,6 +943,8 @@ class Game {
 
         this.player1.messages = [];
         this.player2.messages = [];
+        this.player1.last_command = this.player1.command;
+        this.player2.last_command = this.player2.command;
 
         if (this.player1.dead || this.player2.dead) {
             this.player1.command = this.player1.command || {
@@ -1004,6 +1012,9 @@ class Game {
                 
                 this.damage_player('player1', this.punch_power('player2'));
                 this.damage_player('player2', this.punch_power('player1'));
+
+                p1.prev_windup = p1.windup;
+                p2.prev_windup = p2.windup;
                 p1.windup = 0;
                 p2.windup = 0;
 
@@ -1023,8 +1034,10 @@ class Game {
                 this.log('player2', "self", null, "<em>" + p2.character + "</em> fails to wind up.");
 
                 this.damage_player('player2', this.punch_power('player1'));
+                p1.prev_windup = p1.windup;
                 p1.windup = 0;
                 if (p2.windup > 0) {
+                    p2.prev_windup = p2.windup;
                     p2.windup = 0;
                     // p2.messages.push("self: got hit -- windups lost");
                     // p1.messages.push("opp: got hit -- windups lost");
@@ -1046,8 +1059,10 @@ class Game {
                 this.log('player1', "self", null, "<em>" + p1.character + "</em> fails to wind up.");
 
                 this.damage_player('player1', this.punch_power('player2'));
+                p2.prev_windup = p2.windup;
                 p2.windup = 0;
                 if (p1.windup > 0) {
+                    p1.prev_windup = p1.windup;
                     p1.windup = 0;
                     // p1.messages.push("self: got hit -- windups lost");
                     // p2.messages.push("opp: got hit -- windups lost");
@@ -1069,6 +1084,8 @@ class Game {
 
                 let reduced = this.blocked_punch_power('player1');
                 this.damage_player('player2', reduced);
+                p1.prev_windup = p1.windup;
+                p2.prev_windup = p2.windup;
                 p1.windup = 0;
                 p2.windup = 1;
                 this.msg('player2', "block successful -- damage halved");
@@ -1086,8 +1103,10 @@ class Game {
 
                 let reduced = this.blocked_punch_power('player2');
                 this.damage_player('player1', reduced);
-                this.player1.windup = 1;
-                this.player2.windup = 0;
+                p1.prev_windup = p1.windup;
+                p2.prev_windup = p2.windup;
+                p1.windup = 1;
+                p2.windup = 0;
                 this.msg('player1', "block successful -- damage halved");
                 // this.player2.messages.push("opp: blocked punch");
 
@@ -1118,7 +1137,8 @@ class Game {
                     this.msg('player2', "dodge failed");
                     // this.player1.messages.push("opp: dodge failed");
                 }
-                this.player1.windup = 0;
+                p1.prev_windup = p1.windup;
+                p1.windup = 0;
                 this.next_turn();
                 return;
             }
@@ -1144,7 +1164,8 @@ class Game {
                     this.msg('player1', "dodge failed");
                     // this.player1.messages.push("opp: tried to dodge");
                 }
-                this.player2.windup = 0;
+                p2.prev_windup = p2.windup;
+                p2.windup = 0;
                 this.next_turn();
                 return;
             }
@@ -1335,6 +1356,8 @@ class Game {
         this.player1.time = 0;
         this.player2.time = 0;
 
+        this.player1.prev_windup = this.player1.windup;
+        this.player2.prev_windup = this.player2.windup;
         this.player1.windup = 0;
         this.player2.windup = 0;
 

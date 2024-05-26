@@ -295,19 +295,28 @@ class Map extends Thing {
 }
 
 function toggle_map() {
-    if (game.data.player.location) {
+    if (game.data && game.data.player.location) {
         if (!game.map) {
-            game.map = new Map(game.data);
+            game.map = new Map({
+                player: {
+                    location: game.data.player.location
+                },
+                game: {
+                    map: game.data.game.map
+                }
+            });
             game.location.add_thing(game.map);
             if (game.player) {
                 game.player.mapButton.innerHTML = "close <em>m</em>ap";
             }
+            sfx("select");
         } else {
             game.location.remove_thing(game.map);
             game.map = null;
             if (game.player) {
                 game.player.mapButton.innerHTML = "open <em>m</em>ap";
             }
+            sfx("deselect");
         }
     }
 }
