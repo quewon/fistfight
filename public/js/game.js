@@ -102,7 +102,7 @@ game.start = async function(data) {
 
     window.onbeforeunload = function() {
         if (!game.data.player.opponent) {
-            if (game.data.game.id != "test")
+            if (game.data.game.id != "debug")
                 return "if you leave now, this game will be closed for good!";
         }
     };
@@ -191,10 +191,11 @@ async function init_location(data) {
         locationThings.push(npc);
     }
     
-    // character select
-    if (data.characters) {
-        for (let character_name of data.game.characters) {
-            locationThings.push(new PlayerSelector(character_name, data.characters[character_name]));
+    if (!data.player.location) {
+        if (data.characters) {
+            for (let character_name of data.game.characters) {
+                locationThings.push(new PlayerSelector(character_name, data.characters[character_name]));
+            }
         }
     }
 
@@ -563,7 +564,7 @@ async function play_mouse_messages(mouse_messages) {
 
         var dialogue = await say(message, mouse.x, mouse.y + y);
 
-        y += dialogue.height;
+        y += dialogue.height + 5;
     }
 }
 
@@ -770,4 +771,22 @@ function aabb(x1, y1, w1, h1, x2, y2, w2, h2) {
         return true;
     }
     return false;
+}
+
+function normalize_vector(v) {
+    let length = Math.sqrt(v.x * v.x + v.y * v.y);
+    return {
+        x: v.x / length,
+        y: v.y / length
+    }
+}
+
+function clamp(a, min, max) {
+    return Math.min(Math.max(a, min), max);
+}
+
+function sqr_distance(x1, y1, x2, y2) {
+    let dx = x2 - x1;
+    let dy = y2 - y1;
+    return dx * dx + dy * dy;
 }

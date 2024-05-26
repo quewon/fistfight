@@ -31,12 +31,12 @@ class Dialogue {
         this.element.innerHTML = "";
 
         if (p.thing) {
-            p.thing.imageButton.element.appendChild(this.elementContainer);
-            setTimeout(function() {
-                this.position_in_imagebutton(p.thing.imageButton);
-            }.bind(this), 1);
+            p.thing.imageButton.buttonWrapper.appendChild(this.elementContainer);
             p.thing.imageButton.dialogue = this;
             this.imageButton = p.thing.imageButton;
+            setTimeout(function() {
+                this.position_in_imagebutton(this.imageButton);
+            }.bind(this), 1);
         } else {
             this.setPosition(p.x || mouse.x, p.y || mouse.y);
         }
@@ -62,22 +62,27 @@ class Dialogue {
 
     position_in_imagebutton(imagebutton) {
         let rect = imagebutton.buttonElement.getBoundingClientRect();
-        let x;
         let y = -this.height;
 
         if (rect.left + rect.width/2 > ui.game.container.clientWidth/2) {
             // dialogue on its left
-            x = 0;
+            this.elementContainer.style.right = "unset";
+            this.elementContainer.style.left = "0";
             this.element.classList.remove("arrow-left");
             this.element.classList.add("arrow-right");
         } else {
             // dialogue on its right
-            x = rect.width;
+            if (imagebutton.width) {
+                this.elementContainer.style.left = (imagebutton.width)+"px";
+            } else {
+                this.elementContainer.style.left = "unset";
+                this.elementContainer.style.right = "0";
+            }
             this.element.classList.remove("arrow-right");
             this.element.classList.add("arrow-left");
         }
-        
-        this.setPosition(x, y);
+
+        this.elementContainer.style.top = y+"px";
     }
 
     setPosition(x, y) {
@@ -103,7 +108,7 @@ class Dialogue {
 
     update() {
         this.syllableIndex++;
-        if (this.imageButton && draggingElement != this.imageButton.element) {
+        if (this.imageButton && draggingElement != this.imageButton.element && this.imageButton.container.contains(this.imageButton.element)) {
             this.imageButton.container.appendChild(this.imageButton.element);
         }
 

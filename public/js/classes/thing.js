@@ -35,6 +35,9 @@ class Thing {
             }
         }
 
+        this.spacing_priority = p.spacing_priority;
+        this.ignore_spacing = p.ignore_spacing;
+
         this.imageButton = new ImageButton({
             position: p.position,
             image: p.image,
@@ -97,8 +100,8 @@ class Thing {
         return this.imageButton.get_position();
     }
 
-    set_position(x, y) {
-        this.imageButton.set_position(x, y);
+    set_position(p) {
+        this.imageButton.set_position(p);
     }
 
     async say(message) {

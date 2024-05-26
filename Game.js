@@ -301,7 +301,7 @@ class Game {
 
     dumb_data(player_what) {
         var characters;
-        if (!this[player_what].character) {
+        if (!this[player_what].location) {
             characters = {};
             for (let character of this.game.characters) {
                 characters[character] = dictionary.characters[character];

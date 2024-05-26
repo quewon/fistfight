@@ -198,6 +198,7 @@ async function join_game(key) {
 }
 
 game.lobby = new Location({
+    // ignore_spacing: true,
     things: [
         matchmakingButton,
         hostButton,

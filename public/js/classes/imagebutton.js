@@ -65,7 +65,7 @@ class ImageButton {
 
         this.element = document.createElement("div");
         this.element.className = "imagebutton";
-        this.set_position(p.position || { x: random(20, 60), y: random(20, 60) } );
+        this.set_position(p.position || { x: 50, y: 50 } );
 
         this.overheadElement = document.createElement("div");
         this.overheadElement.className = "overhead";
@@ -102,7 +102,8 @@ class ImageButton {
             }
 
             this.element.style.width = "0";
-            this.element.style.height = "0";
+            this.width = 0;
+            this.height = 0;
             this.buttonElement.onload = function() {
                 this.buttonElement.onload = null;
 
@@ -114,7 +115,6 @@ class ImageButton {
                 this.height = this.buttonElement.clientHeight + 2;
 
                 this.element.style.width = this.width+"px";
-                this.element.style.height = this.height+"px";
 
                 if (parent) {
                     parent.appendChild(this.element);

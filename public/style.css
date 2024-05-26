@@ -213,7 +213,7 @@ body.overpowered .imagebutton:not(.character) input {
 
 body.phase-ended .actions-menu,
 body.overpowered .imagebutton:not(.character) .actions-menu {
-    display: none;
+    visibility: hidden;
 }
 
 body:not(.phase-ended):not(.overpowered) .imagebutton:not(.no-actions) input:focus,
@@ -236,7 +236,7 @@ body.overpowered .imagebutton.character:has(button.locked) input {
 }
 
 .imagebutton .actions-menu {
-    display: none;
+    visibility: hidden;
     pointer-events: none;
 }
 
@@ -244,12 +244,8 @@ body.overpowered .imagebutton.character:has(button.locked) input {
 .imagebutton.selected .tags-container,
 .imagebutton.selected .actions-menu,
 .actions-menu:has(button.matchmaking) {
-    display: flex;
+    visibility: visible;
     pointer-events: auto;
-}
-.imagebutton.selected > span,
-.imagebutton:has(button.locked) > span {
-    display: none;
 }
 
 #tooltip {
@@ -681,4 +677,8 @@ body.phase-ended .ui-blink {
 
 .monospace {
     font-family: monospace;
+}
+
+.hidden {
+    opacity: 0;
 }

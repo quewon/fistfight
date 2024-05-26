@@ -200,7 +200,6 @@ class PlayerSelector extends Player {
         data.image = data.image;
         data.label = data.job;
         data.windup = 0;
-        data.position = { x: random(10, 90), y: random(30, 70) };
         super(data);
 
         this.imageButton.setActions({
@@ -214,6 +213,7 @@ class PlayerSelector extends Player {
 
 class You extends Player {
     constructor(data) {
+        data.spacing_priority = true;
         data.name = "you";
         data.position = { x: 15, y: 30 };
         data.label = "you";
@@ -241,6 +241,8 @@ class You extends Player {
 
 class Opponent extends Player {
     constructor(data) {
+        data.spacing_priority = true;
+
         var fightActions = {
             "wind up punch": {
                 description: "+1 punch power",
@@ -303,6 +305,7 @@ class Opponent extends Player {
 
 class DeadPlayer extends Player {
     constructor(data) {
+        data.spacing_priority = true;
         data.actions = {
             pickpocket: {
                 description: "steal something\nor steal a glance <i>for free</i>",
