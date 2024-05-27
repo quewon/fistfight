@@ -54,6 +54,11 @@ input {
     font-size: inherit;
 }
 
+input[type="image"],
+img {
+    /* image-rendering: pixelated; */
+}
+
 input[type="text"] { /* used in lobby */
     border: none;
     border-bottom: 1px dotted var(--ink);
@@ -181,7 +186,7 @@ em {
 }
 .input-wrapper input[type="image"],
 .input-wrapper img {
-    width: 20%;
+    width: 70%;
 }
 
 input[type="image"] {

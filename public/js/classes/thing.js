@@ -129,7 +129,7 @@ class Thing {
 
 class MissionPrompt extends Thing {
     constructor(data) {
-        data.image = "things/mission prompt.png";
+        data.image = "things/mission prompt.gif";
         data.position = { x:50, y:50 };
         super(data);
 

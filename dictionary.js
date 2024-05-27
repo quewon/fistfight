@@ -2,7 +2,7 @@ const dictionary = {
     characters: {
         "bill": {
             name: "bill",
-            image: "characters/bill.png",
+            image: "characters/bill.gif",
             lines: [
                 "not for the faint of heart",
                 "warning: WILL MURDER"
@@ -42,7 +42,7 @@ const dictionary = {
 
         "jim beans": {
             name: "jim beans",
-            image: "characters/jim beans.png",
+            image: "characters/jim beans.gif",
             lines: [
                 "professional sneaker"
             ],
@@ -138,7 +138,7 @@ const dictionary = {
 
         "chef": {
             name: "chef",
-            image: "npcs/chef.png",
+            image: "npcs/chef.gif",
             dialogue: [
                 "enjoying the food?",
                 "welcome to this lovely dinery",
@@ -149,7 +149,7 @@ const dictionary = {
 
         "librarian": {
             name: "librarian",
-            image: "npcs/librarian.png",
+            image: "npcs/librarian.gif",
             dialogue: [
                 "i'm really into books",
                 "looking for something?",
@@ -225,7 +225,7 @@ const dictionary = {
         "laptop": {
             class: "Thing",
 
-            image: "things/laptop.png",
+            image: "things/laptop.gif",
             tags: ["internet-connected"],
             portable: true
         },
