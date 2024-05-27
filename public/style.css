@@ -16,7 +16,6 @@ html, body {
 
 body {
     background: var(--bg);
-    /* background: radial-gradient(circle at center, var(--bg), var(--self) 100%); */
     color: var(--ink);
     overflow: hidden;
 }
@@ -119,6 +118,7 @@ em {
 /* imagebutton */
 
 #things {
+    background: radial-gradient(circle at center, var(--bg) 60%, var(--self) 400%);
     overflow: hidden;
 }
 
@@ -479,10 +479,12 @@ body.solo-phase .stats,
     font-style: italic;
 }
 
-#waiting-for-response {
+#waiting-for-response,
+#timed-out {
     display: none;
 }
-body.waiting #waiting-for-response {
+body.waiting #waiting-for-response,
+body.timed-out #timed-out {
     display: block;
 }
 body:has(#game-lost:not(.gone)) #no-opponent,
@@ -490,7 +492,8 @@ body:has(#game-lost:not(.gone)) #waiting-for-response,
 body:has(#disconnected:not(.gone)) #no-opponent,
 body:has(#disconnected:not(.gone)) #waiting-for-response,
 body:has(#disconnected:not(.gone)) #game-lost,
-body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
+body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response,
+body.timed-out #no-opponent {
     display: none;
 }
 
@@ -509,32 +512,24 @@ body.dead #ui-container > #spectating {
     display: block;
 }
 
-#gamedata {
-    /* background: transparent;
-    color: var(--ink); */
-    display: block;
+footer {
     position: absolute;
-    bottom: 0;
-    /* translate: 0 100%; */
-    pointer-events: none;
-
-    font-family: monospace;
     padding: 1em;
+    width: 100%;
+    bottom: 0;
+    font-family: monospace;
+    display: flex;
+    justify-content: space-between;
+    box-sizing: border-box;
+    align-items: end;
 }
+
 #gamedata > div {
     pointer-events: auto;
     white-space: pre;
 }
 
 /* music player */
-
-#music-player {
-    font-family: monospace;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    padding: 1em;
-}
 
 #music-player > div {
     display: flex;
@@ -727,6 +722,7 @@ body.phase-ended .ui-blink {
     padding: 0 .5ch;
     text-align: center;
     line-height: 3ch;
+    z-index: 10;
 }
 
 #game-log .x-button,
@@ -806,6 +802,21 @@ body.phase-ended .ui-blink {
     text-align: center;
     margin-top: 1em;
     pointer-events: none;
+}
+
+/* filter */
+
+#filter {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: #4a4444;
+    mix-blend-mode: exclusion;
+    opacity: .3;
+    z-index: 100000;
 }
 
 /* global */

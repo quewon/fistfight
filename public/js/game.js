@@ -86,7 +86,7 @@ document.addEventListener("keydown", async function(e) {
 
 document.addEventListener("keypress", async function(e) {
     if (e.code == 'KeyL') {
-        toggle_log();
+        if (game.data) toggle_log();
         return;
     }
     
@@ -206,6 +206,8 @@ async function init_location(data) {
         if (!game.player) {
             game.player = new You(data.player);
             play_character_theme(data.player.character);
+        } else {
+            game.player.mapButton.innerHTML = "open <em>m</em>ap";
         }
         locationThings.push(game.player);
     } else {
@@ -264,6 +266,7 @@ async function update_game(data) {
     game.made_command = false;
 
     clearTimeout(game.turn_timer);
+    document.body.classList.remove("timed-out");
     document.body.classList.remove("timer-active");
     game.timer_active = false;
 
@@ -271,6 +274,8 @@ async function update_game(data) {
     close_action_menu();
     game.disable_actions = true;
     document.body.classList.add("actions-disabled");
+
+    var is_fighting_phase = data.game.shared_phase && (data.opponent && !data.opponent.dead);
 
     if (data.game.over) console.log("game over!");
 
@@ -378,12 +383,17 @@ async function update_game(data) {
         document.body.classList.remove("overpowered");
     }
 
+    if (data.player.dead) {
+        document.body.classList.add("dead");
+    } else {
+        document.body.classList.remove("dead");
+    }
+
     //
 
     if (data.player.phase_complete) document.body.classList.add("phase-ended");
 
-    if (data.game.shared_phase_complete) {
-        console.log("phase complete. select next location");
+    if (is_fighting_phase && data.game.shared_phase_complete) {
         sfx("boxing bell");
         await wait(1000);
     }
@@ -474,12 +484,6 @@ async function update_game(data) {
             );
             game.turn_timer = setTimeout(resolve_timer, remaining_time);
         }
-    }
-
-    if (data.player.dead) {
-        document.body.classList.add("dead");
-    } else {
-        document.body.classList.remove("dead");
     }
 
     game.data = data;
@@ -622,7 +626,7 @@ function update_moved_things(prev, data) {
         }
     }
 
-    if (!data.game.shared_phase) {
+    if (!data.game.shared_phase || data.opponent && data.opponent.dead) {
         if (pocketed_count > 0) {
             look_in_pockets('self');
         } else if (unpocketed_count > 0) {
@@ -707,10 +711,10 @@ function resolve_timer() {
                 command: 'timed out'
             });
             game.made_command = true;
-            close_action_menu();
-            game.disable_actions = true;
-            document.body.classList.add("actions-disabled");
         }
+        game.disable_actions = true;
+        document.body.classList.add("actions-disabled");
+        document.body.classList.add("timed-out");
     }
 }
 

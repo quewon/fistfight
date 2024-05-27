@@ -1329,12 +1329,19 @@ class Game {
                 this.player1.messages = [];
                 this.player2.messages = [];
 
-                this.global_log("fight adjourned.");
-                this.share_dialogue('fight adjourned');
-                this.msg('player1', "FIGHT ADJOURNED");
-                this.msg('player2', "FIGHT ADJOURNED");
-                this.msg('player1', "pick next location!");
-                this.msg('player2', "pick next location!");
+                if (this.player1.dead || this.player2.dead) {
+                    const player_what = this.player1.dead ? 'player2' : 'player1';
+                    this.log(player_what, null, null, "phase complete.");
+                    this.msg(player_what, "PHASE COMPLETE");
+                    this.msg(player_what, "pick next location!");
+                } else {
+                    this.global_log("fight adjourned.");
+                    this.share_dialogue('fight adjourned');
+                    this.msg('player1', "FIGHT ADJOURNED");
+                    this.msg('player2', "FIGHT ADJOURNED");
+                    this.msg('player1', "pick next location!");
+                    this.msg('player2', "pick next location!");
+                }
             }
 
             this.game.shared_time = this.game.turns_this_phase;

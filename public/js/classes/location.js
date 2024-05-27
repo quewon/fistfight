@@ -17,6 +17,7 @@ class Location {
 
     space_out_things() {
         if (this.ignore_spacing) return;
+        if (this.container.classList.contains("gone")) return;
 
         const WIDTH = this.container.clientWidth;
         const HEIGHT = this.container.clientHeight;
@@ -167,6 +168,7 @@ class Location {
             maxDuration = Math.max(maxDuration, duration);
         }
         if (!conditions.immediate) await wait(maxDuration);
+        this.space_out_things();
         this.onenter();
     }
 

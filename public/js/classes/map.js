@@ -238,7 +238,6 @@ class Map extends Thing {
     }
 
     click(e) {
-        if (!this.imageButton.clickOnDrop) return;
         if (game.disable_actions) return;
 
         e = e || {};

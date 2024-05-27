@@ -36,6 +36,10 @@
                 <div id="waiting-for-response">
                     <em>action placed -- waiting for opponent...</em> (to <em>cancel action</em>, simply click off the button.)
                 </div>
+
+                <div id="timed-out">
+                    <em>timed out -- actions locked.</em>
+                </div>
             </div>
             
             <div id="host-form" class="form gone">
@@ -60,23 +64,25 @@
                 <span><span id="pocket-owner">your</span> pockets, with space for <b><span id="pocket-capacity">?</span></b> more item(s)<br><br><i>click anywhere to exit this menu</i></span>
             </div>
 
-            <div id="gamedata" class="gone">
-                <div>location. <span id="game-location"></span></div>
-                <div>time.     <span id="game-phase"></span><span id="game-time"></span></div>
-            </div>
-
-            <div id="music-player">
-                <div class="song-title">no song</div>
-                <div>
-                    <button class="play" onclick="play_pause_music()">|></button>
-                    <input type="range" value="0" onchange="change_music_progress()">
-                    <span>
-                        <span class="current-time">0:00</span>
-                        /
-                        <span class="duration-time">0:00</span>
-                    </span>
+            <footer>
+                <div id="gamedata" class="gone">
+                    <div>location. <span id="game-location"></span></div>
+                    <div>time.     <span id="game-phase"></span><span id="game-time"></span></div>
                 </div>
-            </div>
+
+                <div style="flex-grow: 1"></div>
+    
+                <div id="music-player">
+                    <div class="song-title">no song</div>
+                    <div>
+                        <button class="play" onclick="play_pause_music();">|></button>
+                        <input type="range" value="0" onchange="change_music_progress()">
+                        <span>
+                            <span class="current-time">0:00</span> / <span class="duration-time">0:00</span>
+                        </span>
+                    </div>
+                </div>
+            </footer>
         </div>
     
         <div id="game-log" class="gone">
@@ -86,6 +92,8 @@
     </div>
 
     <div id="tooltip" class="gone"></div>
+
+    <div id="filter"></div>
     
 </body>
 
