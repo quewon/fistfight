@@ -219,7 +219,9 @@ class Game {
         this[player_what].messages.push(message);
         let opponent_what = player_what == 'player1' ? 'player2' : 'player1';
         let opp = this[opponent_what];
-        if (opp.dead) opp.messages.push(message);
+        if (opp.dead) {
+            opp.messages.push(message.replace("self: ", "opp: "));
+        }
     }
 
     add_player(playerId) {
@@ -273,6 +275,9 @@ class Game {
                 max_windup: data.max_windup,
                 last_command: data.last_command,
                 things: data.things,
+
+                info: data.info,
+                info_delivered: data.info_delivered,
 
                 overpowered: data.overpowered,
                 dodge_successful: data.dodge_successful,
@@ -955,6 +960,8 @@ class Game {
                 command: 'spectate',
                 thing: null
             }
+            this.player1.last_command = this.player1.command;
+            this.player2.last_command = this.player2.command;
             this.process_command('player1');
             this.process_command('player2');
             this.next_turn();

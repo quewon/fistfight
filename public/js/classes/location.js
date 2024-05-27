@@ -13,8 +13,6 @@ class Location {
     add_thing(thing) {
         this.things.push(thing);
         this.enter_thing(thing);
-
-        if (!thing.ignore_spacing) this.space_out_things();
     }
 
     space_out_things() {
@@ -26,6 +24,8 @@ class Location {
 
         var rects = [];
         for (let thing of this.things) {
+            if (thing.ignore_spacing) continue;
+
             let center = thing.get_position();
             if (!center.x || !center.y) {
                 const p = thing.imageButton.get_style_position();
@@ -61,12 +61,10 @@ class Location {
         for (let l=0; l<10000; l++) {
             var has_intersections = false;
             for (let i=0; i<rects.length; i++) {
-                if (rects[i].thing.ignore_spacing) continue;
                 if (rects[i].thing.spacing_priority) continue;
 
                 for (let j=0; j<rects.length; j++) {
                     if (i==j) continue;
-                    if (rects[j].thing.ignore_spacing) continue;
 
                     const r1 = rects[i];
                     const r2 = rects[j];
@@ -149,14 +147,14 @@ class Location {
                     this.container.appendChild(this.element);
                 }
             }.bind(thing.imageButton), duration);
-            setTimeout(this.space_out_things.bind(this), duration);
+            if (!thing.ignore_spacing) setTimeout(this.space_out_things.bind(this), duration);
         } else {
             if (thing.imageButton.keep_in_back) {
                 thing.imageButton.container.prepend(thing.imageButton.element);
             } else {
                 thing.imageButton.container.appendChild(thing.imageButton.element);
             }
-            this.space_out_things();
+            if (!thing.ignore_spacing) this.space_out_things();
         }
     }
 

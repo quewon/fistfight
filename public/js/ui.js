@@ -32,5 +32,24 @@ var ui = {
         
         pocketCapacity: document.getElementById("pocket-capacity"),
         pocketOwner: document.getElementById("pocket-owner"),
+    },
+
+    music: {
+        play: document.getElementsByClassName("play")[0],
+        songTitle: document.getElementsByClassName("song-title")[0],
+        progress: document.querySelector("#music-player input"),
+        isSliding: false,
+        currentTime: document.querySelector(".current-time"),
+        durationTime: document.querySelector(".duration-time")
     }
 }
+
+ui.music.progress.addEventListener("mousedown", function() {
+    ui.music.isSliding = true;
+});
+ui.music.progress.addEventListener("mouseup", function() {
+    ui.music.isSliding = false;
+});
+ui.music.progress.addEventListener("blur", function() {
+    ui.music.isSliding = false;
+});

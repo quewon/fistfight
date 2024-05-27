@@ -56,6 +56,19 @@
                 <div>location. <span id="game-location"></span></div>
                 <div>time.     <span id="game-phase"></span><span id="game-time"></span></div>
             </div>
+
+            <div id="music-player">
+                <div class="song-title">no song</div>
+                <div>
+                    <button class="play" onclick="play_pause_music()">|></button>
+                    <input type="range" value="0" onchange="change_music_progress()">
+                    <span>
+                        <span class="current-time">0:00</span>
+                        /
+                        <span class="duration-time">0:00</span>
+                    </span>
+                </div>
+            </div>
         </div>
     
         <div id="game-log" class="gone">
@@ -94,6 +107,7 @@
         })
     } else {
         game.lobby.enter();
+        music("monotony");
     }
 
     window.addEventListener('popstate', function(e) {

@@ -309,14 +309,12 @@ function toggle_map() {
             if (game.player) {
                 game.player.mapButton.innerHTML = "close <em>m</em>ap";
             }
-            sfx("select");
         } else {
             game.location.remove_thing(game.map);
             game.map = null;
             if (game.player) {
                 game.player.mapButton.innerHTML = "open <em>m</em>ap";
             }
-            sfx("deselect");
         }
     }
 }

@@ -57,8 +57,6 @@ document.addEventListener("keydown", async function(e) {
     if (!ui.game.pockets.classList.contains("gone")) {
         if (e.code == 'Escape') {
             close_pockets();
-            sfx("deselect");
-
             e.stopPropagation();
             e.preventDefault();
             return false;
@@ -77,10 +75,8 @@ document.addEventListener("keypress", async function(e) {
     if (e.code == 'KeyP') {
         if (ui.game.pockets.classList.contains("gone")) {
             look_in_pockets('self');
-            sfx("select");
         } else {
             close_pockets();
-            sfx("deselect");
         }
         return;
     }
@@ -91,10 +87,7 @@ document.addEventListener("keypress", async function(e) {
     }
 })
 
-ui.game.pockets.addEventListener("click", function() {
-    close_pockets();
-    sfx("deselect");
-});
+ui.game.pockets.addEventListener("click", close_pockets);
 
 function toggle_log() {
     ui.game.log.classList.toggle('gone');
@@ -105,6 +98,9 @@ function toggle_log() {
 
 game.start = async function(data) {
     console.log("game start!");
+
+    var is_playing = _music.current && _music.current.playing();
+    music();
 
     window.onbeforeunload = function() {
         if (!game.data.player.opponent) {
@@ -141,6 +137,12 @@ game.start = async function(data) {
 
     init_pockets(data);
     await init_location(data);
+    
+    play_character_theme(data.player.character);
+
+    if (is_playing) {
+        play_pause_music();
+    }
 
     update_log(data.player.log);
 }
@@ -181,7 +183,10 @@ async function init_location(data) {
     }
 
     if (data.player.character) {
-        if (!game.player) game.player = new You(data.player);
+        if (!game.player) {
+            game.player = new You(data.player);
+            play_character_theme(data.player.character);
+        }
         locationThings.push(game.player);
     } else {
         game.player = null;
@@ -257,7 +262,7 @@ async function update_game(data) {
     
     //
 
-    if (data.game.shared_phase && prev && data.player.last_command && data.opponent.last_command) {
+    if (data.game.shared_phase && game.player && game.opponent && prev && data.player.last_command && data.opponent.last_command) {
         const self_command = data.player.last_command.command;
         const opp_command = data.opponent.last_command.command;
 
@@ -266,7 +271,7 @@ async function update_game(data) {
 
         const self_element = game.player.imageButton.element;
         const opp_element = game.opponent.imageButton.element;
-        
+
         if (self_command == 'punch') {
             if (opp_lost_health) {
                 let windups = data.player.prev_windup;
@@ -283,19 +288,12 @@ async function update_game(data) {
             }
         }
 
-        if (game.opponent && data.opponent) {
-            game.opponent.updateStats(data.opponent);
-    
-            if (!data.opponent.dead) {
-                if (data.player.overpowered) {
-                    game.opponent.setActions(game.opponent.playerOverpoweredActions);
-                } else if (data.opponent.overpowered) {
-                    game.opponent.setActions(game.opponent.opponentOverpoweredActions);
-                } else {
-                    game.opponent.setActions(game.opponent.fightActions);
-                }
-            } else {
-                game.opponent.setActions();
+        update_opponent(data);
+        
+        if (self_command == 'kill') {
+            if (data.opponent.dead && !prev.opponent.dead) {
+                sfx("kill");
+                await wait(1000);
             }
         }
         
@@ -315,29 +313,23 @@ async function update_game(data) {
             }
         }
 
-        if (game.player && data.player) {
-            game.player.updateStats(data.player);
-        }
-    } else {
-        if (game.player && data.player) {
-            game.player.updateStats(data.player);
-        }
-    
-        if (game.opponent && data.opponent) {
-            game.opponent.updateStats(data.opponent);
-    
-            if (!data.opponent.dead) {
-                if (data.player.overpowered) {
-                    game.opponent.setActions(game.opponent.playerOverpoweredActions);
-                } else if (data.opponent.overpowered) {
-                    game.opponent.setActions(game.opponent.opponentOverpoweredActions);
-                } else {
-                    game.opponent.setActions(game.opponent.fightActions);
-                }
-            } else {
-                game.opponent.setActions();
+        update_self(data);
+
+        if (opp_command == 'kill') {
+            if (data.player.dead && !prev.player.dead) {
+                sfx("kill");
+                await wait(1000);
             }
         }
+
+        if (opp_command == 'transmit' || self_command == 'transmit') {
+            // doesn't matter if the transmission was valid or not
+            sfx("transmit");
+            await wait(5000);
+        }
+    } else {
+        update_self(data);
+        update_opponent(data);
     }
 
     update_moved_things(prev, data);
@@ -453,6 +445,40 @@ async function update_game(data) {
     }
 
     game.data = data;
+}
+
+function play_character_theme(character) {
+    if (character == "jim beans") {
+        music("the beans out of the can");
+    } else if (character == "bill") {
+        music("bills to pay");
+    } else {
+        music("monotony reprise");
+    }
+}
+
+function update_self(data) {
+    if (game.player && data.player) {
+        game.player.updateStats(data.player);
+    }
+}
+
+function update_opponent(data) {
+    if (game.opponent && data.opponent) {
+        game.opponent.updateStats(data.opponent);
+
+        if (!data.opponent.dead) {
+            if (data.player.overpowered) {
+                game.opponent.setActions(game.opponent.playerOverpoweredActions);
+            } else if (data.opponent.overpowered) {
+                game.opponent.setActions(game.opponent.opponentOverpoweredActions);
+            } else {
+                game.opponent.setActions(game.opponent.fightActions);
+            }
+        } else {
+            game.opponent.setActions();
+        }
+    }
 }
 
 function update_moved_things(prev, data) {
