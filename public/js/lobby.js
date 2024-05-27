@@ -22,6 +22,8 @@ function start_matchmaking(button) {
 
         console.log("looking for players...");
         socket.emit('look for match');
+
+        sfx("select");
     }
 }
 
@@ -35,6 +37,8 @@ function stop_matchmaking() {
 
         console.log("stopped looking for players.");
         socket.emit('stop matching');
+
+        sfx("deselect");
     }
 }
 
@@ -180,10 +184,12 @@ function create_key(key) {
     if (trimmed == "") return;
 
     socket.emit('create key', trimmed);
+    sfx("select");
 }
 
 socket.on('key is in use', () => {
     alert("this key is currently in use!");
+    sfx("deselect");
 })
 
 async function join_game(key) {
@@ -191,6 +197,8 @@ async function join_game(key) {
     if (trimmed == "") return;
 
     window.history.pushState('game', '', '/' + trimmed);
+
+    sfx("select");
 
     await game.lobby.exit();
 

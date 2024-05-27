@@ -236,6 +236,8 @@ async function update_game(data) {
         game.start(data);
     }
 
+    set_music_volume(_music.volume_on_game_update);
+
     const prev = game.data;
 
     console.log("game updated.");
@@ -256,7 +258,7 @@ async function update_game(data) {
         document.body.classList.remove("phase-ended");
     }
 
-    if (data.player.phase_complete && !game.map) {
+    if (data.player.location && data.player.phase_complete && !game.map) {
         toggle_map();
     }
     
@@ -322,7 +324,10 @@ async function update_game(data) {
             }
         }
 
-        if (opp_command == 'transmit' || self_command == 'transmit') {
+        if (
+            opp_command == 'transmit' || self_command == 'transmit'
+            && data.player.last_command.thing != data.opponent.last_command.thing
+        ) {
             // doesn't matter if the transmission was valid or not
             sfx("transmit");
             await wait(5000);
@@ -445,6 +450,8 @@ async function update_game(data) {
     }
 
     game.data = data;
+
+    set_music_volume(1);
 }
 
 function play_character_theme(character) {

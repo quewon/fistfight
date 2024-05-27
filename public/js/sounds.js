@@ -20,11 +20,16 @@ var _sounds = {
 
 var _music = {
     current: null,
-    "monotony": new Howl({ src: "res/music/monotony.wav", loop: true }),
-    "monotony reprise": new Howl({ src: "res/music/monotony reprise.wav", loop: true }),
+    volume: 1,
+    volume_on_game_update: .3,
+    fadetime: 0,
+    fadestep: .1,
 
-    "bills to pay": new Howl({ src: "res/music/lazy killer.wav", loop: true }),
-    "the beans out of the can": new Howl({ src: "res/music/the beans out of the can.wav", loop: true })
+    "monotony": new Howl({ src: "res/music/monotony.wav" }),
+    "monotony reprise": new Howl({ src: "res/music/monotony reprise.wav" }),
+
+    "bills to pay": new Howl({ src: "res/music/lazy killer.wav" }),
+    "the beans out of the can": new Howl({ src: "res/music/the beans out of the can.wav" })
 };
   
 function sfx(name) {
@@ -46,6 +51,8 @@ function music(name) {
 
     if (m) {
         _music.current = m;
+        m.loop(true);
+        m.volume(_music.volume);
 
         const id = m.play();
         if (!is_playing) {
@@ -109,3 +116,19 @@ function play_pause_music() {
 }
 
 setInterval(update_music_progress, 500);
+
+async function set_music_volume(v) {
+    _music.desired_volume = v;
+    if (!_music.fading_volume) {
+        _music.fading_volume = true;
+        while (_music.volume != _music.desired_volume) {
+            _music.volume += _music.fadestep * Math.sign(_music.desired_volume - _music.volume);
+            if (Math.abs(_music.volume - _music.desired_volume) <= _music.fadestep) {
+                _music.volume = _music.desired_volume;
+                _music.fading_volume = false;
+            }
+            if (_music.current) _music.current.volume(_music.volume);
+            await wait(50);
+        }
+    }
+}
