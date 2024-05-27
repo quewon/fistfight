@@ -15,12 +15,20 @@
     <div style="display: flex; top: 0; left: 0; right: 0; bottom: 0; position: absolute; overflow: hidden;">
         <div id="things" style="width: 100%; position: relative">
             <div id="ui-container">
-                <div id="spectating">
+                <div id="game-lost" class="gone">
+                    your game has been lost :( probably due to connection issues. sorry about that!
+                </div>
+
+                <div id="disconnected" class="gone">
+                    <em>disconnected from server...</em>
+                </div>
+
+                <div id="spectating" class="gone">
                     killed -- you are now <em>spectating</em> your opponent.
                 </div>
                 
                 <div id="no-opponent" class="gone">
-                    <em>waiting for opponent...</em>
+                    <em>waiting for opponent to join...</em>
                     the room key is <button onclick="navigator.clipboard.writeText(this.textContent); say('copied to clipboard', event.pageX, event.pageY)" id="room-key"></button>.<span id="invite-prompt">
                     you can also invite someone by sharing the game link!</span>
                 </div>

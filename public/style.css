@@ -485,8 +485,18 @@ body.solo-phase .stats,
 body.waiting #waiting-for-response {
     display: block;
 }
+body:has(#game-lost:not(.gone)) #no-opponent,
+body:has(#game-lost:not(.gone)) #waiting-for-response,
+body:has(#disconnected:not(.gone)) #no-opponent,
+body:has(#disconnected:not(.gone)) #waiting-for-response,
+body:has(#disconnected:not(.gone)) #game-lost,
 body.waiting:has(#no-opponent:not(.gone)) #waiting-for-response {
     display: none;
+}
+
+#ui-container #game-lost,
+#ui-container #disconnected {
+    background: #d33636;
 }
 
 #ui-container > #spectating {

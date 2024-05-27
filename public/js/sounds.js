@@ -20,15 +20,16 @@ var _sounds = {
 
 var _music = {
     current: null,
-    volume: 1,
+    volume: .8,
+    normal_volume: .8,
     volume_on_game_update: .3,
     fadetime: 0,
-    fadestep: .1,
+    fadestep: .05,
 
     "monotony": new Howl({ src: "res/music/monotony.wav" }),
     "monotony reprise": new Howl({ src: "res/music/monotony reprise.wav" }),
 
-    "bills to pay": new Howl({ src: "res/music/lazy killer.wav" }),
+    "bills to pay": new Howl({ src: "res/music/bills to pay.wav" }),
     "the beans out of the can": new Howl({ src: "res/music/the beans out of the can.wav" })
 };
   
@@ -128,7 +129,7 @@ async function set_music_volume(v) {
                 _music.fading_volume = false;
             }
             if (_music.current) _music.current.volume(_music.volume);
-            await wait(50);
+            await wait(30);
         }
     }
 }

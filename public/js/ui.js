@@ -15,6 +15,8 @@ var ui = {
         uiContainer: document.getElementById("ui-container"),
         noOpponent: document.getElementById("no-opponent"),
         roomKey: document.getElementById("room-key"),
+        gameLost: document.getElementById("game-lost"),
+        disconnected: document.getElementById("disconnected"),
 
         timer: document.getElementById("timer-background"),
         container: document.getElementById("things"),

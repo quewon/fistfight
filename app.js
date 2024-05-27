@@ -222,6 +222,12 @@ io.on('connection', (socket) => {
             player.timer_started = date;
         }
     })
+
+    socket.on('check game exists', (gameId) => {
+        if (!games[gameId]) {
+            socket.emit('game does not exist');
+        }
+    })
 })
 
 function unique_game_id(player1, player2) {

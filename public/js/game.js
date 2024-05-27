@@ -37,6 +37,26 @@ socket.on('player offline', () => {
 
 socket.on('game update', update_game);
 
+socket.on('disconnect', () => {
+    ui.game.disconnected.classList.remove("gone");
+    if (game.data) {
+        sfx("deselect");
+    }
+})
+
+socket.on('connect', () => {
+    ui.game.disconnected.classList.add("gone");
+    if (game.data) {
+        sfx("select");
+        socket.emit('check game exists', game.data.game.id);
+    }
+})
+
+socket.on('game does not exist', () => {
+    ui.game.gameLost.classList.remove("gone");
+    game.data = null;
+})
+
 //
 
 ui.lobby.joinForm.querySelector("input").addEventListener("keypress", function(e) {
@@ -103,7 +123,7 @@ game.start = async function(data) {
     music();
 
     window.onbeforeunload = function() {
-        if (!game.data.player.opponent) {
+        if (game.data && !game.data.player.opponent) {
             if (game.data.game.id != "debug")
                 return "if you leave now, this game will be closed for good!";
         }
@@ -274,19 +294,23 @@ async function update_game(data) {
         const self_element = game.player.imageButton.element;
         const opp_element = game.opponent.imageButton.element;
 
+        const hit_base = 300;
+        const hit_extra = 200;
+        const dodge_duration = 300;
+
         if (self_command == 'punch') {
             if (opp_lost_health) {
                 let windups = data.player.prev_windup;
                 opp_element.classList.add("hit");
                 sfx("hit "+windups);
-                await wait(400 * (windups + 1));
+                await wait(hit_base + hit_extra * (windups + 1));
                 opp_element.classList.remove("hit");
             } else if (opp_command == 'dodge') {
                 sfx("dodge");
-                await wait(300);
+                await wait(dodge_duration);
             } else if (opp_command == 'block') {
                 sfx("hit 0");
-                await wait(200);
+                await wait(hit_base + hit_extra);
             }
         }
 
@@ -304,14 +328,14 @@ async function update_game(data) {
                 let windups = data.opponent.prev_windup;
                 self_element.classList.add("hit");
                 sfx("hit "+windups);
-                await wait(400 * (windups + 1));
+                await wait(hit_base + hit_extra * (windups + 1));
                 self_element.classList.remove("hit");
             } else if (self_command == 'dodge') {
                 sfx("dodge");
-                await wait(300);
+                await wait(dodge_duration);
             } else if (self_command == 'block') {
                 sfx("hit 0");
-                await wait(200);
+                await wait(hit_base + hit_extra);
             }
         }
 
@@ -335,6 +359,15 @@ async function update_game(data) {
     } else {
         update_self(data);
         update_opponent(data);
+
+        if (data.player.last_command) {
+            const command = data.player.last_command.command;
+            if (command == 'transmit') {
+                // doesn't matter if the transmission was valid or not
+                sfx("transmit");
+                await wait(5000);
+            }
+        }
     }
 
     update_moved_things(prev, data);
@@ -412,6 +445,11 @@ async function update_game(data) {
         update_log(data.player.log);
     }
 
+    if (!data.player.dead && !data.game.over) {
+        game.disable_actions = false;
+        document.body.classList.remove("actions-disabled");
+    }
+
     if (!data.game.over && data.game.shared_phase && !data.game.shared_phase_complete && data.game.shared_phase_timer != -1 && !(data.opponent.dead || data.player.dead)) {
         let timer_duration = data.game.shared_phase_timer * 1000;
         let remaining_time = timer_duration;
@@ -438,11 +476,6 @@ async function update_game(data) {
         }
     }
 
-    if (!data.player.dead && !data.game.over) {
-        game.disable_actions = false;
-        document.body.classList.remove("actions-disabled");
-    }
-
     if (data.player.dead) {
         document.body.classList.add("dead");
     } else {
@@ -451,7 +484,7 @@ async function update_game(data) {
 
     game.data = data;
 
-    set_music_volume(1);
+    set_music_volume(_music.normal_volume);
 }
 
 function play_character_theme(character) {
@@ -673,6 +706,10 @@ function resolve_timer() {
                 thing: null,
                 command: 'timed out'
             });
+            game.made_command = true;
+            close_action_menu();
+            game.disable_actions = true;
+            document.body.classList.add("actions-disabled");
         }
     }
 }
@@ -712,6 +749,7 @@ function cancel_command() {
 
 function game_command(thing, command, button) {
     if (game.disable_actions) return;
+    if (button && lockedButton == button) return;
 
     stop_waiting_for_response();
 

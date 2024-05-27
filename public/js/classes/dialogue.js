@@ -34,6 +34,7 @@ class Dialogue {
             p.thing.imageButton.buttonWrapper.appendChild(this.elementContainer);
             p.thing.imageButton.dialogue = this;
             this.imageButton = p.thing.imageButton;
+            this.position_in_imagebutton(this.imageButton);
             setTimeout(function() {
                 this.position_in_imagebutton(this.imageButton);
             }.bind(this), 1);
