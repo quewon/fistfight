@@ -460,7 +460,7 @@ async function update_game(data) {
         document.body.classList.remove("actions-disabled");
     }
 
-    if (!data.game.over && data.game.shared_phase && !data.game.shared_phase_complete && data.game.shared_phase_timer != -1 && !(data.opponent.dead || data.player.dead)) {
+    if (data.game.shared_phase_timer != -1 && !data.game.over && data.game.shared_phase && !data.game.shared_phase_complete && !(data.opponent.dead || data.player.dead)) {
         let timer_duration = data.game.shared_phase_timer * 1000;
         let remaining_time = timer_duration;
         if (data.player.timer_started) {

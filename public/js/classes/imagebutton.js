@@ -93,6 +93,7 @@ class ImageButton {
         this.buttonElement = document.createElement("input");
         this.buttonWrapper.appendChild(this.buttonElement);
         this.element.appendChild(this.buttonWrapper);
+        this.loaded = true;
         if (p.image) {
             this.buttonElement.type = "image";
 
@@ -110,6 +111,7 @@ class ImageButton {
             this.element.classList.add("hidden");
             this.width = 0;
             this.height = 0;
+            this.loaded = false;
             this.buttonElement.onload = function() {
                 this.buttonElement.onload = null;
 
@@ -130,6 +132,8 @@ class ImageButton {
                 }
 
                 if (this.onsized) this.onsized();
+
+                this.loaded = true;
             }.bind(this);
 
             this.buttonElement.src = "res/images/"+p.image;

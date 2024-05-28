@@ -15,9 +15,13 @@ html, body {
 }
 
 body {
-    background: var(--bg);
+    background: white;
     color: var(--ink);
     overflow: hidden;
+}
+
+#fixed-background {
+    background: radial-gradient(circle at center, var(--bg) 60%, var(--self) 400%);
 }
 
 body.dragging, body.dragging * {
@@ -130,7 +134,6 @@ em {
 /* imagebutton */
 
 #things {
-    background: radial-gradient(circle at center, var(--bg) 60%, var(--self) 400%);
     overflow: hidden;
 }
 

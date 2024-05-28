@@ -258,7 +258,7 @@ class You extends Player {
     constructor(data) {
         data.spacing_priority = true;
         data.name = "you";
-        data.position = { x: 15, y: 30 };
+        data.position = { x: 20, y: 30 };
         data.label = "you";
         data.text = data.character;
         data.actions = {
@@ -329,7 +329,7 @@ class Opponent extends Player {
         }
 
         data.name = "opponent";
-        data.position = { x: 85, y: 60 };
+        data.position = { x: 80, y: 60 };
         data.label = "opponent";
         data.text = data.character;
         data.actions = data.dead ? null : fightActions;

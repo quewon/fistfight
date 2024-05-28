@@ -12,29 +12,34 @@ async function say(text, x, y) {
 class Dialogue {
     constructor(p) {
         p = p || {};
-        var text = p.text || "";
 
         this.mute = p.mute;
 
-        this.elementContainer = document.createElement("div");
-        this.elementContainer.className = "dialogue-container";
-        document.body.appendChild(this.elementContainer);
+        var elementContainer = document.createElement("div");
+        elementContainer.className = "dialogue-container";
+        document.body.appendChild(elementContainer);
+        this.elementContainer = elementContainer;
 
-        this.element = document.createElement("div");
-        this.element.className = "dialogue";
+        var element = document.createElement("div");
+        element.className = "dialogue";
+        elementContainer.appendChild(element);
+        this.element = element;
+
+        var text = p.text || "";
 
         // calculate width
-        this.elementContainer.appendChild(this.element);
-        this.element.innerHTML = text;
-        this.width = this.element.offsetWidth;
-        this.height = this.element.offsetHeight;
-        this.element.innerHTML = "";
+        element.innerHTML = text;
+        this.width = element.offsetWidth;
+        this.height = element.offsetHeight;
+        element.innerHTML = "";
 
-        if (p.thing) {
-            p.thing.imageButton.buttonWrapper.appendChild(this.elementContainer);
-            p.thing.imageButton.dialogue = this;
-            this.imageButton = p.thing.imageButton;
-            this.position_in_imagebutton(this.imageButton);
+        var thing = p.thing;
+
+        if (thing) {
+            thing.imageButton.buttonWrapper.appendChild(elementContainer);
+            thing.imageButton.dialogue = this;
+            this.imageButton = thing.imageButton;
+            this.position_in_imagebutton(thing.imageButton);
             setTimeout(function() {
                 this.position_in_imagebutton(this.imageButton);
             }.bind(this), 1);
@@ -43,27 +48,28 @@ class Dialogue {
         }
 
         // break down text
-        this.syllables = [];
+        var syllables = [];
 
-        if (p.thing && text[0] == "<") {
+        if (thing && text[0] == "<") {
             let dedication = text.match(/<(.+)>/g)[0]+" ";
             text = text.substring(dedication.length);
-            this.syllables.push(dedication);
+            syllables.push(dedication);
             this.dedication = dedication;
         }
 
         for (let word of text.split(" ")) {
-            let syllables = word.match(/[^aeiouy]*[aeiouy]+(?:[^aeiouy]*$|[^aeiouy](?=[^aeiouy]))?/gi);
-            if (syllables) {
-                for (let syl of syllables) {
-                    this.syllables.push(syl);
+            let syls = word.match(/[^aeiouy]*[aeiouy]+(?:[^aeiouy]*$|[^aeiouy](?=[^aeiouy]))?/gi);
+            if (syls) {
+                for (let syl of syls) {
+                    syllables.push(syl);
                 }
-                this.syllables.push(" ");
+                syllables.push(" ");
             } else {
-                this.syllables.push(word+" ");
+                syllables.push(word+" ");
             }
         }
 
+        this.syllables = syllables;
         this.syllableIndex = -1;
 
         this.update();

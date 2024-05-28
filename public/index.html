@@ -123,7 +123,7 @@
             socket.emit('join game', GAME_KEY);
         })
     } else {
-        game.lobby.enter();
+        game.lobby.enter({ immediate: true });
         music("monotony");
     }
 

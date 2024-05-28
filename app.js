@@ -22,7 +22,7 @@ app.get('/:id', (req, res) => {
 })
 
 server.listen(port, () => {
-    console.log(`server listening on port ${port} on the ${process.env.NODE_ENV} process`);
+    console.log(`server listening on port ${port} on the ${process.env.NODE_ENV} environment`);
 })
 
 // game

@@ -168,8 +168,22 @@ class Location {
             maxDuration = Math.max(maxDuration, duration);
         }
         if (!conditions.immediate) await wait(maxDuration);
-        this.space_out_things();
         this.onenter();
+
+        if (conditions.immediate) {
+            var all_loaded = false;
+            while (!all_loaded) {
+                all_loaded = true;
+                for (let thing of this.things) {
+                    if (!thing.imageButton.loaded) {
+                        all_loaded = false;
+                        break;
+                    }
+                }
+                await wait(1);
+            }
+            this.space_out_things();
+        }
     }
 
     async exit(conditions) {
