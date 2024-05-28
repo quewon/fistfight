@@ -38,6 +38,7 @@ class Game {
             phases: ["morning", "afternoon", "evening"],
             characters: ['bill', 'jim beans'],
             phase: 0,
+            elapsed_phases: 0,
             shared_phase: false,
             shared_time: 0,
             shared_encounters: 0,
@@ -127,7 +128,8 @@ class Game {
             prev_windup: 0,
             windup: 0,
             health: 0,
-            strength: 0
+            strength: 0,
+            money: 0
         }
     }
 
@@ -156,21 +158,30 @@ class Game {
         for (let i=player.effects.length-1; i>=0; i--) {
             var effect = player.effects[i];
             effect.elapsed_turns++;
+
             if (effect.duration_unit == 'phase') {
-                if (this.game.phase - effect.created_phase >= effect.duration) {
-                    player.effects.splice(i, 1);
-                }
+                effect.remaining = effect.duration - (this.game.elapsed_phases - effect.creation_phase);
             } else if (effect.duration_unit == 'turn') {
-                if (effect.elapsed_turns >= effect.duration) {
-                    player.effects.splice(i, 1);
+                effect.remaining = effect.duration - effect.elapsed_turns;
+            }
+            
+            if (effect.remaining <= 0) {
+                var antimodifiers = "";
+                for (let m of effect.modifiers) {
+                    antimodifiers += (m.value > 0 ? "-"+m.value : "+"+(m.value * -1));
+                    antimodifiers += " "+m.property.toUpperCase()+" ";
                 }
-            }   
+                antimodifiers = antimodifiers.trim();
+
+                player.messages.push("<em>"+effect.name+"</em> no longer in effect <br>("+ antimodifiers +")");
+                player.effects.splice(i, 1);
+            }
         }
     }
 
     update_players() {
-        this.update_player_effects('player1');
-        this.update_player_effects('player2');
+        if (!this.player1.dead) this.update_player_effects('player1');
+        if (!this.player2.dead) this.update_player_effects('player2');
     }
 
     get_npcs_in_location(location) {
@@ -275,6 +286,7 @@ class Game {
                 max_windup: data.max_windup,
                 last_command: data.last_command,
                 things: data.things,
+                effects: data.effects,
 
                 info: data.info,
                 info_delivered: data.info_delivered,
@@ -537,12 +549,30 @@ class Game {
     }
 
     create_effect(player_what, effect) {
-        effect.creation_phase = this.game.phase;
+        // effect: {
+        //     name: STRING,
+        //     duration_unit: 'phase' OR 'turn',
+        //     duration: NUMBER (POSITIVE),
+        //     modifiers: [{
+        //         property: STAT_NAME,
+        //         value: NUMBER (POSITIVE OR NEGATIVE)
+        //     }]
+        // }
+
+        effect.creation_phase = this.game.elapsed_phases;
         effect.elapsed_turns = 0;
         effect.modifiers = effect.modifiers || [];
+        effect.remaining = effect.duration;
+
+        var modifiers = "";
+        for (let m of effect.modifiers) {
+            modifiers += (m.value > 0 ? "+"+m.value : m.value);
+            modifiers += " "+m.property.toUpperCase()+" ";
+        }
+        effect.modifiers_string = modifiers.trim();
 
         this[player_what].effects.push(effect);
-        this.msg(player_what, "<em>" + effect.name + "</em> in effect for <em>" + effect.duration + "</em> " + effect.duration_unit + "(s)");
+        this.msg(player_what, "<em>" + effect.name + "</em> in effect for <em>" + effect.duration + "</em> " + effect.duration_unit + "(s) <br>("+effect.modifiers_string+")");
         return effect;
     }
 
@@ -1394,6 +1424,7 @@ class Game {
             this.recover_player('player2');
         }
 
+        this.game.elapsed_phases++;
         this.game.phase++;
         if (this.game.phase >= 3) this.game.phase = 0;
 

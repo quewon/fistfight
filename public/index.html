@@ -12,11 +12,11 @@
     <div id="timer-background"></div>
     <div id="fixed-background"></div>
 
-    <div style="display: flex; top: 0; left: 0; right: 0; bottom: 0; position: absolute; overflow: hidden;">
+    <main>
         <div id="things" style="width: 100%; position: relative">
             <div id="ui-container">
                 <div id="game-lost" class="gone">
-                    your game has been lost :( probably due to connection issues. sorry about that!
+                    your game has been lost :( probably due to connection issues. sorry!
                 </div>
 
                 <div id="disconnected" class="gone">
@@ -89,7 +89,7 @@
 
         </div>
         <button id="log-toggle-button" class="x-button gone" onclick="toggle_log()">x</button>
-    </div>
+    </main>
 
     <div id="tooltip" class="gone"></div>
 
@@ -101,6 +101,7 @@
 
 <script src="js/lib/howler.core.min.js"></script>
 <script src="js/sounds.js"></script>
+
 <script src="js/ui.js"></script>
 
 <script src="js/classes/dialogue.js"></script>

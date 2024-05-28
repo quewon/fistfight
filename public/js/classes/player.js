@@ -2,40 +2,65 @@ class Player extends Thing {
     constructor(data) {
         super(data);
 
-        this.statsElement = document.createElement("div");
-        this.statsElement.className = "stats";
-        this.imageButton.overheadElement.appendChild(this.statsElement);
         this.imageButton.element.classList.add("character");
+
+        this.effectsElement = this.createSideElement("effects");
 
         this.stats = {
             strength: {
+                label: "STRENGTH",
                 element: this.createStatElement("strength"),
                 count: 0,
                 icons_count: 3
             },
             windup: {
+                label: "WINDUP",
                 element: this.createStatElement("windup"),
                 count: 0,
                 max: 0,
                 icons_count: 5
             },
             health: {
+                label: "HEALTH",
                 element: this.createStatElement("health"),
                 count: 0,
                 icons_count: 6
+            },
+            info: {
+                label: "INFO (UNDELIVERED)",
+                element: this.createSideElement("info"),
+                count: 0,
+                icons_count: 3
+            },
+            info_delivered: {
+                label: "INFO (DELIVERED)",
+                element: this.createSideElement("info-delivered"),
+                count: 0,
+                icons_count: 3
             }
         }
 
+        for (let statName in this.stats) {
+            let stat = this.stats[statName];
+            stat.tooltip = attach_tooltip(stat.element, stat.label+": ?");
+        }
+
         this.stats.windup.max = data.max_windup;
-        this.strengthTooltip = attach_tooltip(this.stats.strength.element, "STRENGTH: ?");
 
         this.updateStats(data);
     }
 
+    createSideElement(className) {
+        let element = document.createElement("div");
+        element.className = "stat-container " + className;
+        this.imageButton.sideElement.appendChild(element);
+        return element;
+    }
+
     createStatElement(className) {
         let element = document.createElement("div");
-        element.className = className;
-        this.statsElement.appendChild(element);
+        element.className = "stat-container " + className;
+        this.imageButton.overheadElement.appendChild(element);
         return element;
     }
 
@@ -111,21 +136,38 @@ class Player extends Thing {
             this.imageButton.nameElement.textContent = data.character;
         }
 
-        // if (data.dead) {
-        //     this.imageButton.element.classList.add("dead");
-        //     this.imageButton.nameElement.textContent = data.character + " (dead)";
-        // } else if (this.imageButton.element.classList.contains("dead")) {
-        //     this.imageButton.element.classList.remove("dead");
-        //     this.imageButton.nameElement.textContent = data.character;
-        // }
+        this.updateTooltips(data);
 
-        this.updateStrengthTooltip(data);
+        while (this.effectsElement.lastElementChild) {
+            this.effectsElement.lastElementChild.remove();
+        }
+
+        for (let effect of data.effects) {
+            let div = document.createElement("div");
+            div.className = effect.duration_unit;
+            div.textContent = effect.remaining;
+
+            attach_tooltip(div, "<em>"+effect.name+"</em>\n"+effect.modifiers_string+"\n"+effect.remaining+" "+effect.duration_unit+"(s) left");
+            this.effectsElement.appendChild(div);
+        }
 
         this.previousStats = data;
     }
 
-    updateStrengthTooltip(data) {
-        this.strengthTooltip.text = "STRENGTH: "+data.strength;
+    updateTooltips(data) {
+        for (let statName in this.stats) {
+            let stat = this.stats[statName];
+            let v = data[statName];
+
+            if (stat.max) v += "/"+stat.max;
+
+            if (statName == 'strength') {
+                let ratio = game.data.player.strength + "/" + (game.data.player.strength + data.strength);
+                v = data.strength+"\nRATIO <i>(to opponent)</i>: "+ratio;
+            }
+
+            stat.tooltip.text = stat.label+": "+v;
+        }
     }
 
     decrementStat(statName) {
@@ -297,14 +339,9 @@ class Opponent extends Player {
         this.playerOverpoweredActions = playerOverpoweredActions;
         this.opponentOverpoweredActions = opponentOverpoweredActions;
     }
-
-    updateStrengthTooltip(data) {
-        let ratio = game.data.player.strength + "/" + (game.data.player.strength + data.strength);
-        this.strengthTooltip.text = "STRENGTH: "+data.strength+"\nratio: "+ratio;
-    }
 }
 
-class DeadPlayer extends Player {
+class DeadPlayer extends Thing {
     constructor(data) {
         data.spacing_priority = true;
         data.actions = {

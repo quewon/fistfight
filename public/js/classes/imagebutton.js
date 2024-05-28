@@ -85,6 +85,11 @@ class ImageButton {
 
         this.buttonWrapper = document.createElement("div");
         this.buttonWrapper.className = "input-wrapper";
+
+        this.sideElement = document.createElement("div");
+        this.sideElement.className = "side";
+        this.buttonWrapper.appendChild(this.sideElement);
+
         this.buttonElement = document.createElement("input");
         this.buttonWrapper.appendChild(this.buttonElement);
         this.element.appendChild(this.buttonWrapper);

@@ -1,6 +1,5 @@
 class Map extends Thing {
     constructor(data) {
-        data = data || {};
         data.name = "map";
         data.position = { x: 50, y: 50 };
         data.ignore_spacing = true;

@@ -192,23 +192,23 @@ async function init_location(data) {
     var locationThings = [];
 
     if (data.game.shared_phase) {
-        document.body.classList.remove("solo-phase");
-        document.body.classList.add("shared-phase");
-        if (!game.opponent) game.opponent = new Opponent(data.opponent);
+        game.opponent = new Opponent(data.opponent);
         locationThings.push(game.opponent);
     } else {
-        document.body.classList.add("solo-phase");
-        document.body.classList.remove("shared-phase");
         game.opponent = null;
     }
 
+    if (data.game.shared_phase && (!data.opponent || !data.opponent.dead)) {
+        document.body.classList.remove("solo-phase");
+        document.body.classList.add("shared-phase");
+    } else {
+        document.body.classList.add("solo-phase");
+        document.body.classList.remove("shared-phase");
+    }
+
     if (data.player.character) {
-        if (!game.player) {
-            game.player = new You(data.player);
-            play_character_theme(data.player.character);
-        } else {
-            game.player.mapButton.innerHTML = "open <em>m</em>ap";
-        }
+        game.player = new You(data.player);
+        play_character_theme(data.player.character);
         locationThings.push(game.player);
     } else {
         game.player = null;
@@ -834,14 +834,6 @@ function turn_to_time(phase, turn, turns_this_phase) {
     return hour + ":" + min;
 }
 
-function random(min, max) {
-    return Math.random() * (max - min) + min;
-}
-
-function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 function get_removed(prev, curr) {
     let removed = [];
 
@@ -882,6 +874,16 @@ function get_added(prev, curr) {
     }
 
     return added;
+}
+
+// util
+
+function random(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function aabb(x1, y1, w1, h1, x2, y2, w2, h2) {

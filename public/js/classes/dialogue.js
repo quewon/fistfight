@@ -44,6 +44,14 @@ class Dialogue {
 
         // break down text
         this.syllables = [];
+
+        if (p.thing && text[0] == "<") {
+            let dedication = text.match(/<(.+)>/g)[0]+" ";
+            text = text.substring(dedication.length);
+            this.syllables.push(dedication);
+            this.dedication = dedication;
+        }
+
         for (let word of text.split(" ")) {
             let syllables = word.match(/[^aeiouy]*[aeiouy]+(?:[^aeiouy]*$|[^aeiouy](?=[^aeiouy]))?/gi);
             if (syllables) {
@@ -130,7 +138,11 @@ class Dialogue {
                 duration = 100;
             }
 
-            if (currentSyllable.trim() != "" && !this.mute) {
+            if (currentSyllable == this.dedication) {
+                duration = 700;
+            }
+
+            if (currentSyllable != this.dedication && currentSyllable.trim() != "" && !this.mute) {
                 sfx("click");
             }
 

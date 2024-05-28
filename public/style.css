@@ -24,6 +24,13 @@ body.dragging, body.dragging * {
     cursor: grabbing !important;
 }
 
+main {
+    display: flex;
+    top: 0; left: 0; right: 0; bottom: 0;
+    position: absolute;
+    overflow: hidden;
+}
+
 /* timer and background effects */
 
 #fixed-background,
@@ -226,16 +233,16 @@ body.overpowered .imagebutton:not(.character) .actions-menu {
     visibility: hidden;
 }
 
-body:not(.phase-ended):not(.overpowered) .imagebutton:not(.no-actions) input:focus,
-body.overpowered .imagebutton.character:not(.no-actions) input:focus,
+body:not(.actions-disabled):not(.overpowered) .imagebutton:not(.no-actions) input:focus,
+body:not(.actions-disabled).overpowered .imagebutton.character:not(.no-actions) input:focus,
 .imagebutton input:hover,
 .imagebutton canvas:hover {
     border-color: var(--ink);
 }
 
-body:not(.phase-ended):not(.overpowered) .imagebutton.selected input,
-body:not(.phase-ended):not(.overpowered) .imagebutton:has(button.locked) input,
-body:not(.phase-ended):not(.overpowered) .imagebutton canvas.selected,
+body:not(.actions-disabled):not(.overpowered) .imagebutton:not(.no-actions).selected input,
+body:not(.actions-disabled):not(.overpowered) .imagebutton:not(.no-actions):has(button.locked) input,
+body:not(.actions-disabled):not(.overpowered) .imagebutton:not(.no-actions) canvas.selected,
 body.overpowered .imagebutton.character.selected input,
 body.overpowered .imagebutton.character:has(button.locked) input {
     border: 1px solid var(--ink);
@@ -250,8 +257,6 @@ body.overpowered .imagebutton.character:has(button.locked) input {
     pointer-events: none;
 }
 
-.imagebutton:has(input:hover) .tags-container,
-.imagebutton.selected .tags-container,
 .imagebutton.selected .actions-menu,
 .actions-menu:has(button.matchmaking) {
     visibility: visible;
@@ -316,55 +321,77 @@ body.overpowered .imagebutton.character:has(button.locked) input {
     background: var(--opp);
 }
 
+.side {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding-right: 5px;
+    translate: -100% 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
 .overhead {
-    /* position: absolute; */
-    /* top: 0; */
-    /* left: 0; */
-    /* translate: 0 -100%; */
+    width: max-content;
     pointer-events: none;
 }
 
-.stats {
-    width: max-content;
-    pointer-events: none;
-    padding-bottom: 5px;
-}
-.stats > div {
+.stat-container {
     display: flex;
+    pointer-events: auto;
 }
-.stats img {
+
+.side .stat-container {
+    flex-direction: column;
+}
+
+.stat-container img {
     width: 1em;
     height: 1em;
 }
-.stats img.empty,
-.stats img.decrement {
+.stat-container img.empty,
+.stat-container img.decrement {
     opacity: .2;
     filter: grayscale(100%);
 }
 
-.stats img.decrement {
+.stat-container img.decrement {
     animation: blank 1s linear;
 }
 @keyframes blank {
     0% { }
 }
 
-.stats .strength,
-.stats .windup {
+.stat-container.effects div {
+    border: 1px solid var(--ink);
+    background: var(--bg);
+    border-radius: 50%;
+    text-align: center;
+    height: 1rem;
+    width: 1rem;
+    font-size: .9rem;
+}
+
+.stat-container.strength,
+.stat-container.windup {
     display: inline-flex;
     width: fit-content;
 }
-.stats .strength {
-    pointer-events: auto;
+
+.stat-container.info {
+    filter: grayscale(100%);
+    opacity: .2;
 }
 
-.imagebutton.selected .stats {
+.imagebutton.selected .overhead .stat-container {
     visibility: visible;
 }
 
-.imagebutton.overpowered .stats,
-body.solo-phase .stats,
-.imagebutton.ghost .stats {
+.imagebutton.overpowered .overhead .stat-container,
+body.solo-phase .overhead .stat-container,
+.imagebutton.ghost .overhead .stat-container {
     visibility: hidden;
 }
 

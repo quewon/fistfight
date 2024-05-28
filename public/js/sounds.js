@@ -72,7 +72,7 @@ function music(name) {
 }
 
 function update_music_progress() {
-    if (!_music.current || !_music.current.playing()) return;
+    if (!(_music.current && _music.current.playing())) return;
 
     const duration = _music.current._duration;
     ui.music.progress.max = duration;
@@ -116,8 +116,6 @@ function play_pause_music() {
     }
 }
 
-setInterval(update_music_progress, 500);
-
 async function set_music_volume(v) {
     _music.desired_volume = v;
     if (!_music.fading_volume) {
@@ -133,3 +131,5 @@ async function set_music_volume(v) {
         }
     }
 }
+
+setInterval(update_music_progress, 500);
