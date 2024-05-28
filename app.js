@@ -1,15 +1,17 @@
-const express = require('express')
-const app = express()
-
-// socket.io setup
-const http = require('http')
-const server = http.createServer(app)
-const { Server } = require('socket.io')
-const io = new Server(server)
-
 const port = process.env.PORT || 3000;
 
-app.use(express.static('public'))
+const express = require('express');
+const compression = require('compression');
+const app = express();
+
+// socket.io setup
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server);
+
+app.use(compression({ threshold: 0 }));
+app.use(express.static('public'));
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html')
@@ -20,17 +22,17 @@ app.get('/:id', (req, res) => {
 })
 
 server.listen(port, () => {
-    console.log(`server listening on port ${port}`)
+    console.log(`server listening on port ${port} on the ${process.env.NODE_ENV} process`);
 })
 
 // game
 
 const Game = require('./Game')
 
-const players = {}
-const games = {
+var players = {};
+var games = {
     debug: new Game(io, "debug", true)
-}
+};
 
 io.on('connection', (socket) => {
     console.log("user connected : " + socket.id);
