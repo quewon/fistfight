@@ -142,13 +142,15 @@ class Player extends Thing {
             this.effectsElement.lastElementChild.remove();
         }
 
-        for (let effect of data.effects) {
-            let div = document.createElement("div");
-            div.className = effect.duration_unit;
-            div.textContent = effect.remaining;
+        if (data.effects) {
+            for (let effect of data.effects) {
+                let div = document.createElement("div");
+                div.className = effect.duration_unit;
+                div.textContent = effect.remaining;
 
-            attach_tooltip(div, "<em>"+effect.name+"</em>\n"+effect.modifiers_string+"\n"+effect.remaining+" "+effect.duration_unit+"(s) left");
-            this.effectsElement.appendChild(div);
+                attach_tooltip(div, "<em>"+effect.name+"</em>\n"+effect.modifiers_string+"\n"+effect.remaining+" "+effect.duration_unit+"(s) left");
+                this.effectsElement.appendChild(div);
+            }
         }
 
         this.previousStats = data;
