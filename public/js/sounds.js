@@ -39,6 +39,7 @@ var _music = {
   
 function sfx(name) {
     let sound = _sounds[name];
+    if (!sound) return;
     if (sound.constructor === Array) sound = sound[sound.length * Math.random() | 0];
     const id = sound.play();
   
