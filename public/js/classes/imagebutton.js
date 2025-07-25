@@ -108,7 +108,7 @@ class ImageButton {
             }
 
             this.element.style.width = "0";
-            this.element.classList.add("hidden");
+            // this.element.classList.add("hidden");
             this.width = 0;
             this.height = 0;
             this.loaded = false;
@@ -123,7 +123,7 @@ class ImageButton {
                 this.height = this.buttonElement.clientHeight + 2;
 
                 this.element.style.width = this.width+"px";
-                this.element.classList.remove("hidden");
+                // this.element.classList.remove("hidden");
 
                 if (parent) {
                     parent.appendChild(this.element);

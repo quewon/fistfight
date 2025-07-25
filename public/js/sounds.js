@@ -1,22 +1,26 @@
-var _sounds = {
-    click: [
-        new Howl({ src: "res/sounds/click/1.wav", volume: .2 }),
-        new Howl({ src: "res/sounds/click/2.wav", volume: .2 }),
-        new Howl({ src: "res/sounds/click/3.wav", volume: .2 })
-    ],
-    select: new Howl({ src: "res/sounds/select.wav" }),
-    deselect: new Howl({ src: "res/sounds/deselect.wav" }),
+var _sounds = {}
 
-    "boxing bell": new Howl({ src: "res/sounds/boxing bell.wav" }),
-    ticking: new Howl({ src: "res/sounds/ticking.wav" }),
-    dodge: new Howl({ src: "res/sounds/dodge.wav" }),
-    "hit 0": new Howl({ src: "res/sounds/hit/0.wav" }),
-    "hit 1": new Howl({ src: "res/sounds/hit/1.wav" }),
-    "hit 2": new Howl({ src: "res/sounds/hit/2.wav" }),
-    "hit 3": new Howl({ src: "res/sounds/hit/3.wav" }),
-    kill: new Howl({ src: "res/sounds/kill.wav" }),
-    transmit: new Howl({ src: "res/sounds/transmit.wav" })
-};
+window.addEventListener("load", () => {
+    _sounds = {
+        click: [
+            new Howl({ src: "res/sounds/click/1.wav", volume: .2 }),
+            new Howl({ src: "res/sounds/click/2.wav", volume: .2 }),
+            new Howl({ src: "res/sounds/click/3.wav", volume: .2 })
+        ],
+        select: new Howl({ src: "res/sounds/select.wav" }),
+        deselect: new Howl({ src: "res/sounds/deselect.wav" }),
+
+        "boxing bell": new Howl({ src: "res/sounds/boxing bell.wav" }),
+        ticking: new Howl({ src: "res/sounds/ticking.wav" }),
+        dodge: new Howl({ src: "res/sounds/dodge.wav" }),
+        "hit 0": new Howl({ src: "res/sounds/hit/0.wav" }),
+        "hit 1": new Howl({ src: "res/sounds/hit/1.wav" }),
+        "hit 2": new Howl({ src: "res/sounds/hit/2.wav" }),
+        "hit 3": new Howl({ src: "res/sounds/hit/3.wav" }),
+        kill: new Howl({ src: "res/sounds/kill.wav" }),
+        transmit: new Howl({ src: "res/sounds/transmit.wav" })
+    };
+})
 
 var _music = {
     current: null,
