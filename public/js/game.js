@@ -119,7 +119,7 @@ function toggle_log() {
 game.start = async function(data) {
     console.log("game start!");
 
-    var is_playing = _music.current && _music.current.playing();
+    // var is_playing = _music.current && _music.current.playing();
     // music();
 
     window.onbeforeunload = function() {
@@ -158,7 +158,7 @@ game.start = async function(data) {
     init_pockets(data);
     await init_location(data);
     
-    play_character_theme(data.player.character);
+    // play_character_theme(data.player.character);
 
     // if (is_playing) {
     //     play_pause_music();
@@ -208,7 +208,7 @@ async function init_location(data) {
 
     if (data.player.character) {
         game.player = new You(data.player);
-        play_character_theme(data.player.character);
+        // play_character_theme(data.player.character);
         locationThings.push(game.player);
     } else {
         game.player = null;
@@ -258,7 +258,7 @@ async function update_game(data) {
         game.start(data);
     }
 
-    set_music_volume(_music.volume_on_game_update);
+    // set_music_volume(_music.volume_on_game_update);
 
     const prev = game.data;
 
@@ -488,18 +488,18 @@ async function update_game(data) {
 
     game.data = data;
 
-    set_music_volume(_music.normal_volume);
+    // set_music_volume(_music.normal_volume);
 }
 
-function play_character_theme(character) {
-    if (character == "jim beans") {
-        music("the beans out of the can");
-    } else if (character == "bill") {
-        music("bills to pay");
-    } else {
-        music("monotony reprise");
-    }
-}
+// function play_character_theme(character) {
+//     if (character == "jim beans") {
+//         music("the beans out of the can");
+//     } else if (character == "bill") {
+//         music("bills to pay");
+//     } else {
+//         music("monotony reprise");
+//     }
+// }
 
 function update_self(data) {
     if (game.player && data.player) {
