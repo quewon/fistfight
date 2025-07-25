@@ -120,7 +120,7 @@ game.start = async function(data) {
     console.log("game start!");
 
     var is_playing = _music.current && _music.current.playing();
-    music();
+    // music();
 
     window.onbeforeunload = function() {
         if (game.data && !game.data.player.opponent) {
@@ -160,9 +160,9 @@ game.start = async function(data) {
     
     play_character_theme(data.player.character);
 
-    if (is_playing) {
-        play_pause_music();
-    }
+    // if (is_playing) {
+    //     play_pause_music();
+    // }
 
     update_log(data.player.log);
 }

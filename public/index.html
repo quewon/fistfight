@@ -79,7 +79,7 @@
 
                 <div style="flex-grow: 1"></div>
     
-                <div id="music-player">
+                <!-- <div id="music-player">
                     <div class="song-title">no song</div>
                     <div>
                         <button class="play" onclick="play_pause_music();">|></button>
@@ -88,7 +88,7 @@
                             <span class="current-time">0:00</span> / <span class="duration-time">0:00</span>
                         </span>
                     </div>
-                </div>
+                </div> -->
             </footer>
         </div>
     
@@ -128,7 +128,7 @@
         })
     } else {
         game.lobby.enter({ immediate: true });
-        music("monotony");
+        // music("monotony");
     }
 
     window.addEventListener('popstate', function(e) {
